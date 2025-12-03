@@ -1,4 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Derive server root (without /api) for legacy endpoints
+const SERVER_URL = API_URL.replace(/\/api$/, '');
 
 class ApiClient {
   async request(endpoint: string, options: RequestInit = {}) {
@@ -216,6 +218,34 @@ class ApiClient {
 
   async getChecklistById(id: number) {
     return this.request(`/checklists/${id}`);
+  }
+
+  // Amont legacy: import visitas from CSV string
+  async importVisitasFromCsv(csv: string) {
+    const response = await fetch(`${SERVER_URL}/amont/import-visitas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async importVisitasFromFile(file: File) {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await fetch(`${SERVER_URL}/amont/import-visitas`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+    return response.json();
   }
 }
 

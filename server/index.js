@@ -14,6 +14,7 @@ import actionsRoutes from './routes/actions.js';
 import scoresRoutes from './routes/scores.js';
 import commentsRoutes from './routes/comments.js';
 import checklistsRoutes from './routes/checklists.js';
+import amontRoutes from './routes/amont.js';
 
 dotenv.config();
 
@@ -38,6 +39,8 @@ app.use('/api/actions', actionsRoutes);
 app.use('/api/scores', scoresRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/checklists', checklistsRoutes);
+// Non-API legacy route for Amont integrations
+app.use('/amont', amontRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
