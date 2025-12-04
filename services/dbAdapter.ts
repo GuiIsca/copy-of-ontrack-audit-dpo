@@ -1,21 +1,32 @@
 // Database adapter - calls PostgreSQL API instead of localStorage
 import { api } from './api';
-import type { User, Store, Audit, Visit, ActionPlan, AuditScore, AuditComment, Checklist } from '../types';
+import { User, Store, Audit, Visit, ActionPlan, AuditScore, AuditComment, Checklist, AuditStatus } from '../types';
 
 class DatabaseAdapter {
   // ============ USERS ============
   async getUsers(): Promise<User[]> {
-    return api.getUsers();
+    const users = await api.getUsers();
+    return users.map((u: any) => ({
+      ...u,
+      amontId: u.amont_id,
+      assignedStores: u.assigned_stores
+    }));
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const users = await api.getUsers();
+    const users = await this.getUsers();
     return users.find((u: User) => u.email === email);
   }
 
   async getUserById(id: number): Promise<User | undefined> {
     try {
-      return await api.getUserById(id);
+      const u = await api.getUserById(id);
+      if (!u) return undefined;
+      return {
+        ...u,
+        amontId: u.amont_id,
+        assignedStores: u.assigned_stores
+      };
     } catch {
       return undefined;
     }
@@ -88,19 +99,44 @@ class DatabaseAdapter {
   }
 
   async createAudit(auditData: Partial<Audit> & { user_id?: number; store_id?: number; checklist_id?: number; created_by?: number }): Promise<Audit> {
+    let statusStr = 'SCHEDULED';
+    if (auditData.status) {
+      switch (auditData.status) {
+        case AuditStatus.NEW: statusStr = 'SCHEDULED'; break;
+        case AuditStatus.IN_PROGRESS: statusStr = 'IN_PROGRESS'; break;
+        case AuditStatus.SUBMITTED: statusStr = 'COMPLETED'; break;
+        case AuditStatus.ENDED: statusStr = 'COMPLETED'; break;
+        case AuditStatus.CLOSED: statusStr = 'COMPLETED'; break;
+        case AuditStatus.CANCELLED: statusStr = 'CANCELLED'; break;
+        default: statusStr = 'SCHEDULED';
+      }
+    }
+
     return api.createAudit({
       storeId: auditData.store_id,
       dotUserId: auditData.dot_user_id || auditData.user_id, // Suporta tanto dot_user_id (DOT) como user_id (Aderente)
       checklistId: auditData.checklist_id || 1,
       dtstart: auditData.dtstart,
-      status: auditData.status || 'SCHEDULED',
+      status: statusStr,
       createdBy: auditData.created_by || auditData.createdBy
     });
   }
 
   async updateAudit(audit: Audit): Promise<void> {
+    let statusStr = 'SCHEDULED';
+    // Map numeric enum to string enum for DB
+    switch (audit.status) {
+      case AuditStatus.NEW: statusStr = 'SCHEDULED'; break;
+      case AuditStatus.IN_PROGRESS: statusStr = 'IN_PROGRESS'; break;
+      case AuditStatus.SUBMITTED: statusStr = 'COMPLETED'; break;
+      case AuditStatus.ENDED: statusStr = 'COMPLETED'; break;
+      case AuditStatus.CLOSED: statusStr = 'COMPLETED'; break;
+      case AuditStatus.CANCELLED: statusStr = 'CANCELLED'; break;
+      default: statusStr = 'SCHEDULED';
+    }
+
     await api.updateAudit(audit.id, {
-      status: audit.status,
+      status: statusStr,
       dtend: audit.dtend,
       finalScore: audit.final_score
     });
@@ -204,8 +240,10 @@ class DatabaseAdapter {
     return api.createComment({
       auditId: commentData.audit_id,
       userId: commentData.user_id,
-      content: commentData.content,
-      isInternal: commentData.is_internal
+      // accept both 'comment' (UI) and 'content' (API) keys
+      content: (commentData as any).comment ?? commentData.content ?? '',
+      // accept both 'isInternal' (UI) and 'is_internal' (API) keys
+      isInternal: (commentData as any).isInternal ?? commentData.is_internal ?? false
     });
   }
 

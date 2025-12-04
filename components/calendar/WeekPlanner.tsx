@@ -6,10 +6,17 @@ interface WeekPlannerProps {
   audits: (Audit & { store: Store })[];
   onAuditClick: (auditId: number) => void;
   onDateClick?: (date: Date) => void;
+  initialDate?: Date;
 }
 
-export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, onDateClick }) => {
+export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, onDateClick, initialDate }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  React.useEffect(() => {
+    if (initialDate) {
+      setCurrentDate(new Date(initialDate));
+    }
+  }, [initialDate]);
 
   // Get current week dates (Monday to Sunday)
   const getWeekDates = (date: Date) => {

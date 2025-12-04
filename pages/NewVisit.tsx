@@ -38,7 +38,7 @@ export const NewVisit: React.FC = () => {
         return;
       }
       // DOT only sees their assigned stores
-      const userStores = await db.getStoresForDOT(currentUser.userId);
+      const userStores = await db.getStoresForDOT(currentUser.id);
       setStores(userStores);
     };
     loadStores();
@@ -79,11 +79,11 @@ export const NewVisit: React.FC = () => {
         type: getVisitTypeEnum(visitType),
         title: title.trim(),
         text: text.trim(),
-        user_id: currentUser.userId,
+        user_id: currentUser.id,
         store_id: selectedStoreId as number,
         dtstart: datetime.toISOString(),
         status: AuditStatus.NEW,
-        createdBy: currentUser.userId
+        createdBy: currentUser.id
       });
 
       navigate(getDefaultDashboard());

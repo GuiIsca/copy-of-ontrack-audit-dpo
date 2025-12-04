@@ -42,8 +42,10 @@ export interface Store {
   city: string;
   gpslat: number;
   gpslong: number;
-  dotUserId?: number; // DOT responsável por esta loja (exclusivo)
-  aderenteId?: number; // Aderente vinculado a esta loja (1:1)
+  dotUserId?: number; // Frontend camelCase
+  dot_user_id?: number; // Backend snake_case
+  aderenteId?: number; // Frontend camelCase
+  aderente_id?: number; // Backend snake_case
 }
 
 export interface Checklist {
@@ -75,6 +77,7 @@ export interface Criteria {
 export interface Audit {
   id: number;
   user_id: number;
+  dot_user_id?: number; // Same as user_id, for backward compatibility with DB
   store_id: number;
   checklist_id: number;
   dtstart: string; // ISO Date
@@ -84,6 +87,7 @@ export interface Audit {
   ownercomments?: string;
   status: AuditStatus;
   score?: number;
+  final_score?: number; // Final calculated score
   createdBy?: number; // ID do user que criou (Amont ou DOT) - para controlar permissões
 }
 
@@ -91,12 +95,15 @@ export interface Visit {
   id: number;
   type: VisitType;
   title: string;
-  text?: string;
+  description?: string; // Changed from text to match backend
+  text?: string; // Keep for backward compatibility
   user_id: number; // DOT responsável
   store_id: number;
   dtstart: string; // ISO Date
+  dtend?: string; // ISO Date
   status: AuditStatus; // reutilizamos o status enum
   createdBy: number; // AMONT ou DOT
+  created_by?: number; // Alias for backend compatibility
 }
 
 export interface AuditScore {

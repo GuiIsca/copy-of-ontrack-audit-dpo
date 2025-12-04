@@ -21,8 +21,8 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
     loadComments();
   }, [auditId]);
 
-  const loadComments = () => {
-    const allComments = db.getComments(auditId);
+  const loadComments = async () => {
+    const allComments = await db.getComments(auditId);
     // Aderente não vê comentários internos
     const visibleComments = userIsDOT 
       ? allComments 
@@ -30,11 +30,11 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
     setComments(visibleComments);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !currentUser) return;
 
-    const user = db.getUserByEmail(currentUser.email);
+    const user = await db.getUserByEmail(currentUser.email);
     if (!user) return;
 
     // Get the correct role from user's roles array
@@ -50,7 +50,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
       userRole = 'Aderente';
     }
 
-    db.createComment({
+    await db.createComment({
       audit_id: auditId,
       user_id: user.id,
       username: user.fullname,
@@ -61,7 +61,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
 
     setNewComment('');
     setIsInternal(false);
-    loadComments();
+    await loadComments();
   };
 
   const formatDate = (isoDate: string) => {

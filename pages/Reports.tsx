@@ -31,24 +31,27 @@ export const Reports: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stores = db.getStores();
-    const users = db.getUsers();
-    
-    const allAudits: (Audit & { store: Store })[] = [];
-    users.forEach(user => {
-      const userAudits = db.getAudits(user.id);
-      userAudits.forEach(audit => {
-        const store = stores.find(s => s.id === audit.store_id);
-        if (store) {
-          allAudits.push({ ...audit, store });
-        }
-      });
-    });
+    const load = async () => {
+      const stores = await db.getStores();
+      const users = await db.getUsers();
 
-    setAudits(allAudits);
-    calculateBrandStats(allAudits);
-    calculateMonthlyStats(allAudits);
-    setLoading(false);
+      const allAudits: (Audit & { store: Store })[] = [];
+      for (const user of users) {
+        const userAudits = await db.getAudits(user.id);
+        for (const audit of userAudits) {
+          const store = stores.find(s => s.id === audit.store_id);
+          if (store) {
+            allAudits.push({ ...audit, store });
+          }
+        }
+      }
+
+      setAudits(allAudits);
+      calculateBrandStats(allAudits);
+      calculateMonthlyStats(allAudits);
+      setLoading(false);
+    };
+    load();
   }, []);
 
   const calculateBrandStats = (audits: (Audit & { store: Store })[]) => {

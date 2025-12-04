@@ -5,11 +5,229 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { db } from '../services/dbAdapter';
 import { Store, User, UserRole } from '../types';
-import { Download, Upload, Users as UsersIcon, Store as StoreIcon, Settings, PlusCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Download, Upload, Users as UsersIcon, Store as StoreIcon, Settings, PlusCircle, CheckCircle, AlertCircle, KeyRound, Mail, ChevronDown, ChevronRight, Edit2, Save, X } from 'lucide-react';
 import { Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 const useQuery = () => new URLSearchParams(useLocation().search);
+
+// --- Edit User Modal ---
+interface EditUserModalProps {
+  user: User | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (user: User, additionalData?: any) => Promise<void>;
+  allUsers: User[];
+  allStores: Store[];
+}
+
+const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, onSave, allUsers, allStores }) => {
+  const [formData, setFormData] = useState<Partial<User>>({});
+  const [selectedStores, setSelectedStores] = useState<number[]>([]); // For DOTs
+  const [selectedStore, setSelectedStore] = useState<number | ''>(''); // For Aderentes
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({ ...user });
+      if (user.roles.includes(UserRole.DOT)) {
+        // Find stores assigned to this DOT
+        const assigned = allStores.filter(s => (s.dot_user_id || s.dotUserId) === user.id).map(s => s.id);
+        setSelectedStores(assigned);
+      }
+      if (user.roles.includes(UserRole.ADERENTE)) {
+        // Find store assigned to this Aderente
+        // Support new assignedStores (array) or legacy store.aderenteId
+        const assignedId = user.assignedStores?.[0];
+        const legacyStore = allStores.find(s => (s.aderente_id || s.aderenteId) === user.id);
+        setSelectedStore(assignedId || legacyStore?.id || '');
+      }
+    } else {
+      setFormData({});
+      setSelectedStores([]);
+      setSelectedStore('');
+    }
+    setPassword('');
+  }, [user, allStores, isOpen]);
+
+  if (!isOpen || !user) return null;
+
+  const isAmont = user.roles.includes(UserRole.AMONT);
+  const isDot = user.roles.includes(UserRole.DOT);
+  const isAderente = user.roles.includes(UserRole.ADERENTE);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const updatedUser = { ...user, ...formData };
+      if (password) {
+        (updatedUser as any).password = password;
+      }
+      
+      // Prepare additional data
+      const additionalData: any = {};
+      if (isDot) {
+        additionalData.assignedStoreIds = selectedStores;
+      }
+      if (isAderente) {
+        additionalData.assignedStoreId = selectedStore;
+      }
+
+      await onSave(updatedUser as User, additionalData);
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao guardar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const amonts = allUsers.filter(u => u.roles.includes(UserRole.AMONT));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
+          <h3 className="text-lg font-bold text-gray-900">Editar Utilizador</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+        </div>
+        
+        <div className="p-6 space-y-6 flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input 
+              label="Nome Completo" 
+              value={formData.fullname || ''} 
+              onChange={e => setFormData({...formData, fullname: e.target.value})} 
+            />
+            <Input 
+              label="Email" 
+              value={formData.email || ''} 
+              onChange={e => setFormData({...formData, email: e.target.value})} 
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nova Password (opcional)</label>
+            <div className="flex gap-2">
+              <Input 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="Deixe em branco para manter a atual"
+                type="text"
+              />
+              <Button variant="outline" onClick={() => setPassword(Math.random().toString(36).slice(-8))}>
+                Gerar
+              </Button>
+            </div>
+          </div>
+
+          {isDot && (
+            <div className="space-y-4 border-t pt-4">
+              <h4 className="font-semibold text-gray-900">Configurações DOT</h4>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Supervisor (AMONT)</label>
+                <select 
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={formData.amontId || ''}
+                  onChange={e => setFormData({...formData, amontId: Number(e.target.value)})}
+                >
+                  <option value="">Selecione um AMONT</option>
+                  {amonts.map(a => (
+                    <option key={a.id} value={a.id}>{a.fullname}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Lojas Atribuídas</label>
+                <div className="border rounded-lg p-3 max-h-60 overflow-y-auto bg-gray-50 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {allStores.map(store => {
+                    const isAssigned = selectedStores.includes(store.id);
+                    const dotId = store.dot_user_id || store.dotUserId;
+                    const assignedToOther = dotId && dotId !== user.id;
+                    const otherDot = assignedToOther ? allUsers.find(u => u.id === dotId) : null;
+                    
+                    return (
+                      <label key={store.id} className={`flex items-start gap-2 p-2 rounded border ${isAssigned ? 'bg-blue-50 border-blue-200' : assignedToOther ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' : 'bg-white border-gray-200 cursor-pointer hover:bg-gray-100'}`}>
+                        <input 
+                          type="checkbox"
+                          checked={isAssigned}
+                          disabled={!!assignedToOther}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedStores([...selectedStores, store.id]);
+                            } else {
+                              setSelectedStores(selectedStores.filter(id => id !== store.id));
+                            }
+                          }}
+                          className="mt-1"
+                        />
+                        <div className="text-sm">
+                          <div className="font-medium">{store.codehex} - {store.brand}</div>
+                          <div className="text-xs text-gray-500">{store.city}</div>
+                          {assignedToOther && (
+                            <div className="text-xs text-orange-600 mt-1">
+                              Atribuída a: {otherDot?.fullname || 'Outro DOT'}
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isAderente && (
+            <div className="space-y-4 border-t pt-4">
+              <h4 className="font-semibold text-gray-900">Configurações Aderente</h4>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">DOT Responsável</label>
+                <select 
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={formData.amontId || ''}
+                  onChange={e => setFormData({...formData, amontId: Number(e.target.value)})}
+                >
+                  <option value="">Selecione um DOT</option>
+                  {allUsers.filter(u => u.roles.includes(UserRole.DOT)).map(d => (
+                    <option key={d.id} value={d.id}>{d.fullname}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Loja Vinculada</label>
+                <select 
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={selectedStore}
+                  onChange={e => setSelectedStore(Number(e.target.value))}
+                >
+                  <option value="">Sem loja</option>
+                  {allStores.map(s => {
+                    return (
+                    <option key={s.id} value={s.id}>
+                      {s.codehex} - {s.city}
+                    </option>
+                  )})}
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white">
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={loading}>
+            {loading ? 'A guardar...' : 'Guardar Alterações'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const AdminDashboard: React.FC = () => {
   const query = useQuery();
@@ -22,6 +240,26 @@ export const AdminDashboard: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [feedback, setFeedback] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
+  
+  // Edit Modal State
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Hierarchy Expansion State
+  const [expandedAmonts, setExpandedAmonts] = useState<Set<number>>(new Set());
+  const [expandedDots, setExpandedDots] = useState<Set<number>>(new Set());
+
+  const toggleAmont = (id: number) => {
+    const newSet = new Set(expandedAmonts);
+    if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
+    setExpandedAmonts(newSet);
+  };
+
+  const toggleDot = (id: number) => {
+    const newSet = new Set(expandedDots);
+    if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
+    setExpandedDots(newSet);
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -29,6 +267,9 @@ export const AdminDashboard: React.FC = () => {
       const storesData = await db.getStores();
       setUsers(usersData);
       setStores(storesData);
+      
+      // Auto-expand all initially
+      setExpandedAmonts(new Set(usersData.filter(u => u.roles.includes(UserRole.AMONT)).map(u => u.id)));
     };
     loadData();
   }, []);
@@ -40,14 +281,107 @@ export const AdminDashboard: React.FC = () => {
     setStores(storesData);
   };
 
-  const amonts = useMemo(() => users.filter(u => u.roles.includes(UserRole.AMONT)), [users]);
-  const dots = useMemo(() => users.filter(u => u.roles.includes(UserRole.DOT)), [users]);
-  const aderentes = useMemo(() => users.filter(u => u.roles.includes(UserRole.ADERENTE)), [users]);
+  const handleSaveUser = async (updatedUser: User, additionalData?: any) => {
+    try {
+      await db.updateUser(updatedUser);
+      
+      if (updatedUser.roles.includes(UserRole.DOT) && additionalData?.assignedStoreIds) {
+        // Handle store assignments for DOT
+        const storeIds = additionalData.assignedStoreIds as number[];
+        
+        // 1. Unassign stores that were previously assigned to this DOT but are not anymore
+        const currentStores = stores.filter(s => (s.dot_user_id || s.dotUserId) === updatedUser.id);
+        for (const store of currentStores) {
+          if (!storeIds.includes(store.id)) {
+            await db.assignDOTToStore(store.id, null as any); // Unassign
+          }
+        }
+        
+        // 2. Assign new stores
+        for (const storeId of storeIds) {
+          await db.assignDOTToStore(storeId, updatedUser.id);
+        }
+      }
 
-  // --- Create forms state ---
+      if (updatedUser.roles.includes(UserRole.ADERENTE)) {
+        const storeId = additionalData?.assignedStoreId;
+        // Update user's assignedStores directly
+        updatedUser.assignedStores = storeId ? [Number(storeId)] : [];
+        
+        // Legacy: If we want to be clean, we could clear the old store.aderenteId if it matches this user
+        // But since we are moving to assignedStores, we can just ignore the store.aderenteId field from now on.
+        // However, to avoid confusion in the UI if it falls back to legacy, we might want to clear it.
+        // Let's leave it for now to avoid side effects on other users if logic was shared.
+      }
+
+      setFeedback('Utilizador atualizado com sucesso');
+      await refresh();
+    } catch (e: any) {
+      setErrorMsg(e.message || 'Erro ao atualizar utilizador');
+    }
+  };
+
+  const openEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  // --- Hierarchy Data Preparation ---
+  const hierarchy = useMemo(() => {
+    const amonts = users.filter(u => u.roles.includes(UserRole.AMONT));
+    const dots = users.filter(u => u.roles.includes(UserRole.DOT));
+    const aderentes = users.filter(u => u.roles.includes(UserRole.ADERENTE));
+    
+    const tree = amonts.map(amont => {
+      const myDots = dots.filter(d => Number(d.amontId) === Number(amont.id));
+      const myDotsWithStores = myDots.map(dot => {
+        const myStores = stores.filter(s => Number(s.dot_user_id || s.dotUserId) === Number(dot.id));
+        const myStoresWithAderentes = myStores.map(store => {
+          // Find aderentes who have this store assigned
+          const storeAderentes = aderentes.filter(a => 
+            a.assignedStores?.some(id => Number(id) === Number(store.id))
+          );
+          
+          // Also check legacy field on the store
+          const legacyId = store.aderente_id || store.aderenteId;
+          if (legacyId) {
+             const legacyUser = aderentes.find(a => Number(a.id) === Number(legacyId));
+             // Add if found AND not already in the list
+             if (legacyUser && !storeAderentes.some(a => a.id === legacyUser.id)) {
+                storeAderentes.push(legacyUser);
+             }
+          }
+          return { store, aderentes: storeAderentes };
+        });
+        
+        // Aderentes assigned to this DOT but not in the stores list above
+        const directAderentes = aderentes.filter(a => {
+            if (Number(a.amontId) !== Number(dot.id)) return false;
+            // Check if this aderente is already shown in any of the stores above
+            const isShownInStore = myStoresWithAderentes.some(item => item.aderentes.some(ad => ad.id === a.id));
+            return !isShownInStore;
+        });
+        
+        return { dot, stores: myStoresWithAderentes, directAderentes };
+      });
+      return { amont, dots: myDotsWithStores };
+    });
+
+    const unassignedDots = dots.filter(d => !d.amontId);
+    const unassignedAderentes = aderentes.filter(a => {
+        const hasStore = (a.assignedStores && a.assignedStores.length > 0) || stores.some(s => Number(s.aderente_id || s.aderenteId) === Number(a.id));
+        return !hasStore && !a.amontId;
+    });
+
+    return { tree, unassignedDots, unassignedAderentes };
+  }, [users, stores]);
+
+  // --- Create forms state (Simplified for Modal or keep as is? Keeping as is for now but maybe hidden) ---
+  // ... (Keeping existing create logic but maybe moving it to a "New" button later if requested, 
+  // but for now let's focus on the list view replacement)
   const [amontForm, setAmontForm] = useState({ email: '', fullname: '' });
   const [dotForm, setDotForm] = useState({ email: '', fullname: '', amontId: '' as string });
-  const [aderenteForm, setAderenteForm] = useState({ email: '', fullname: '', storeId: '' as string });
+  const [aderenteForm, setAderenteForm] = useState({ email: '', fullname: '', storeId: '' as string, dotId: '' as string });
   const [storeForm, setStoreForm] = useState({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', dotUserId: '' as string, aderenteId: '' as string });
 
   const clearFeedback = () => { setFeedback(''); setErrorMsg(''); };
@@ -81,19 +415,32 @@ export const AdminDashboard: React.FC = () => {
   const handleCreateAderente = async () => {
     clearFeedback();
     try {
-      const created = await db.createUser({ email: aderenteForm.email.trim(), fullname: aderenteForm.fullname.trim(), roles: [UserRole.ADERENTE] });
+      const payload: any = { 
+        email: aderenteForm.email.trim(), 
+        fullname: aderenteForm.fullname.trim(), 
+        roles: [UserRole.ADERENTE] 
+      };
+      
+      if (aderenteForm.dotId) {
+        payload.amontId = Number(aderenteForm.dotId);
+      }
+
       const storeId = Number(aderenteForm.storeId);
       if (storeId) {
-        await db.assignAderenteToStore(storeId, created.id);
+        payload.assignedStores = [storeId];
       }
-      setAderenteForm({ email: '', fullname: '', storeId: '' });
+
+      await db.createUser(payload);
+      // Legacy assignment removed in favor of assignedStores
+      
+      setAderenteForm({ email: '', fullname: '', storeId: '', dotId: '' });
       setFeedback('Aderente criado com sucesso');
       await refresh();
     } catch (e: any) {
       setErrorMsg(e.message || 'Erro ao criar Aderente');
     }
   };
-
+  // --- Store handlers ---
   const handleCreateStore = async () => {
     clearFeedback();
     try {
@@ -116,128 +463,165 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  // --- Assignments in table ---
   const handleChangeStoreDot = async (storeId: number, dotUserId: number) => {
     clearFeedback();
     try { await db.assignDOTToStore(storeId, dotUserId); setFeedback('DOT atribuído à loja'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro na atribuição'); }
   };
-  const handleChangeStoreAderente = async (storeId: number, aderenteId: number) => {
+
+  const handleAddAderenteToStore = async (storeId: number, userId: number) => {
+    if (!userId) return;
     clearFeedback();
-    try { await db.assignAderenteToStore(storeId, aderenteId); setFeedback('Aderente atribuído à loja'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro na atribuição'); }
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+      
+      const newStores = [...(user.assignedStores || []), storeId];
+      // Ensure unique
+      const unique = [...new Set(newStores)];
+      
+      await db.updateUser({ ...user, assignedStores: unique });
+      setFeedback('Aderente adicionado à loja');
+      await refresh();
+    } catch (e: any) {
+      setErrorMsg(e.message || 'Erro ao adicionar aderente');
+    }
   };
 
-    // --- Delete handlers ---
-    const [confirmState, setConfirmState] = useState<{open:boolean; message:string; onConfirm:()=>void}>({open:false, message:'', onConfirm: ()=>{}});
+  const handleUnassignAderente = async (storeId: number, user: User) => {
+    clearFeedback();
+    try {
+      const newStores = (user.assignedStores || []).filter(id => id !== storeId);
+      await db.updateUser({ ...user, assignedStores: newStores });
+      
+      // Also clear legacy if needed
+      const store = stores.find(s => s.id === storeId);
+      if (store && (store.aderente_id === user.id || store.aderenteId === user.id)) {
+         await db.assignAderenteToStore(storeId, null as any);
+      }
+      
+      setFeedback('Aderente removido da loja');
+      await refresh();
+    } catch (e: any) {
+      setErrorMsg(e.message || 'Erro ao remover aderente');
+    }
+  };
 
-    const openConfirm = (message: string, onConfirm: () => void) => {
-      setConfirmState({ open: true, message, onConfirm });
-    };
-    const closeConfirm = () => setConfirmState(s => ({...s, open:false}));
+  // --- Delete handlers and Confirm dialog state ---
+  const [confirmState, setConfirmState] = useState<{open:boolean; message:string; onConfirm:()=>void}>({open:false, message:'', onConfirm: ()=>{}});
+  const openConfirm = (message: string, onConfirm: () => void) => { setConfirmState({ open: true, message, onConfirm }); };
+  const closeConfirm = () => setConfirmState(s => ({...s, open:false}));
 
-    const handleDeleteAmont = (userId: number) => {
-      openConfirm('Tem certeza que deseja eliminar este AMONT?', async () => {
-        clearFeedback();
-        try { await db.deleteUser(userId); setFeedback('AMONT eliminado com sucesso'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro ao eliminar AMONT'); }
-      });
-    };
+  const handleDeleteUser = (userId: number, role: string) => { 
+    openConfirm(`Tem certeza que deseja eliminar este ${role}?`, async () => { 
+      clearFeedback(); 
+      try { 
+        await db.deleteUser(userId); 
+        setFeedback(`${role} eliminado com sucesso`); 
+        await refresh(); 
+      } catch (e: any) { 
+        // If user not found (404), consider it deleted
+        if (e.message && e.message.includes('404')) {
+           setFeedback(`${role} já tinha sido eliminado`);
+           await refresh();
+        } else {
+           setErrorMsg(e.message || `Erro ao eliminar ${role}`); 
+        }
+      } 
+    }); 
+  };
+  
+  const handleDeleteStore = (storeId: number) => { openConfirm('Tem certeza que deseja eliminar esta Loja?', async () => { clearFeedback(); try { await db.deleteStore(storeId); setFeedback('Loja eliminada com sucesso'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro ao eliminar Loja'); } }); };
 
-    const handleDeleteDOT = (userId: number) => {
-      openConfirm('Tem certeza que deseja eliminar este DOT?', async () => {
-        clearFeedback();
-        try { await db.deleteUser(userId); setFeedback('DOT eliminado com sucesso'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro ao eliminar DOT'); }
-      });
-    };
-
-    const handleDeleteAderente = (userId: number) => {
-      openConfirm('Tem certeza que deseja eliminar este Aderente?', async () => {
-        clearFeedback();
-        try { await db.deleteUser(userId); setFeedback('Aderente eliminado com sucesso'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro ao eliminar Aderente'); }
-      });
-    };
-
-    const handleDeleteStore = (storeId: number) => {
-      openConfirm('Tem certeza que deseja eliminar esta Loja?', async () => {
-        clearFeedback();
-        try { await db.deleteStore(storeId); setFeedback('Loja eliminada com sucesso'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro ao eliminar Loja'); }
-      });
-    };
-
-  // --- CSV Import DOTs & Aderentes ---
+  // --- CSV Import ---
   const [dotCsv, setDotCsv] = useState<File | null>(null);
   const [aderenteCsv, setAderenteCsv] = useState<File | null>(null);
+  const [storeCsv, setStoreCsv] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<{created:number;errors:number}|null>(null);
   const [importBusy, setImportBusy] = useState(false);
 
   const parseCsvText = (text: string) => text.split('\n').filter(l => l.trim());
+  const downloadDotTemplate = () => { const template = `email;fullname;amont_email\n`+`dot1@mousquetaires.com;João Silva;amont1@mousquetaires.com\n`+`dot2@mousquetaires.com;Pedro Martins;amont1@mousquetaires.com`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_dots.csv'; link.click(); };
+  const downloadAderenteTemplate = () => { const template = `email;fullname;store_codehex;dot_email\n`+`aderente100@intermarche.pt;Joana Lopes;LOJ018;dot1@mousquetaires.com\n`+`aderente101@intermarche.pt;Paulo Reis;;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_aderentes.csv'; link.click(); };
+  const downloadStoreTemplate = () => { const template = `codehex;brand;size;city;gpslat;gpslong;dot_email\n`+`LOJ001;Intermarché;Super;Lisboa;38.716;-9.13;dot1@mousquetaires.com\n`+`LOJ002;Bricomarché;Média;Porto;41.15;-8.62;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_lojas.csv'; link.click(); };
 
-  const downloadDotTemplate = () => {
-    const template = `email;fullname;amont_email\n`+
-      `dot1@mousquetaires.com;João Silva;amont1@mousquetaires.com\n`+
-      `dot2@mousquetaires.com;Pedro Martins;amont1@mousquetaires.com`;
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'template_dots.csv';
-    link.click();
-  };
-
-  const downloadAderenteTemplate = () => {
-    const template = `email;fullname;store_codehex\n`+
-      `aderente100@intermarche.pt;Joana Lopes;LOJ018\n`+
-      `aderente101@intermarche.pt;Paulo Reis;`;
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'template_aderentes.csv';
-    link.click();
-  };
-
-  const importDOTs = async () => {
-    if (!dotCsv) return;
-    clearFeedback(); setImportBusy(true); setImportResult(null);
-    try {
-      const text = await dotCsv.text();
-      const lines = parseCsvText(text);
-      const rows = lines.slice(1); // skip header
-      let created = 0, errors = 0;
+  const importDOTs = async () => { if (!dotCsv) return; clearFeedback(); setImportBusy(true); setImportResult(null); try { const text = await dotCsv.text(); const lines = parseCsvText(text); const rows = lines.slice(1); let created = 0, errors = 0; const usersNow = await db.getUsers(); for (const line of rows) { const cols = line.split(';').map(c => c.trim()); if (cols.length < 3) { errors++; continue; } const [email, fullname, amont_email] = cols; const amont = usersNow.find(u => u.email === amont_email && u.roles.includes(UserRole.AMONT)); if (!amont) { errors++; continue; } try { await db.createUser({ email, fullname, roles: [UserRole.DOT], amontId: amont.id, assignedStores: [] }); created++; } catch { errors++; } } setImportResult({ created, errors }); await refresh(); } finally { setImportBusy(false); } };
+  const importAderentes = async () => { 
+    if (!aderenteCsv) return; 
+    clearFeedback(); 
+    setImportBusy(true); 
+    setImportResult(null); 
+    try { 
+      const text = await aderenteCsv.text(); 
+      const lines = parseCsvText(text); 
+      const rows = lines.slice(1); 
+      let created = 0, errors = 0; 
+      const storesNow = await db.getStores(); 
       const usersNow = await db.getUsers();
-      for (const line of rows) {
-        const cols = line.split(';').map(c => c.trim());
-        if (cols.length < 3) { errors++; continue; }
-        const [email, fullname, amont_email] = cols;
-        const amont = usersNow.find(u => u.email === amont_email && u.roles.includes(UserRole.AMONT));
-        if (!amont) { errors++; continue; }
-        try {
-          await db.createUser({ email, fullname, roles: [UserRole.DOT], amontId: amont.id, assignedStores: [] });
-          created++;
-        } catch { errors++; }
-      }
-      setImportResult({ created, errors });
-      await refresh();
-    } finally { setImportBusy(false); }
+      
+      for (const line of rows) { 
+        const cols = line.split(';').map(c => c.trim()); 
+        if (cols.length < 2) { errors++; continue; } 
+        const [email, fullname, store_codehex, dot_email] = cols; 
+        
+        try { 
+          const payload: any = { email, fullname, roles: [UserRole.ADERENTE] };
+          
+          // Find DOT if provided
+          if (dot_email) {
+            const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT));
+            if (dot) payload.amontId = dot.id;
+          }
+
+          // Find Store if provided
+          if (store_codehex) { 
+            const store = storesNow.find(s => s.codehex === store_codehex); 
+            if (store) { 
+              payload.assignedStores = [store.id];
+            } 
+          } 
+          
+          await db.createUser(payload); 
+          created++; 
+        } catch { errors++; } 
+      } 
+      setImportResult({ created, errors }); 
+      await refresh(); 
+    } finally { setImportBusy(false); } 
   };
 
-  const importAderentes = async () => {
-    if (!aderenteCsv) return;
-    clearFeedback(); setImportBusy(true); setImportResult(null);
+  const importStores = async () => {
+    if (!storeCsv) return;
+    clearFeedback();
+    setImportBusy(true);
+    setImportResult(null);
     try {
-      const text = await aderenteCsv.text();
+      const text = await storeCsv.text();
       const lines = parseCsvText(text);
       const rows = lines.slice(1);
       let created = 0, errors = 0;
-      const storesNow = await db.getStores();
+      const usersNow = await db.getUsers();
+
       for (const line of rows) {
         const cols = line.split(';').map(c => c.trim());
-        if (cols.length < 2) { errors++; continue; }
-        const [email, fullname, store_codehex] = cols;
+        if (cols.length < 4) { errors++; continue; }
+        const [codehex, brand, size, city, gpslat, gpslong, dot_email] = cols;
+
         try {
-          const user = await db.createUser({ email, fullname, roles: [UserRole.ADERENTE] });
-          if (store_codehex) {
-            const store = storesNow.find(s => s.codehex === store_codehex);
-            if (store) {
-              await db.assignAderenteToStore(store.id, user.id);
-            }
+          const payload: any = {
+            codehex,
+            brand: brand || 'Intermarché',
+            size: size || 'Super',
+            city,
+            gpslat: Number(gpslat) || 0,
+            gpslong: Number(gpslong) || 0
+          };
+
+          if (dot_email) {
+            const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT));
+            if (dot) payload.dotUserId = dot.id;
           }
+
+          await db.createStore(payload);
           created++;
         } catch { errors++; }
       }
@@ -249,19 +633,18 @@ export const AdminDashboard: React.FC = () => {
   const SectionHeader: React.FC<{title:string; icon?: React.ReactNode}> = ({ title, icon }) => (
     <div className="flex items-center gap-2 mb-3"><span>{icon}</span><h3 className="font-semibold text-gray-900">{title}</h3></div>
   );
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Dashboard do Administrador</h1>
-          <p className="text-sm text-gray-500">Crie AMONT, DOT, Lojas e Aderentes; e importe CSVs em massa.</p>
+          <p className="text-sm text-gray-500">Gestão de Utilizadores e Lojas</p>
         </div>
 
-        <div className="flex gap-2 mb-6">
+        <div className="sticky top-16 z-40 bg-gray-50 pt-2 pb-2 mb-6 flex gap-2 overflow-x-auto border-b border-gray-200">
           <Button variant={activeTab==='overview'?'primary':'outline'} onClick={() => setActiveTab('overview')}>Visão Geral</Button>
-          <Button variant={activeTab==='users'?'primary':'outline'} onClick={() => setActiveTab('users')}>Utilizadores</Button>
+          <Button variant={activeTab==='users'?'primary':'outline'} onClick={() => setActiveTab('users')}>Utilizadores (Hierarquia)</Button>
           <Button variant={activeTab==='stores'?'primary':'outline'} onClick={() => setActiveTab('stores')}>Lojas</Button>
           <Button variant={activeTab==='import'?'primary':'outline'} onClick={() => setActiveTab('import')}>Importar CSV</Button>
         </div>
@@ -283,12 +666,12 @@ export const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded shadow p-4">
               <SectionHeader title="AMONT" icon={<UsersIcon className="w-4 h-4" />} />
-              <div className="text-3xl font-bold">{amonts.length}</div>
+              <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.AMONT)).length}</div>
               <div className="text-sm text-gray-500">Supervisores</div>
             </div>
             <div className="bg-white rounded shadow p-4">
               <SectionHeader title="DOTs" icon={<UsersIcon className="w-4 h-4" />} />
-              <div className="text-3xl font-bold">{dots.length}</div>
+              <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.DOT)).length}</div>
               <div className="text-sm text-gray-500">Auditores</div>
             </div>
             <div className="bg-white rounded shadow p-4">
@@ -300,90 +683,214 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'users' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded shadow p-4">
-              <SectionHeader title="Criar AMONT" icon={<PlusCircle className="w-4 h-4" />} />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Input label="Email" value={amontForm.email} onChange={e=>setAmontForm({...amontForm,email:e.target.value})} />
-                <Input label="Nome" value={amontForm.fullname} onChange={e=>setAmontForm({...amontForm,fullname:e.target.value})} />
+          <div className="space-y-6">
+            {/* Quick Create Actions */}
+            <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+              <h3 className="font-semibold text-gray-800 mb-4">Adicionar Novo Utilizador</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Create AMONT */}
+                <div className="border rounded p-3 bg-gray-50">
+                  <h4 className="text-sm font-bold mb-2">Novo AMONT</h4>
+                  <div className="space-y-2">
+                    <Input placeholder="Nome" value={amontForm.fullname} onChange={e=>setAmontForm({...amontForm,fullname:e.target.value})} />
+                    <Input placeholder="Email" value={amontForm.email} onChange={e=>setAmontForm({...amontForm,email:e.target.value})} />
+                    <Button size="sm" fullWidth onClick={handleCreateAmont}>Criar</Button>
+                  </div>
+                </div>
+                {/* Create DOT */}
+                <div className="border rounded p-3 bg-gray-50">
+                  <h4 className="text-sm font-bold mb-2">Novo DOT</h4>
+                  <div className="space-y-2">
+                    <Input placeholder="Nome" value={dotForm.fullname} onChange={e=>setDotForm({...dotForm,fullname:e.target.value})} />
+                    <Input placeholder="Email" value={dotForm.email} onChange={e=>setDotForm({...dotForm,email:e.target.value})} />
+                    <select className="w-full border rounded px-2 py-2 text-sm" value={dotForm.amontId} onChange={e=>setDotForm({...dotForm,amontId:e.target.value})}>
+                      <option value="">Selecione AMONT</option>
+                      {users.filter(u=>u.roles.includes(UserRole.AMONT)).map(a=><option key={a.id} value={a.id}>{a.fullname}</option>)}
+                    </select>
+                    <Button size="sm" fullWidth onClick={handleCreateDOT}>Criar</Button>
+                  </div>
+                </div>
+                {/* Create Aderente */}
+                <div className="border rounded p-3 bg-gray-50">
+                  <h4 className="text-sm font-bold mb-2">Novo Aderente</h4>
+                  <div className="space-y-2">
+                    <Input placeholder="Nome" value={aderenteForm.fullname} onChange={e=>setAderenteForm({...aderenteForm,fullname:e.target.value})} />
+                    <Input placeholder="Email" value={aderenteForm.email} onChange={e=>setAderenteForm({...aderenteForm,email:e.target.value})} />
+                    <select className="w-full border rounded px-2 py-2 text-sm" value={aderenteForm.dotId} onChange={e=>setAderenteForm({...aderenteForm,dotId:e.target.value})}>
+                      <option value="">Selecione DOT (opcional)</option>
+                      {users.filter(u=>u.roles.includes(UserRole.DOT)).map(d=><option key={d.id} value={d.id}>{d.fullname}</option>)}
+                    </select>
+                    <select className="w-full border rounded px-2 py-2 text-sm" value={aderenteForm.storeId} onChange={e=>setAderenteForm({...aderenteForm,storeId:e.target.value})}>
+                      <option value="">Selecione Loja (opcional)</option>
+                      {stores.map(s => {
+                        const isOccupied = s.aderente_id || s.aderenteId;
+                        return (
+                          <option key={s.id} value={s.id} disabled={!!isOccupied}>
+                            {s.codehex} - {s.city} {isOccupied ? '(Ocupada)' : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <Button size="sm" fullWidth onClick={handleCreateAderente}>Criar</Button>
+                  </div>
+                </div>
               </div>
-              <div className="mt-3"><Button onClick={handleCreateAmont}>Criar AMONT</Button></div>
-              <div className="mt-4">
-                <h4 className="text-sm font-semibold mb-2">AMONT existentes</h4>
-                  <ul className="text-sm text-gray-700 space-y-2 max-h-40 overflow-auto">
-                    {amonts.map(a => (
-                      <li key={a.id} className="flex items-center justify-between">
-                        <span>{a.fullname} — {a.email}</span>
-                        <button onClick={() => handleDeleteAmont(a.id)} className="text-red-600 hover:text-red-800 ml-2" title="Eliminar">
-                          <Trash2 className="w-4 h-4" />
+            </div>
+
+            {/* Hierarchy Tree */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 bg-gray-50">
+                <h3 className="font-bold text-gray-800">Estrutura Organizacional</h3>
+              </div>
+              
+              <div className="divide-y divide-gray-100">
+                {hierarchy.tree.map(({ amont, dots }) => (
+                  <div key={amont.id} className="bg-white">
+                    {/* AMONT Row */}
+                    <div className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3 flex-1">
+                        <button onClick={() => toggleAmont(amont.id)} className="text-gray-400 hover:text-gray-600">
+                          {expandedAmonts.has(amont.id) ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                         </button>
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900">{amont.fullname}</span>
+                          <span className="text-xs text-gray-500 bg-purple-100 text-purple-800 px-2 py-0.5 rounded w-fit">AMONT</span>
+                        </div>
+                        <span className="text-sm text-gray-500 hidden md:inline">{amont.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => openEditUser(amont)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-full" title="Editar">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDeleteUser(amont.id, 'AMONT')} className="p-2 text-red-600 hover:bg-red-50 rounded-full" title="Eliminar">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
 
-            <div className="bg-white rounded shadow p-4">
-              <SectionHeader title="Criar DOT" icon={<PlusCircle className="w-4 h-4" />} />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Input label="Email" value={dotForm.email} onChange={e=>setDotForm({...dotForm,email:e.target.value})} />
-                <Input label="Nome" value={dotForm.fullname} onChange={e=>setDotForm({...dotForm,fullname:e.target.value})} />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Supervisor AMONT</label>
-                  <select className="w-full border rounded px-3 py-2 text-sm" value={dotForm.amontId} onChange={e=>setDotForm({...dotForm,amontId:e.target.value})}>
-                    <option value="">Selecione</option>
-                    {amonts.map(a => (<option key={a.id} value={a.id}>{a.fullname}</option>))}
-                  </select>
-                </div>
-              </div>
-              <div className="mt-3"><Button onClick={handleCreateDOT}>Criar DOT</Button></div>
-              <div className="mt-4">
-                <h4 className="text-sm font-semibold mb-2">DOT existentes</h4>
-                  <ul className="text-sm text-gray-700 space-y-2 max-h-40 overflow-auto">
-                  {dots.map(d => {
-                    const am = amonts.find(a=>a.id===d.amontId);
-                      return (
-                        <li key={d.id} className="flex items-center justify-between">
-                          <span>{d.fullname} — {d.email} {am?`(AMONT: ${am.fullname})`:''}</span>
-                          <button onClick={() => handleDeleteDOT(d.id)} className="text-red-600 hover:text-red-800 ml-2" title="Eliminar">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </li>
-                      );
-                  })}
-                </ul>
-              </div>
-            </div>
+                    {/* DOTs List */}
+                    {expandedAmonts.has(amont.id) && (
+                      <div className="pl-8 md:pl-12 border-l-2 border-gray-100 ml-6 my-2 space-y-2">
+                        {dots.length === 0 && <div className="text-sm text-gray-400 italic p-2">Sem DOTs atribuídos</div>}
+                        {dots.map(({ dot, stores: dotStores, directAderentes }) => (
+                          <div key={dot.id} className="bg-gray-50 rounded-lg border border-gray-200">
+                            {/* DOT Row */}
+                            <div className="flex items-center justify-between p-3">
+                              <div className="flex items-center gap-3 flex-1">
+                                <button onClick={() => toggleDot(dot.id)} className="text-gray-400 hover:text-gray-600">
+                                  {expandedDots.has(dot.id) ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                </button>
+                                <div className="flex flex-col">
+                                  <span className="font-semibold text-gray-800">{dot.fullname}</span>
+                                  <span className="text-xs text-gray-500 bg-blue-100 text-blue-800 px-2 py-0.5 rounded w-fit">DOT</span>
+                                </div>
+                                <span className="text-xs text-gray-500 hidden md:inline">{dot.email}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => openEditUser(dot)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full">
+                                  <Edit2 size={14} />
+                                </button>
+                                <button onClick={() => handleDeleteUser(dot.id, 'DOT')} className="p-1.5 text-red-600 hover:bg-red-50 rounded-full">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
 
-            <div className="bg-white rounded shadow p-4 lg:col-span-2">
-              <SectionHeader title="Criar Aderente" icon={<PlusCircle className="w-4 h-4" />} />
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <Input label="Email" value={aderenteForm.email} onChange={e=>setAderenteForm({...aderenteForm,email:e.target.value})} />
-                <Input label="Nome" value={aderenteForm.fullname} onChange={e=>setAderenteForm({...aderenteForm,fullname:e.target.value})} />
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vincular à Loja (opcional)</label>
-                  <select className="w-full border rounded px-3 py-2 text-sm" value={aderenteForm.storeId} onChange={e=>setAderenteForm({...aderenteForm,storeId:e.target.value})}>
-                    <option value="">Sem vínculo</option>
-                    {stores.map(s => (<option key={s.id} value={s.id}>{s.codehex} — {s.city}</option>))}
-                  </select>
-                </div>
-              </div>
-              <div className="mt-3"><Button onClick={handleCreateAderente}>Criar Aderente</Button></div>
-              <div className="mt-4">
-                <h4 className="text-sm font-semibold mb-2">Aderentes</h4>
-                  <ul className="text-sm text-gray-700 space-y-2 max-h-40 overflow-auto">
-                  {aderentes.map(a => {
-                    const store = stores.find(s=>s.aderenteId===a.id);
-                      return (
-                        <li key={a.id} className="flex items-center justify-between">
-                          <span>{a.fullname} — {a.email} {store?`(Loja: ${store.codehex})`:''}</span>
-                          <button onClick={() => handleDeleteAderente(a.id)} className="text-red-600 hover:text-red-800 ml-2" title="Eliminar">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </li>
-                      );
-                  })}
-                </ul>
+                            {/* Stores & Aderentes List */}
+                            {expandedDots.has(dot.id) && (
+                              <div className="pl-8 pr-2 pb-2 space-y-1">
+                                {dotStores.length === 0 && directAderentes.length === 0 && <div className="text-xs text-gray-400 italic">Sem lojas ou aderentes atribuídos</div>}
+                                
+                                {dotStores.map(({ store, aderentes }) => (
+                                  <div key={store.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-100 text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <StoreIcon size={14} className="text-gray-400" />
+                                      <span className="font-medium">{store.codehex}</span>
+                                      <span className="text-gray-600">- {store.city}</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 items-end">
+                                      {aderentes.length > 0 ? (
+                                        aderentes.map(aderente => (
+                                          <div key={aderente.id} className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-0.5 rounded text-xs">
+                                            <UsersIcon size={12} />
+                                            <span>{aderente.fullname}</span>
+                                            <button onClick={() => openEditUser(aderente)} className="ml-1 hover:text-green-900"><Edit2 size={10} /></button>
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <span className="text-xs text-orange-400 italic">Sem Aderente</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+
+                                {directAderentes.length > 0 && (
+                                  <div className="mt-2 pt-2 border-t border-gray-100">
+                                    <div className="text-xs font-semibold text-gray-500 mb-1">Aderentes sem Loja (Associados ao DOT)</div>
+                                    {directAderentes.map(aderente => (
+                                      <div key={aderente.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-100 text-sm">
+                                        <div className="flex items-center gap-2 text-gray-500 italic">
+                                          <StoreIcon size={14} className="text-gray-300" />
+                                          <span>Sem Loja</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-0.5 rounded text-xs">
+                                          <UsersIcon size={12} />
+                                          <span>{aderente.fullname}</span>
+                                          <button onClick={() => openEditUser(aderente)} className="ml-1 hover:text-green-900"><Edit2 size={10} /></button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Unassigned Section */}
+                {(hierarchy.unassignedDots.length > 0 || hierarchy.unassignedAderentes.length > 0) && (
+                  <div className="bg-gray-50 p-4 border-t border-gray-200">
+                    <h4 className="font-bold text-gray-700 mb-3">Não Atribuídos / Outros</h4>
+                    
+                    {hierarchy.unassignedDots.length > 0 && (
+                      <div className="mb-4">
+                        <h5 className="text-xs font-bold text-gray-500 uppercase mb-2">DOTs sem Supervisor</h5>
+                        <div className="space-y-2">
+                          {hierarchy.unassignedDots.map(dot => (
+                            <div key={dot.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                              <span>{dot.fullname} ({dot.email})</span>
+                              <div className="flex gap-2">
+                                <button onClick={() => openEditUser(dot)} className="text-blue-600"><Edit2 size={16} /></button>
+                                <button onClick={() => handleDeleteUser(dot.id, 'DOT')} className="text-red-600"><Trash2 size={16} /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {hierarchy.unassignedAderentes.length > 0 && (
+                      <div>
+                        <h5 className="text-xs font-bold text-gray-500 uppercase mb-2">Aderentes sem Loja</h5>
+                        <div className="space-y-2">
+                          {hierarchy.unassignedAderentes.map(ad => (
+                            <div key={ad.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                              <span>{ad.fullname} ({ad.email})</span>
+                              <div className="flex gap-2">
+                                <button onClick={() => openEditUser(ad)} className="text-blue-600"><Edit2 size={16} /></button>
+                                <button onClick={() => handleDeleteUser(ad.id, 'Aderente')} className="text-red-600"><Trash2 size={16} /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -404,14 +911,21 @@ export const AdminDashboard: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">DOT (opcional)</label>
                   <select className="w-full border rounded px-3 py-2 text-sm" value={storeForm.dotUserId} onChange={e=>setStoreForm({...storeForm,dotUserId:e.target.value})}>
                     <option value="">—</option>
-                    {dots.map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
+                    {users.filter(u=>u.roles.includes(UserRole.DOT)).map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Aderente (opcional)</label>
                   <select className="w-full border rounded px-3 py-2 text-sm" value={storeForm.aderenteId} onChange={e=>setStoreForm({...storeForm,aderenteId:e.target.value})}>
                     <option value="">—</option>
-                    {aderentes.map(a => (<option key={a.id} value={a.id}>{a.fullname}</option>))}
+                    {users.filter(u=>u.roles.includes(UserRole.ADERENTE)).map(a => {
+                      const hasStore = stores.some(s => (s.aderente_id || s.aderenteId) === a.id);
+                      return (
+                        <option key={a.id} value={a.id} disabled={hasStore}>
+                          {a.fullname} {hasStore ? '(Já tem loja)' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </div>
@@ -434,24 +948,42 @@ export const AdminDashboard: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {stores.map(s => {
-                      const dot = dots.find(d=>d.id===s.dotUserId);
-                      const ad = aderentes.find(a=>a.id===s.aderenteId);
+                      const dotId = s.dot_user_id || s.dotUserId;
+                      const adId = s.aderente_id || s.aderenteId;
+                      const dot = users.find(d=>d.id===dotId);
+                      const ad = users.find(a=>a.id===adId);
                       return (
                         <tr key={s.id}>
                           <td className="px-3 py-2 whitespace-nowrap">{s.codehex}</td>
                           <td className="px-3 py-2 whitespace-nowrap">{s.brand}</td>
                           <td className="px-3 py-2 whitespace-nowrap">{s.city}</td>
                           <td className="px-3 py-2 whitespace-nowrap">
-                            <select className="border rounded px-2 py-1 text-sm" value={s.dotUserId || ''} onChange={e=>handleChangeStoreDot(s.id, Number(e.target.value))}>
+                            <select className="border rounded px-2 py-1 text-sm" value={dotId || ''} onChange={e=>handleChangeStoreDot(s.id, Number(e.target.value))}>
                               <option value="">—</option>
-                              {dots.map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
+                              {users.filter(u=>u.roles.includes(UserRole.DOT)).map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
                             </select>
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
-                            <select className="border rounded px-2 py-1 text-sm" value={s.aderenteId || ''} onChange={e=>handleChangeStoreAderente(s.id, Number(e.target.value))}>
-                              <option value="">—</option>
-                              {aderentes.map(a => (<option key={a.id} value={a.id}>{a.fullname}</option>))}
-                            </select>
+                            <div className="flex flex-col gap-1 min-w-[150px]">
+                              {/* List existing */}
+                              {users.filter(u => u.assignedStores?.includes(s.id) || (u.id === (s.aderente_id || s.aderenteId))).map(u => (
+                                <span key={u.id} className="text-xs bg-gray-100 px-2 py-1 rounded flex justify-between items-center border border-gray-200">
+                                  <span className="truncate max-w-[100px]" title={u.fullname}>{u.fullname}</span>
+                                  <button onClick={() => handleUnassignAderente(s.id, u)} className="ml-1 text-red-500 hover:text-red-700 font-bold">×</button>
+                                </span>
+                              ))}
+                              {/* Add new */}
+                              <select 
+                                className="border rounded px-2 py-1 text-xs mt-1 w-full bg-white" 
+                                value="" 
+                                onChange={e => handleAddAderenteToStore(s.id, Number(e.target.value))}
+                              >
+                                <option value="">+ Adicionar</option>
+                                {users.filter(u => u.roles.includes(UserRole.ADERENTE) && !u.assignedStores?.includes(s.id) && u.id !== (s.aderente_id || s.aderenteId)).map(a => (
+                                  <option key={a.id} value={a.id}>{a.fullname}</option>
+                                ))}
+                              </select>
+                            </div>
                           </td>
                             <td className="px-3 py-2 whitespace-nowrap">
                               <button onClick={() => handleDeleteStore(s.id)} className="text-red-600 hover:text-red-800" title="Eliminar loja">
@@ -482,12 +1014,22 @@ export const AdminDashboard: React.FC = () => {
 
             <div className="bg-white rounded shadow p-4">
               <SectionHeader title="Importar Aderentes (CSV)" icon={<Upload className="w-4 h-4" />} />
-              <p className="text-sm text-gray-600 mb-3">Formato: <code>email;fullname;store_codehex</code> (loja opcional).</p>
+              <p className="text-sm text-gray-600 mb-3">Formato: <code>email;fullname;store_codehex;dot_email</code> (loja/dot opcionais).</p>
               <div className="flex items-center gap-3 mb-3">
                 <input type="file" accept=".csv" onChange={e=>setAderenteCsv(e.target.files?.[0]||null)} />
                 <Button size="sm" onClick={downloadAderenteTemplate}><Download className="w-4 h-4 mr-2"/>Template</Button>
               </div>
               <Button onClick={importAderentes} disabled={!aderenteCsv || importBusy}>Importar Aderentes</Button>
+            </div>
+
+            <div className="bg-white rounded shadow p-4">
+              <SectionHeader title="Importar Lojas (CSV)" icon={<Upload className="w-4 h-4" />} />
+              <p className="text-sm text-gray-600 mb-3">Formato: <code>codehex;brand;size;city;gpslat;gpslong;dot_email</code>.</p>
+              <div className="flex items-center gap-3 mb-3">
+                <input type="file" accept=".csv" onChange={e=>setStoreCsv(e.target.files?.[0]||null)} />
+                <Button size="sm" onClick={downloadStoreTemplate}><Download className="w-4 h-4 mr-2"/>Template</Button>
+              </div>
+              <Button onClick={importStores} disabled={!storeCsv || importBusy}>Importar Lojas</Button>
             </div>
 
             {importResult && (
@@ -504,6 +1046,15 @@ export const AdminDashboard: React.FC = () => {
           onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }}
           title="Confirmar eliminação"
           confirmText="Eliminar"
+        />
+        
+        <EditUserModal 
+          user={editingUser}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveUser}
+          allUsers={users}
+          allStores={stores}
         />
       </main>
     </div>

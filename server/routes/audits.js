@@ -60,6 +60,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { status, dtend, finalScore } = req.body;
+    console.log('PUT /api/audits/:id', { id: req.params.id, status, dtend, finalScore });
     const result = await query(
       `UPDATE audits 
        SET status = COALESCE($1, status), 
@@ -71,9 +72,11 @@ router.put('/:id', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Audit not found' });
     }
+    console.log('Audit updated successfully:', result.rows[0].id);
     res.json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update audit' });
+    console.error('PUT /api/audits/:id error:', error);
+    res.status(500).json({ error: 'Failed to update audit', details: error.message });
   }
 });
 

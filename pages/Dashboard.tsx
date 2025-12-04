@@ -18,6 +18,7 @@ export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   type CalendarScope = 'month' | 'week';
   const [calendarScope, setCalendarScope] = useState<CalendarScope>('month');
+  const [weekFocusDate, setWeekFocusDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     const loadData = async () => {
@@ -38,14 +39,9 @@ export const Dashboard: React.FC = () => {
         setAssignedStores(stores);
       }
 
-      // Carregar auditorias e visitas
-      let rawAudits = await db.getAudits(1);
+      // Carregar auditorias e visitas do usuário atual
+      const rawAudits = user ? await db.getAudits(user.id) : [];
       const visits: Visit[] = user ? await db.getVisitsForDOT(user.id) : [];
-      
-      // DOT: mostrar apenas as suas auditorias (CSV agendadas e manuais)
-      if (user?.roles.includes('DOT' as any)) {
-        rawAudits = rawAudits.filter(a => a.user_id === user.id);
-      }
       const stores = await db.getStores();
       
       const enrichedAudits = rawAudits.map(a => ({
@@ -165,6 +161,7 @@ export const Dashboard: React.FC = () => {
                   // Navigate to select visit type with pre-selected date
                   navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } });
                 }}
+                onShowWeek={(date) => { setWeekFocusDate(date); setCalendarScope('week'); }}
               />
             ) : (
               <WeekPlanner 
@@ -174,6 +171,7 @@ export const Dashboard: React.FC = () => {
                   // Navigate to select visit type with pre-selected date
                   navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } });
                 }}
+                initialDate={weekFocusDate}
               />
             )}
           </div>

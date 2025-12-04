@@ -1,4 +1,4 @@
-import { UserRole } from '../types';
+import { UserRole, AuditStatus } from '../types';
 import { getCurrentUser, hasRole } from './auth';
 
 // ====================================
@@ -12,7 +12,8 @@ export const canCreateAudit = (): boolean => {
   return hasRole(UserRole.DOT) || hasRole(UserRole.AMONT) || hasRole(UserRole.ADMIN);
 };
 
-export const canEditAudit = (auditStatus: number, auditUserId?: number, createdBy?: number): boolean => {
+// Accept both numeric and string statuses to support mixed sources
+export const canEditAudit = (auditStatus: number | string, auditUserId?: number, createdBy?: number): boolean => {
   const currentUser = getCurrentUser();
   if (!currentUser) return false;
 
@@ -22,12 +23,21 @@ export const canEditAudit = (auditStatus: number, auditUserId?: number, createdB
   // AMONT pode editar metadados (não conteúdo específico do DOT)
   if (hasRole(UserRole.AMONT)) return true;
   
-  // DOT pode editar apenas se:
-  // - É o criador da auditoria (user_id)
-  // - Auditoria ainda não foi submetida
-  // - Se foi criada por Amont (createdBy), DOT pode preencher mas não pode apagar
+  // DOT pode editar conteúdos enquanto não submetida.
+  // Relaxamos a restrição do criador para permitir preenchimento
+  // de auditorias atribuídas/geradas pelo AMONT.
   if (hasRole(UserRole.DOT)) {
-    return auditStatus < 3 && (!auditUserId || currentUser.userId === auditUserId);
+    // Normalize status to a comparable form
+    let isEditable = false;
+    if (typeof auditStatus === 'number') {
+      // Legacy numeric statuses: allow anything below submitted/closed
+      isEditable = auditStatus < 3;
+    } else {
+      // String statuses: allow NEW and SCHEDULED and IN_PROGRESS
+      const statusStr = String(auditStatus).toUpperCase();
+      isEditable = statusStr === 'NEW' || statusStr === 'SCHEDULED' || statusStr === 'IN_PROGRESS';
+    }
+    return isEditable;
   }
   
   return false;
@@ -73,12 +83,31 @@ export const canViewAudit = (): boolean => {
   return true;
 };
 
-export const canSubmitAudit = (auditUserId: number): boolean => {
+export const canSubmitAudit = (auditUserId: number | undefined, auditStatus?: number | string): boolean => {
   const currentUser = getCurrentUser();
   if (!currentUser) return false;
   
-  // Apenas o criador DOT pode submeter a sua auditoria
-  return currentUser.userId === auditUserId && hasRole(UserRole.DOT);
+  // DOT pode submeter auditorias em curso (incluindo criadas pelo AMONT)
+  if (hasRole(UserRole.DOT)) {
+    // If provided, respect creator when available but don't require it
+    const isCreatorOrAssigned = auditUserId ? currentUser.userId === auditUserId : true;
+    // Allow submission for NEW/SCHEDULED/IN_PROGRESS
+    let isSubmittable = true;
+    if (auditStatus !== undefined) {
+      if (typeof auditStatus === 'number') {
+        isSubmittable = auditStatus < 3; // before SUBMITTED/CLOSED
+      } else {
+        const statusStr = String(auditStatus).toUpperCase();
+        isSubmittable = statusStr === 'NEW' || statusStr === 'SCHEDULED' || statusStr === 'IN_PROGRESS';
+      }
+    }
+    return isCreatorOrAssigned && isSubmittable;
+  }
+  
+  // AMONT and ADMIN can also manage submission in broader workflows
+  if (hasRole(UserRole.AMONT) || hasRole(UserRole.ADMIN)) return true;
+  
+  return false;
 };
 
 export const canManageActions = (): boolean => {

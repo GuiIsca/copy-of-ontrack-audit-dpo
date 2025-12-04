@@ -170,14 +170,14 @@ export const Login: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/forgot-password')}
-                  className="font-medium text-blue-600 hover:text-blue-500"
+                  className="font-medium text-red-600 hover:text-red-500"
                 >
                   Esqueci a password
                 </button>
               </div>
             </div>
 
-            <Button type="submit" fullWidth className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" fullWidth className="bg-red-600 hover:bg-red-700">
               ENTRAR
             </Button>
           </form>

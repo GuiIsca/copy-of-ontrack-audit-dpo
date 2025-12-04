@@ -33,6 +33,7 @@ export const AmontDashboard: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   type CalendarScope = 'month' | 'week';
   const [calendarScope, setCalendarScope] = useState<CalendarScope>('month');
+  const [weekFocusDate, setWeekFocusDate] = useState<Date | undefined>(undefined);
   const [pageSize, setPageSize] = useState<PageSize>(15);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStore, setSelectedStore] = useState<number | ''>('');
@@ -47,8 +48,8 @@ export const AmontDashboard: React.FC = () => {
       const allUsers = await db.getUsers();
       setUsers(allUsers);
       
-      // Get all audits
-      const allAuditsData = await db.getAudits(1);
+      // Get all audits (Amont sees all)
+      const allAuditsData = await db.getAudits();
       const enrichedAudits: VisitItem[] = allAuditsData
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
@@ -679,12 +680,14 @@ export const AmontDashboard: React.FC = () => {
                   audits={plannerAudits}
                   onAuditClick={(id) => navigate(`/amont/audit/${id}`)}
                   onDateClick={(date) => navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } })}
+                  onShowWeek={(date) => { setWeekFocusDate(date); setCalendarScope('week'); }}
                 />
               ) : (
                 <WeekPlanner
                   audits={plannerAudits}
                   onAuditClick={(id) => navigate(`/amont/audit/${id}`)}
                   onDateClick={(date) => navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } })}
+                  initialDate={weekFocusDate}
                 />
               );
             })()}

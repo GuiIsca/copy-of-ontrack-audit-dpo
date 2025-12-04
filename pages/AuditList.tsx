@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditStatus, Store } from '../types';
+import { Audit, AuditStatus, Store, Visit, VisitType } from '../types';
 import { getCurrentUser } from '../utils/auth';
 import { ArrowLeft, Calendar as CalendarIcon, List, Building2, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -12,6 +12,9 @@ type PageSize = 5 | 15 | 25;
 export const AuditList: React.FC = () => {
   const navigate = useNavigate();
   const [audits, setAudits] = useState<(Audit & { store: Store })[]>([]);
+  const [visits, setVisits] = useState<(Visit & { store: Store })[]>([]);
+  const [allStores, setAllStores] = useState<Store[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [pageSize, setPageSize] = useState<PageSize>(15);
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,26 +24,36 @@ export const AuditList: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return;
-    
-    const user = db.getUserByEmail(currentUser.email);
-    if (!user) return;
-    
-    // DOT vê apenas as suas auditorias
-    const rawAudits = db.getAudits(1);
-    const stores = db.getStores();
-    
-    // Filtrar auditorias para DOT (apenas as suas)
-    const filteredAudits = user.roles.includes('DOT' as any)
-      ? rawAudits.filter(a => a.user_id === user.id)
-      : rawAudits; // AMONT vê todas
-    
-    const enriched = filteredAudits.map(a => ({
+    const loadData = async () => {
+      const currentUser = getCurrentUser();
+      if (!currentUser) return;
+
+      const user = await db.getUserByEmail(currentUser.email);
+      if (!user) return;
+
+      const stores = await db.getStores();
+      const users = await db.getUsers();
+      setAllStores(stores);
+      setAllUsers(users);
+
+      // DOT vê apenas as suas auditorias; AMONT vê todas
+      const rawAudits = await db.getAudits(user.roles.includes('DOT' as any) ? user.id : undefined);
+
+      const enriched = rawAudits.map(a => ({
         ...a,
         store: stores.find(s => s.id === a.store_id) as Store
-    }));
-    setAudits(enriched);
+      }));
+      setAudits(enriched);
+
+      // Load DOT's other visits (Formação/Acompanhamento/Outros) if available
+      const rawVisits = await db.getVisitsForDOT(user.id);
+      const enrichedVisits = rawVisits.map(v => ({
+        ...v,
+        store: stores.find(s => s.id === v.store_id) as Store
+      }));
+      setVisits(enrichedVisits);
+    };
+    loadData();
   }, []);
 
   // Get unique stores and DOTs with audits
@@ -52,10 +65,9 @@ export const AuditList: React.FC = () => {
   }, [audits]);
 
   const dots = useMemo(() => {
-    const allUsers = db.getUsers();
     const dotIds = Array.from(new Set(stores.map(s => s.dotUserId).filter(Boolean)));
     return allUsers.filter(u => dotIds.includes(u.id));
-  }, [stores]);
+  }, [stores, allUsers]);
 
   // Filter audits based on view mode
   const filteredAudits = useMemo(() => {
@@ -78,6 +90,24 @@ export const AuditList: React.FC = () => {
 
     return filtered.sort((a, b) => new Date(b.dtstart).getTime() - new Date(a.dtstart).getTime());
   }, [audits, viewMode, selectedStore, selectedDOT, selectedMonth, selectedYear]);
+
+  // Combine audits + visits for list/calendar views (visits are non-audit types)
+  const combinedItems = useMemo(() => {
+    // Map visits to a compatible shape for calendar tiles
+    const mappedVisits = visits.map(v => ({
+      id: v.id,
+      user_id: v.user_id,
+      store_id: v.store_id,
+      checklist_id: 0,
+      dtstart: v.dtstart,
+      status: v.status as any,
+      store: v.store,
+      __isVisit: true,
+      visitType: v.type
+    })) as any[];
+
+    return [...filteredAudits, ...mappedVisits].sort((a, b) => new Date(b.dtstart).getTime() - new Date(a.dtstart).getTime());
+  }, [filteredAudits, visits]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAudits.length / pageSize);
@@ -119,7 +149,7 @@ export const AuditList: React.FC = () => {
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(selectedYear, selectedMonth, day);
-      const dayAudits = filteredAudits.filter(a => {
+      const dayAudits = combinedItems.filter(a => {
         const auditDate = new Date(a.dtstart);
         return auditDate.getDate() === day;
       });
@@ -127,15 +157,25 @@ export const AuditList: React.FC = () => {
       days.push(
         <div key={day} className="h-24 border border-gray-200 p-1 overflow-y-auto">
           <div className="text-xs font-semibold text-gray-700 mb-1">{day}</div>
-          {dayAudits.map(audit => (
-            <div
-              key={audit.id}
-              onClick={() => navigate(`/audit/${audit.id}`)}
-              className="text-xs bg-mousquetaires text-white px-1 py-0.5 rounded mb-1 cursor-pointer hover:bg-red-900 truncate"
-              title={`${audit.store.city} - ${audit.store.codehex}`}
-            >
-              {audit.store.codehex}
-            </div>
+          {dayAudits.map(item => (
+            item.__isVisit ? (
+              <div
+                key={`v-${item.id}`}
+                className="text-xs bg-gray-500 text-white px-1 py-0.5 rounded mb-1 truncate"
+                title={`${item.store.city} - ${item.store.codehex}`}
+              >
+                {item.store.codehex} ({item.visitType})
+              </div>
+            ) : (
+              <div
+                key={`a-${item.id}`}
+                onClick={() => navigate(`/dot/audit/${item.id}`)}
+                className="text-xs bg-mousquetaires text-white px-1 py-0.5 rounded mb-1 cursor-pointer hover:bg-red-900 truncate"
+                title={`${item.store.city} - ${item.store.codehex}`}
+              >
+                {item.store.codehex}
+              </div>
+            )
           ))}
         </div>
       );
@@ -156,7 +196,8 @@ export const AuditList: React.FC = () => {
   const renderStoreView = () => {
     const storeGroups = stores.map(store => {
       const storeAudits = filteredAudits.filter(a => a.store_id === store.id);
-      return { store, audits: storeAudits };
+      const storeVisits = visits.filter(v => v.store_id === store.id);
+      return { store, audits: storeAudits, visits: storeVisits };
     }).filter(g => g.audits.length > 0);
 
     return (
@@ -173,7 +214,7 @@ export const AuditList: React.FC = () => {
               {audits.slice(0, 5).map(audit => (
                 <div
                   key={audit.id}
-                  onClick={() => navigate(`/audit/${audit.id}`)}
+                  onClick={() => navigate(`/dot/audit/${audit.id}`)}
                   className="flex items-center justify-between p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
@@ -187,6 +228,21 @@ export const AuditList: React.FC = () => {
                   <span className="text-sm font-bold text-gray-900">
                     {audit.score ? `${audit.score.toFixed(1)}%` : '-'}
                   </span>
+                </div>
+              ))}
+              {g.visits.slice(0, 3).map(visit => (
+                <div
+                  key={`v-${visit.id}`}
+                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-gray-900">
+                      {new Date(visit.dtstart).toLocaleDateString()}
+                    </span>
+                    <span className="text-sm text-gray-600">{visit.title || visit.type}</span>
+                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Visita</span>
+                  </div>
+                  <span className="text-sm text-gray-500">-</span>
                 </div>
               ))}
               {audits.length > 5 && (
@@ -205,7 +261,8 @@ export const AuditList: React.FC = () => {
     const dotGroups = dots.map(dot => {
       const dotAudits = filteredAudits.filter(a => a.store.dotUserId === dot.id);
       const dotStores = stores.filter(s => s.dotUserId === dot.id);
-      return { dot, audits: dotAudits, stores: dotStores };
+      const dotVisits = visits.filter(v => dotStores.some(s => s.id === v.store_id));
+      return { dot, audits: dotAudits, stores: dotStores, visits: dotVisits };
     }).filter(g => g.audits.length > 0);
 
     return (
@@ -220,7 +277,7 @@ export const AuditList: React.FC = () => {
               {audits.slice(0, 5).map(audit => (
                 <div
                   key={audit.id}
-                  onClick={() => navigate(`/audit/${audit.id}`)}
+                  onClick={() => navigate(`/dot/audit/${audit.id}`)}
                   className="flex items-center justify-between p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
@@ -235,6 +292,21 @@ export const AuditList: React.FC = () => {
                   <span className="text-sm font-bold text-gray-900">
                     {audit.score ? `${audit.score.toFixed(1)}%` : '-'}
                   </span>
+                </div>
+              ))}
+              {g.visits.slice(0, 3).map(visit => (
+                <div
+                  key={`v-${visit.id}`}
+                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                >
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-gray-900">
+                      {new Date(visit.dtstart).toLocaleDateString()}
+                    </span>
+                    <span className="text-sm text-gray-600">{visit.store.codehex}</span>
+                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">{visit.type}</span>
+                  </div>
+                  <span className="text-sm text-gray-500">-</span>
                 </div>
               ))}
               {audits.length > 5 && (
@@ -416,9 +488,9 @@ export const AuditList: React.FC = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {paginatedAudits.map(audit => {
-                          const dotUser = audit.store.dotUserId ? db.getUsers().find(u => u.id === audit.store.dotUserId) : null;
+                          const dotUser = audit.store.dotUserId ? allUsers.find(u => u.id === audit.store.dotUserId) : null;
                           return (
-                            <tr key={audit.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/audit/${audit.id}`)}>
+                            <tr key={audit.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/dot/audit/${audit.id}`)}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {new Date(audit.dtstart).toLocaleDateString()}
                                 </td>

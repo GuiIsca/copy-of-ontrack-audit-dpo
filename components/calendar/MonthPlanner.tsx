@@ -6,9 +6,10 @@ interface MonthPlannerProps {
   audits: (Audit & { store: Store })[];
   onAuditClick: (auditId: number) => void;
   onDateClick?: (date: Date) => void;
+  onShowWeek?: (date: Date) => void;
 }
 
-export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick, onDateClick }) => {
+export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick, onDateClick, onShowWeek }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
 
@@ -228,7 +229,7 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
 
                 {/* Audits for this day */}
                 <div className="space-y-1">
-                  {dayAudits.slice(0, 3).map((audit) => (
+                  {dayAudits.slice(0, 1).map((audit) => (
                     <button
                       key={audit.id}
                       onClick={() => onAuditClick(audit.id)}
@@ -250,9 +251,16 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
                       </div>
                     </button>
                   ))}
-                  {dayAudits.length > 3 && (
-                    <div className="text-xs text-center text-gray-500 font-medium">
-                      +{dayAudits.length - 3} mais
+                  {dayAudits.length > 1 && (
+                    <div className="text-xs text-center text-gray-600 font-medium">
+                      <button
+                        type="button"
+                        className="underline hover:text-gray-800"
+                        onClick={() => onShowWeek && onShowWeek(date)}
+                        title="Ver mais desta semana"
+                      >
+                        + {dayAudits.length - 1} mais
+                      </button>
                     </div>
                   )}
                 </div>

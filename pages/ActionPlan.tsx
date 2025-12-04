@@ -6,8 +6,8 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { db } from '../services/dbAdapter';
 import { Audit, Store, ActionPlan as ActionPlanType, ActionStatus, ActionResponsible, Checklist, Criteria } from '../types';
 import { ArrowLeft, Plus, Trash2, Check, Clock, AlertCircle, User } from 'lucide-react';
-import { MOCK_USER_ID } from '../constants';
 import { canCreateActions } from '../utils/permissions';
+import { getCurrentUser } from '../utils/auth';
 
 export const ActionPlan: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,37 +31,40 @@ export const ActionPlan: React.FC = () => {
   const [formDueDate, setFormDueDate] = useState('');
 
   useEffect(() => {
-    if (!id) return;
-    const aud = db.getAuditById(parseInt(id));
-    if (!aud) {
-      navigate('/dashboard');
-      return;
-    }
-    setAudit(aud);
-    
-    const stores = db.getStores();
-    setStore(stores.find(s => s.id === aud.store_id) || null);
-    
-    const cl = db.getChecklist();
-    setChecklist(cl);
-    
-    loadActions();
-    setLoading(false);
+    const load = async () => {
+      if (!id) return;
+      const aud = await db.getAuditById(parseInt(id));
+      if (!aud) {
+        navigate('/dashboard');
+        return;
+      }
+      setAudit(aud);
+
+      const stores = await db.getStores();
+      setStore(stores.find(s => s.id === aud.store_id) || null);
+
+      const cl = await db.getChecklist();
+      setChecklist(cl);
+
+      await loadActions();
+      setLoading(false);
+    };
+    load();
   }, [id, navigate]);
 
-  const loadActions = () => {
+  const loadActions = async () => {
     if (!id) return;
-    const acts = db.getActions(parseInt(id));
+    const acts = await db.getActions(parseInt(id));
     setActions(acts);
   };
 
-  const autoGenerateActions = () => {
+  const autoGenerateActions = async () => {
     if (!id || !checklist) return;
-    
-    const scores = db.getScores(parseInt(id));
+
+    const scores = await db.getScores(parseInt(id));
     const criticalScores = scores.filter(s => s.score !== null && s.score > 0 && s.score <= 2);
-    
-    criticalScores.forEach(score => {
+
+    for (const score of criticalScores) {
       // Find criteria name
       let criteriaName = '';
       let criteriaObj: Criteria | null = null;
@@ -80,6 +83,8 @@ export const ActionPlan: React.FC = () => {
       // Check if action already exists for this criteria
       const exists = actions.find(a => a.criteria_id === score.criteria_id);
       if (!exists && criteriaObj) {
+        const currentUser = getCurrentUser();
+        const createdBy = currentUser?.id;
         const newAction: Omit<ActionPlanType, 'id'> = {
           audit_id: parseInt(id),
           criteria_id: score.criteria_id,
@@ -89,19 +94,19 @@ export const ActionPlan: React.FC = () => {
           dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 days
           status: ActionStatus.PENDING,
           progress: 0,
-          createdBy: MOCK_USER_ID
+          createdBy
         };
-        
-        db.createAction(newAction);
+        await db.createAction(newAction);
       }
-    });
-    
-    loadActions();
+    }
+
+    await loadActions();
   };
 
-  const handleAddAction = () => {
+  const handleAddAction = async () => {
     if (!id || !formTitle) return;
-    
+
+    const currentUser = getCurrentUser();
     const newAction: Omit<ActionPlanType, 'id'> = {
       audit_id: parseInt(id),
       title: formTitle,
@@ -110,18 +115,18 @@ export const ActionPlan: React.FC = () => {
       dueDate: formDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       status: ActionStatus.PENDING,
       progress: 0,
-      createdBy: MOCK_USER_ID
+      createdBy: currentUser?.id
     };
-    
-    db.createAction(newAction);
-    loadActions();
+
+    await db.createAction(newAction);
+    await loadActions();
     resetForm();
     setShowAddModal(false);
   };
 
-  const handleUpdateAction = () => {
+  const handleUpdateAction = async () => {
     if (!editingAction || !formTitle) return;
-    
+
     const updated: ActionPlanType = {
       ...editingAction,
       title: formTitle,
@@ -129,9 +134,9 @@ export const ActionPlan: React.FC = () => {
       responsible: formResponsible,
       dueDate: formDueDate
     };
-    
-    db.updateAction(updated);
-    loadActions();
+
+    await db.updateAction(updated);
+    await loadActions();
     resetForm();
     setEditingAction(null);
   };
@@ -141,21 +146,20 @@ export const ActionPlan: React.FC = () => {
       open: true,
       message: 'Eliminar esta ação?',
       onConfirm: () => {
-        db.deleteAction(actionId);
-        loadActions();
+        (async () => { await db.deleteAction(actionId); await loadActions(); })();
       }
     });
   };
 
-  const handleStatusChange = (action: ActionPlanType, newStatus: ActionStatus) => {
+  const handleStatusChange = async (action: ActionPlanType, newStatus: ActionStatus) => {
     const updated = {
       ...action,
       status: newStatus,
       progress: newStatus === ActionStatus.COMPLETED ? 100 : action.progress,
       completedDate: newStatus === ActionStatus.COMPLETED ? new Date().toISOString() : undefined
-    };
-    db.updateAction(updated);
-    loadActions();
+    } as ActionPlanType;
+    await db.updateAction(updated);
+    await loadActions();
   };
 
   const resetForm = () => {
