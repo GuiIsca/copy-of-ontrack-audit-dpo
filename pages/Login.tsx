@@ -80,7 +80,7 @@ export const Login: React.FC = () => {
                 size="sm"
                 onClick={() => {
                   setEmail('admin@mousquetaires.com');
-                  setPassword('admin');
+                  setPassword('123456');
                 }}
                 className="w-full justify-start"
               >
@@ -92,7 +92,7 @@ export const Login: React.FC = () => {
                 size="sm"
                 onClick={() => {
                   setEmail('amont@mousquetaires.com');
-                  setPassword('amont');
+                  setPassword('123456');
                 }}
                 className="w-full justify-start"
               >
@@ -104,7 +104,7 @@ export const Login: React.FC = () => {
                 size="sm"
                 onClick={() => {
                   setEmail('dot1@mousquetaires.com');
-                  setPassword('dot1');
+                  setPassword('123456');
                 }}
                 className="w-full justify-start"
               >
@@ -116,7 +116,7 @@ export const Login: React.FC = () => {
                 size="sm"
                 onClick={() => {
                   setEmail('aderente1@intermarche.pt');
-                  setPassword('aderente1');
+                  setPassword('123456');
                 }}
                 className="w-full justify-start"
               >
