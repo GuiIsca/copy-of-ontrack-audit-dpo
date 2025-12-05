@@ -146,7 +146,7 @@ export const canCloseAudit = (): boolean => {
 
 export const canViewReports = (): boolean => {
   // Apenas AMONT e ADMIN podem ver relatórios
-  return hasRole(UserRole.AMONT) || hasRole(UserRole.ADMIN);
+  return hasRole(UserRole.DOT) || hasRole(UserRole.AMONT) || hasRole(UserRole.ADMIN);
 };
 
 export const canImportAuditsCSV = (): boolean => {
