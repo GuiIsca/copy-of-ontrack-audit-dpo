@@ -25,7 +25,6 @@ import { AmontNewVisitDOT } from './pages/AmontNewVisitDOT';
 import { AmontSelectNewVisit } from './pages/AmontSelectNewVisit';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
-import { DOTApproveAderenteVisits } from './pages/DOTApproveAderenteVisits';
 import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessAmontDashboard, canViewReports, canAccessAdminDashboard } from './utils/permissions';
 import { AdminDashboard } from './pages/AdminDashboard';
 
@@ -121,11 +120,6 @@ const App: React.FC = () => {
          <Route path="/history" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
                 <AuditList />
-            </ProtectedRoute>
-        } />
-        <Route path="/dot/approve-aderente-visits" element={
-            <ProtectedRoute requireRole={canAccessDOTDashboard}>
-                <DOTApproveAderenteVisits />
             </ProtectedRoute>
         } />
         <Route path="/aderente/dashboard" element={

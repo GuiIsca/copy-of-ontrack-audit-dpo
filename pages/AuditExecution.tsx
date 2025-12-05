@@ -317,11 +317,58 @@ export const AuditExecution: React.FC = () => {
       }
   };
 
+  const handleSaveVisit = async () => {
+      if (!audit) return;
+      try {
+          setSubmitting(true);
+          const isAderenteVisit = (audit as any).visit_source_type === 'ADERENTE_VISIT';
+          const finalScore = Math.round(isAderenteVisit ? calculateAderenteFinalScore() : calculateTotalScore());
+          
+          console.log('handleSaveVisit called');
+          console.log('  audit.id:', audit.id);
+          console.log('  audit.status (before):', audit.status);
+          console.log('  finalScore:', finalScore);
+          
+          const updated = { 
+              ...audit,
+              auditorcomments: generalComments,
+              final_score: finalScore,
+              score: finalScore,
+              status: audit.status // Keep current status (IN_PROGRESS)
+          };
+          
+          console.log('  Calling db.updateAudit with:', updated);
+          await db.updateAudit(updated);
+          setAudit(updated);
+          
+          console.log('  Save successful');
+          setToastType('success');
+          setToastMsg('Visita guardada com sucesso');
+          setTimeout(() => {
+              setToastMsg(null);
+              // Redirecionar para o dashboard
+              if (currentUser?.roles.includes(UserRole.ADERENTE)) {
+                  navigate('/aderente/dashboard');
+              } else {
+                  navigate('/dashboard');
+              }
+          }, 1500);
+      } catch (err) {
+          console.error('Save error:', err);
+          setToastType('error');
+          setToastMsg('Falha ao guardar');
+          setTimeout(() => setToastMsg(null), 2000);
+      } finally {
+          setSubmitting(false);
+      }
+  };
+
   const handleSubmit = async () => {
             if (!audit) return;
             try {
                 setSubmitting(true);
-                const finalScore = Math.round(calculateTotalScore());
+                const isAderenteVisit = (audit as any).visit_source_type === 'ADERENTE_VISIT';
+                const finalScore = Math.round(isAderenteVisit ? calculateAderenteFinalScore() : calculateTotalScore());
                 const updated = { 
                         ...audit, 
                         status: AuditStatus.SUBMITTED,
@@ -381,6 +428,24 @@ export const AuditExecution: React.FC = () => {
       return count === 0 ? 0 : (total / (count * 5)) * 100;
   };
 
+  // Calculate final score for Aderente visits based on Section 2 (criteria 22001-22006)
+  const calculateAderenteFinalScore = () => {
+      // Criteria 22001-22006 are the rating criteria in Section 2
+      const section2Criteria = [22001, 22002, 22003, 22004, 22005, 22006];
+      let total = 0;
+      let count = 0;
+      
+      section2Criteria.forEach(criteriaId => {
+          const score = scores.find(s => s.criteria_id === criteriaId)?.score;
+          if (score !== null && score !== undefined && score > 0) {
+              total += score;
+              count++;
+          }
+      });
+      
+      return count === 0 ? 0 : (total / (count * 5)) * 100;
+  };
+
   const handleFinish = () => {
       handleSave();
       setShowSubmitModal(true);
@@ -395,6 +460,9 @@ export const AuditExecution: React.FC = () => {
   const canEdit = canEditAudit(audit.status, audit.user_id, audit.createdBy);
     const canSubmit = canSubmitAudit(audit.user_id, audit.status);
   const isReadOnly = !canEdit;
+  
+  // Check if this is an Aderente visit
+  const isAderenteVisit = (audit as any).visit_source_type === 'ADERENTE_VISIT';
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -429,11 +497,134 @@ export const AuditExecution: React.FC = () => {
                             <span>roles: {currentUser?.roles?.join(', ') || 'none'}</span>
                             <span>audit.status: {String(audit.status)}</span>
                             <span>audit.user_id: {String(audit.user_id)}</span>
+                            <span>visit_source_type: {String((audit as any).visit_source_type || 'none')}</span>
+                            <span>isAderenteVisit: {String(isAderenteVisit)}</span>
                             <span>canEdit: {String(canEdit)}</span>
                             <span>isReadOnly: {String(isReadOnly)}</span>
                         </div>
                     </div>
           
+          {/* Render all sections for Aderente visits, or single section for DOT audits */}
+          {isAderenteVisit ? (
+            // Show all sections in one page for Aderente
+            <div className="space-y-6">
+              {checklist.sections.map((section, sectionIndex) => {
+                const secScore = calculateSectionScore(section);
+                return (
+                  <div key={sectionIndex}>
+                    {/* Section Header */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-bold text-lg">{section.name}</h3>
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${secScore < 50 ? 'bg-red-100 text-red-600' : secScore < 80 ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>
+                          {secScore.toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className={`h-2 rounded-full ${secScore < 50 ? 'bg-red-500' : secScore < 80 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${secScore}%` }}></div>
+                      </div>
+                    </div>
+
+                    {/* Items & Criteria */}
+                    <div className="space-y-6">
+                      {section.items.map(item => (
+                        <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                          <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
+                            <h4 className="font-semibold text-gray-700">{item.name}</h4>
+                          </div>
+                          <div className="divide-y divide-gray-100">
+                            {item.criteria.map(crit => {
+                              const scoreVal = scores.find(s => s.criteria_id === crit.id)?.score;
+                              const isSaving = savingCriteria.has(crit.id);
+                              const critType = (crit as any).type || 'rating';
+                              
+                              return (
+                                <div key={crit.id} className="p-4">
+                                  <p className={`text-sm ${critType === 'text' ? 'font-bold' : 'font-medium'} text-gray-800 mb-3`}>
+                                    {crit.name}
+                                    {critType === 'text' && (crit.id === 23001 || crit.id === 23002) && (
+                                      <span className="text-red-500 ml-1">*</span>
+                                    )}
+                                  </p>
+                                  
+                                  {/* Rating Buttons (1-5) */}
+                                  {critType === 'rating' && (
+                                    <div className="flex items-center space-x-1">
+                                      {[1, 2, 3, 4, 5].map(val => (
+                                        <button
+                                          key={val}
+                                          disabled={isReadOnly || isSaving}
+                                          onClick={() => handleScoreChange(crit.id, val)}
+                                          className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                                            scoreVal === val 
+                                            ? val <= 2 ? 'bg-red-500 text-white' : val === 3 ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
+                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                          }`}
+                                        >
+                                          {val}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Dropdown */}
+                                  {critType === 'dropdown' && (
+                                    <select
+                                      disabled={isReadOnly || isSaving}
+                                      value={criteriaComments[crit.id] || ''}
+                                      onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                      className="w-full text-sm border border-gray-200 rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none"
+                                    >
+                                      <option value="">Selecionar...</option>
+                                      {crit.id === 21001 && (
+                                        <>
+                                          <option value="FRUTAS E LEGUMES">FRUTAS E LEGUMES</option>
+                                          <option value="PADARIA">PADARIA</option>
+                                          <option value="TALHO">TALHO</option>
+                                          <option value="PEIXARIA">PEIXARIA</option>
+                                          <option value="CHARCUTARIA">CHARCUTARIA</option>
+                                          <option value="LACTICÍNIOS/CONGELADOS">LACTICÍNIOS/CONGELADOS</option>
+                                        </>
+                                      )}
+                                      {crit.id === 21002 && stores.length > 0 && (
+                                        <>
+                                          {stores.map(s => (
+                                            <option key={s.id} value={`${s.brand} - ${s.city}`}>
+                                              {s.brand} - {s.city}
+                                            </option>
+                                          ))}
+                                        </>
+                                      )}
+                                    </select>
+                                  )}
+                                  
+                                  {/* Text Area */}
+                                  {critType === 'text' && (
+                                    <textarea
+                                      disabled={isReadOnly || isSaving}
+                                      placeholder="Clique aqui para digitar..."
+                                      className="w-full text-sm border border-gray-200 rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none resize-none"
+                                      rows={3}
+                                      value={criteriaComments[crit.id] || ''}
+                                      onChange={(e) => handleTextChange(crit.id, e.target.value)}
+                                      onBlur={() => saveTextField(crit.id)}
+                                      required={crit.id === 23001 || crit.id === 23002}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            // Original section-by-section navigation for DOT audits
+            <>
           {/* Section Header */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
               <div className="flex items-center justify-between mb-2">
@@ -540,6 +731,8 @@ export const AuditExecution: React.FC = () => {
                   </div>
               ))}
           </div>
+          </>
+          )}
 
 
 
@@ -554,7 +747,7 @@ export const AuditExecution: React.FC = () => {
                       Ao submeter, o guião ficará visível ao Aderente e não poderá ser editado.
                   </p>
                   <p className="text-sm text-gray-500 mb-6">
-                      Pontuação final: <span className="font-bold text-mousquetaires">{calculateTotalScore().toFixed(0)}%</span>
+                      Pontuação final: <span className="font-bold text-mousquetaires">{((audit as any).visit_source_type === 'ADERENTE_VISIT' ? calculateAderenteFinalScore() : calculateTotalScore()).toFixed(0)}%</span>
                   </p>
                   <div className="flex gap-3">
                       <Button variant="outline" onClick={() => setShowSubmitModal(false)} className="flex-1">
@@ -598,6 +791,28 @@ export const AuditExecution: React.FC = () => {
       {/* Footer Navigation */}
       <div className="bg-white border-t border-gray-200 p-4 shadow-lg sticky bottom-0 z-40">
           <div className="max-w-4xl mx-auto flex justify-between items-center gap-2">
+              {isAderenteVisit ? (
+                // Aderente visits: Show only Save and Submit buttons (no section navigation)
+                <div className="flex gap-2 flex-1 justify-end">
+                  <Button 
+                    variant="outline"
+                    onClick={handleSaveVisit}
+                    disabled={submitting || isReadOnly}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Save className="mr-1" size={18} /> Guardar
+                  </Button>
+                  <Button 
+                    onClick={handleFinish}
+                    disabled={submitting || isReadOnly}
+                    className="flex-1 sm:flex-none"
+                  >
+                    Submeter <Send className="ml-1" size={18} />
+                  </Button>
+                </div>
+              ) : (
+                // DOT audits: Show section navigation
+                <>
               <Button 
                 variant="outline" 
                 onClick={() => setCurrentSectionIndex(Math.max(0, currentSectionIndex - 1))}
@@ -631,11 +846,34 @@ export const AuditExecution: React.FC = () => {
                     <span className="hidden sm:inline">Próximo</span> <ChevronRight className="ml-1" size={18} />
                    </Button>
               ) : (
-                  canSubmit && (
-                    <Button onClick={handleFinish} className="flex-1 sm:flex-none">
-                        Finalizar <CheckCircle className="ml-1" size={18} />
-                    </Button>
+                  // Show Save/Submit buttons for Aderente visits, or Finalize for DOT audits
+                  (audit as any).visit_source_type === 'ADERENTE_VISIT' ? (
+                    <div className="flex gap-2 flex-1 sm:flex-none">
+                      <Button 
+                        variant="outline"
+                        onClick={handleSaveVisit}
+                        disabled={submitting || isReadOnly}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Save className="mr-1" size={18} /> Guardar
+                      </Button>
+                      <Button 
+                        onClick={handleFinish}
+                        disabled={submitting || isReadOnly}
+                        className="flex-1 sm:flex-none"
+                      >
+                        Submeter <Send className="ml-1" size={18} />
+                      </Button>
+                    </div>
+                  ) : (
+                    canSubmit && (
+                      <Button onClick={handleFinish} className="flex-1 sm:flex-none">
+                          Finalizar <CheckCircle className="ml-1" size={18} />
+                      </Button>
+                    )
                   )
+              )}
+              </>
               )}
           </div>
       </div>

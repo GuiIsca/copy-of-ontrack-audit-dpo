@@ -43,12 +43,12 @@ router.get('/:id', async (req, res) => {
 // Create audit
 router.post('/', async (req, res) => {
   try {
-    const { storeId, dotUserId, checklistId, dtstart, status, createdBy } = req.body;
-    // Do a minimal insert without optional columns to remain compatible with older DB schemas
+    const { storeId, dotUserId, checklistId, dtstart, status, createdBy, visitSourceType } = req.body;
+    // Insert with visit_source_type if provided
     const result = await query(
-      `INSERT INTO audits (store_id, dot_user_id, checklist_id, dtstart, status, created_by) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [storeId, dotUserId || null, checklistId || 1, dtstart, status || 'SCHEDULED', createdBy]
+      `INSERT INTO audits (store_id, dot_user_id, checklist_id, dtstart, status, created_by, visit_source_type) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [storeId, dotUserId || null, checklistId || 1, dtstart, status || 'SCHEDULED', createdBy, visitSourceType || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
