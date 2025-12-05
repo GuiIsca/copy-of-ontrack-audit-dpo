@@ -28,19 +28,32 @@ export const AmontAuditView: React.FC = () => {
     }
     
     // Get audit directly by ID (all audits are stored globally)
-    db.getAuditById(Number(id)).then(auditData => {
+    const load = async () => {
+      const auditData = await db.getAuditById(Number(id));
+
       if (!auditData) {
         navigate('/amont/dashboard');
         return;
       }
 
       setAudit(auditData);
-      db.getStores().then(stores => setStore(stores.find(s => s.id === auditData.store_id) || null));
-      db.getChecklist().then(setChecklist);
-      db.getScores(Number(id)).then(setScores);
-      db.getActions(Number(id)).then(setActions);
+
+      const stores = await db.getStores();
+      setStore(stores.find(s => s.id === auditData.store_id) || null);
+
+      const checklistData = await db.getChecklist();
+      setChecklist(checklistData || null);
+
+      const scoresData = await db.getScores(Number(id));
+      setScores(scoresData || []);
+
+      const actionsData = await db.getActions(Number(id));
+      setActions(actionsData || []);
+
       setLoading(false);
-    });
+    };
+
+    load();
   }, [id]);
 
   const handleCloseAudit = () => {

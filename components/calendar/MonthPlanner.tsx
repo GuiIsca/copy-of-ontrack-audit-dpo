@@ -3,8 +3,8 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucid
 import { Audit, Store } from '../../types';
 
 interface MonthPlannerProps {
-  audits: (Audit & { store: Store })[];
-  onAuditClick: (auditId: number) => void;
+  audits: (Audit & { store: Store; isAudit?: boolean })[];
+  onAuditClick: (auditId: number, isAudit?: boolean) => void;
   onDateClick?: (date: Date) => void;
   onShowWeek?: (date: Date) => void;
 }
@@ -232,7 +232,7 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
                   {dayAudits.slice(0, 1).map((audit) => (
                     <button
                       key={audit.id}
-                      onClick={() => onAuditClick(audit.id)}
+                      onClick={() => onAuditClick(audit.id, (audit as any).isAudit)}
                       className="w-full text-left p-1 rounded bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-mousquetaires transition-all group"
                       title={`${audit.store.brand} - ${audit.store.city} às ${new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`}
                     >
@@ -242,8 +242,8 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
                         />
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires">
-                            {audit.store.brand}
-                          </div>
+                              {audit.store.brand}
+                            </div>
                           <div className="flex items-center gap-1 text-xs text-gray-500">
                             <span className="truncate">{new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>

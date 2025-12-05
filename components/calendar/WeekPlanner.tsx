@@ -3,8 +3,8 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, MapPin } from 'luc
 import { Audit, Store } from '../../types';
 
 interface WeekPlannerProps {
-  audits: (Audit & { store: Store })[];
-  onAuditClick: (auditId: number) => void;
+  audits: (Audit & { store: Store; isAudit?: boolean })[];
+  onAuditClick: (auditId: number, isAudit?: boolean) => void;
   onDateClick?: (date: Date) => void;
   initialDate?: Date;
 }
@@ -155,7 +155,7 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
                   dayAudits.map((audit) => (
                     <button
                       key={audit.id}
-                      onClick={() => onAuditClick(audit.id)}
+                      onClick={() => onAuditClick(audit.id, (audit as any).isAudit)}
                       className="w-full text-left p-2 rounded-lg bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-mousquetaires hover:shadow-md transition-all group"
                     >
                       <div className="flex items-start gap-2">

@@ -53,18 +53,18 @@ export const AmontDashboard: React.FC = () => {
       const enrichedAudits: VisitItem[] = allAuditsData
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
-          return store ? { ...audit, store, visitType: VisitType.AUDITORIA } as VisitItem : null;
+          return store ? { ...audit, store, visitType: VisitType.AUDITORIA, isAudit: true } as VisitItem & { isAudit: boolean } : null;
         })
-        .filter((audit): audit is VisitItem => audit !== null);
+        .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null);
 
       // Get all visits (Formação, Acompanhamento, Outros)
       const allVisitsData = await db.getVisits();
       const enrichedVisits: VisitItem[] = allVisitsData
         .map(visit => {
           const store = stores.find(s => s.id === visit.store_id);
-          return store ? { ...visit, store, visitType: visit.type } as VisitItem : null;
+          return store ? { ...visit, store, visitType: mapVisitType(visit.type), isAudit: false } as VisitItem & { isAudit: boolean } : null;
         })
-        .filter((visit): visit is VisitItem => visit !== null);
+        .filter((visit): visit is VisitItem & { isAudit: boolean } => visit !== null);
 
       // Combine and sort by date
       const allVisits = [...enrichedAudits, ...enrichedVisits]
@@ -174,6 +174,25 @@ export const AmontDashboard: React.FC = () => {
         return <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">Fechada</span>;
       default:
         return null;
+    }
+  };
+
+  // Normalize visit.type values from backend (which may be uppercase strings)
+  const mapVisitType = (t: any): VisitType => {
+    if (!t) return VisitType.OUTROS;
+    const u = String(t).toUpperCase();
+    switch(u) {
+      case 'AUDITORIA':
+        return VisitType.AUDITORIA;
+      case 'FORMACAO':
+      case 'FORMAÇÃO':
+        return VisitType.FORMACAO;
+      case 'ACOMPANHAMENTO':
+        return VisitType.ACOMPANHAMENTO;
+      case 'OUTROS':
+        return VisitType.OUTROS;
+      default:
+        return VisitType.OUTROS;
     }
   };
 
@@ -304,8 +323,8 @@ export const AmontDashboard: React.FC = () => {
                 return (
                   <div 
                     key={`${v.visitType}-${v.id}`} 
-                    onClick={() => isAudit ? navigate(`/amont/audit/${v.id}`) : null} 
-                    className={`flex items-center justify-between p-2 bg-gray-50 rounded ${isAudit ? 'hover:bg-gray-100 cursor-pointer' : ''}`}
+                    onClick={() => isAudit ? navigate(`/amont/audit/${v.id}`) : navigate(`/amont/visit/${v.id}`)} 
+                    className={`flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer`}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-gray-900">{new Date(v.dtstart).toLocaleDateString('pt-PT')}</span>
@@ -383,8 +402,8 @@ export const AmontDashboard: React.FC = () => {
                 return (
                   <div 
                     key={`${v.visitType}-${v.id}`} 
-                    onClick={() => isAudit ? navigate(`/amont/audit/${v.id}`) : null} 
-                    className={`flex items-center justify-between p-2 bg-gray-50 rounded ${isAudit ? 'hover:bg-gray-100 cursor-pointer' : ''}`}
+                    onClick={() => isAudit ? navigate(`/amont/audit/${v.id}`) : navigate(`/amont/visit/${v.id}`)} 
+                    className={`flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer`}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-gray-900">{new Date(v.dtstart).toLocaleDateString('pt-PT')}</span>
@@ -658,13 +677,44 @@ export const AmontDashboard: React.FC = () => {
                 dtstart: v.dtstart,
                 status: v.status,
                 store: v.store,
-                visitType: v.visitType // Keep the visit type for navigation
-              })) as unknown as (Audit & { store: Store; visitType?: VisitType })[];
+                visitType: v.visitType, // Keep the visit type for navigation
+                isAudit: (v as any).isAudit || false
+              })) as unknown as (Audit & { store: Store; visitType?: VisitType; isAudit?: boolean })[];
 
               // Handler that navigates to audit or visit based on type
-              const handleItemClick = (id: number) => {
-                const item = filteredVisits.find(v => v.id === id);
-                if (item?.visitType === VisitType.AUDITORIA) {
+              // Use `filteredVisits` to disambiguate IDs (audit vs visit) in case both exist
+              const handleItemClick = async (id: number, isAuditFlag?: boolean) => {
+                // Use explicit flag from planner to prioritize which table to check (audits IDs and visits IDs are separate!)
+                // Note: isAuditFlag is the source of truth; visitType in filteredMatch may be incorrect due to legacy data
+                const filteredMatch = filteredVisits.find(v => v.id === id);
+
+
+
+                // If planner passed isAuditFlag=true, trust it and check audits first
+                if (isAuditFlag === true) {
+                  try {
+                    const audit = await db.getAuditById(id as number);
+                    if (audit) {
+                      navigate(`/amont/audit/${id}`);
+                      return;
+                    }
+                  } catch (e) {}
+                }
+                
+                // If planner passed isAuditFlag=false, trust it and check visits first
+                if (isAuditFlag === false) {
+                  try {
+                    const visit = await db.getVisitById(id as number);
+                    if (visit) {
+                      navigate(`/amont/visit/${id}`);
+                      return;
+                    }
+                  } catch (e) {}
+                }
+
+                // If no flag, fallback to heuristic: check filteredMatch visitType
+                const isAuditFromMatch = (filteredMatch as any)?.isAudit === true || filteredMatch?.visitType === VisitType.AUDITORIA;
+                if (isAuditFromMatch) {
                   navigate(`/amont/audit/${id}`);
                 } else {
                   navigate(`/amont/visit/${id}`);
@@ -724,8 +774,8 @@ export const AmontDashboard: React.FC = () => {
                     return (
                       <tr 
                         key={`${visit.visitType}-${visit.id}`} 
-                        className={`hover:bg-gray-50 ${isAudit ? 'cursor-pointer' : ''}`} 
-                        onClick={() => isAudit ? navigate(`/amont/audit/${visit.id}`) : null}
+                        className="hover:bg-gray-50 cursor-pointer" 
+                        onClick={() => isAudit ? navigate(`/amont/audit/${visit.id}`) : navigate(`/amont/visit/${visit.id}`)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{visit.store.codehex}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -752,13 +802,9 @@ export const AmontDashboard: React.FC = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {isAudit ? (
-                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/amont/audit/${visit.id}`); }}>
-                              Ver Detalhes
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-gray-400">-</span>
-                          )}
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); isAudit ? navigate(`/amont/audit/${visit.id}`) : navigate(`/amont/visit/${visit.id}`); }}>
+                            Ver Detalhes
+                          </Button>
                         </td>
                       </tr>
                     );
