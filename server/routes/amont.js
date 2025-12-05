@@ -105,34 +105,58 @@ router.post('/import-visitas', upload.single('file'), async (req, res) => {
           }
           const storeId = storeRes.rows[0].id;
 
-          // Check for duplicates: same type, DOT, store, date
+          // Check date range for duplicates (start/end of the day)
           const dtDate = new Date(dtstart);
           const startOfDay = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate()).toISOString();
           const endOfDay = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate() + 1).toISOString();
-          
-          const duplicateCheck = await query(
-            `SELECT id FROM visits 
-             WHERE store_id = $1 AND user_id = $2 AND type = $3 
-             AND dtstart >= $4 AND dtstart < $5`,
-            [storeId, userId, tipo, startOfDay, endOfDay]
-          );
-          
-          if (duplicateCheck.rows.length > 0) {
-            results.errors.push({ 
-              line: r.__line, 
-              message: `Duplicado: já existe ${tipoRaw} para DOT ${dotEmail} na loja ${code} em ${dataStr}` 
-            });
-            continue;
-          }
 
-          const ins = await query(
-            `INSERT INTO visits (store_id, user_id, type, title, description, dtstart, status, created_by)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING id`,
-            [storeId, userId, tipo, titulo, texto || '', dtstart, 'SCHEDULED', userId]
-          );
-          results.imported += 1;
-          results.createdVisitIds.push(ins.rows[0].id);
+          if (tipo === 'AUDITORIA') {
+            // For audits, check duplicates in audits table (same store, same DOT, same day)
+            const dupAudit = await query(
+              `SELECT id FROM audits WHERE store_id = $1 AND dot_user_id = $2 AND dtstart >= $3 AND dtstart < $4`,
+              [storeId, userId, startOfDay, endOfDay]
+            );
+            if (dupAudit.rows.length > 0) {
+              results.errors.push({
+                line: r.__line,
+                message: `Duplicado: já existe Auditoria para DOT ${dotEmail} na loja ${code} em ${dataStr}`
+              });
+              continue;
+            }
+
+            // Insert into audits table
+            const insAudit = await query(
+              `INSERT INTO audits (store_id, dot_user_id, checklist_id, dtstart, status, created_by)
+               VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+              [storeId, userId, 1, dtstart, 'SCHEDULED', userId]
+            );
+            results.imported += 1;
+            results.createdVisitIds.push(insAudit.rows[0].id);
+          } else {
+            // Non-audit visits (Formacao, Acompanhamento, Outros)
+            const duplicateCheck = await query(
+              `SELECT id FROM visits 
+               WHERE store_id = $1 AND user_id = $2 AND type = $3 
+               AND dtstart >= $4 AND dtstart < $5`,
+              [storeId, userId, tipo, startOfDay, endOfDay]
+            );
+            if (duplicateCheck.rows.length > 0) {
+              results.errors.push({
+                line: r.__line,
+                message: `Duplicado: já existe ${tipoRaw} para DOT ${dotEmail} na loja ${code} em ${dataStr}`
+              });
+              continue;
+            }
+
+            const ins = await query(
+              `INSERT INTO visits (store_id, user_id, type, title, description, dtstart, status, created_by)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+               RETURNING id`,
+              [storeId, userId, tipo, titulo, texto || '', dtstart, 'SCHEDULED', userId]
+            );
+            results.imported += 1;
+            results.createdVisitIds.push(ins.rows[0].id);
+          }
         }
       } catch (rowErr) {
         results.errors.push({ line: r.__line, message: String(rowErr?.message || rowErr) });

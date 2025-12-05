@@ -58,19 +58,17 @@ export const AmontNewVisitAmont: React.FC = () => {
     setError('');
     try {
       const datetime = new Date(`${date}T${time}`);
-      
-      // Create visit as Amont (the Amont himself is doing the visit)
+      // Garante que user_id é sempre o do Amont autenticado
       await db.createVisit({
         type: visitType,
         title: title.trim(),
         description: text.trim(),
-        user_id: currentUser.userId, // Amont is the user doing the visit
+        user_id: currentUser.userId, // Amont é sempre o executor
         store_id: selectedStoreId as number,
         dtstart: datetime.toISOString(),
         status: AuditStatus.NEW,
         created_by: currentUser.userId
       });
-
       navigate('/amont/dashboard');
     } catch (error) {
       console.error('Erro ao criar visita:', error);

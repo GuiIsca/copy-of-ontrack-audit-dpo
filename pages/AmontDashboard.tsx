@@ -124,11 +124,17 @@ export const AmontDashboard: React.FC = () => {
       .filter(Boolean) as Store[];
   }, [filteredVisits]);
 
-  // DOTs inferred from stores
+  // DOTs inferred from audits/visits (not from stores)
   const dotsInFiltered = useMemo(() => {
-    const dotIds = Array.from(new Set(storesInFiltered.map(s => s.dotUserId).filter(Boolean)));
+    const dotIds = Array.from(new Set(
+      filteredVisits.map(v => {
+        // For audits, extract dot_user_id; for visits, extract user_id
+        const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
+        return isAudit ? (v as any).dot_user_id : v.user_id;
+      }).filter(Boolean)
+    ));
     return users.filter(u => dotIds.includes(u.id));
-  }, [storesInFiltered, users]);
+  }, [filteredVisits, users]);
 
   // Apply additional filters for current view
   const viewVisits = useMemo(() => {
@@ -137,7 +143,11 @@ export const AmontDashboard: React.FC = () => {
       list = list.filter(v => v.store_id === selectedStore);
     }
     if (viewMode === 'dot' && selectedDOT !== '') {
-      list = list.filter(v => v.store.dotUserId === selectedDOT);
+      list = list.filter(v => {
+        // For audits, check dot_user_id; for visits, check user_id
+        const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
+        return isAudit ? (v as any).dot_user_id === selectedDOT : v.user_id === selectedDOT;
+      });
     }
     if (viewMode === 'calendar') {
       list = list.filter(v => {
@@ -386,7 +396,11 @@ export const AmontDashboard: React.FC = () => {
     const dots = dotsInFiltered;
     const groups = dots.map(dot => ({
       dot,
-      visits: viewVisits.filter(v => v.store.dotUserId === dot.id),
+      visits: viewVisits.filter(v => {
+        // For audits, check dot_user_id; for visits, check user_id
+        const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
+        return isAudit ? (v as any).dot_user_id === dot.id : v.user_id === dot.id;
+      }),
       stores: storesInFiltered.filter(s => s.dotUserId === dot.id)
     })).filter(g => g.visits.length > 0);
     return (
@@ -769,8 +783,13 @@ export const AmontDashboard: React.FC = () => {
                   {paginatedVisits.map(visit => {
                     const isAudit = visit.visitType === VisitType.AUDITORIA;
                     const score = isAudit && 'score' in visit ? visit.score : null;
-                    const title = 'title' in visit ? visit.title : null;
-                    const dotUser = visit.store.dotUserId ? users.find(u => u.id === visit.store.dotUserId) : null;
+                    // For audits, show auditorcomments; for visits, show title
+                    const title = isAudit 
+                      ? (visit as any).auditorcomments 
+                      : ('title' in visit ? visit.title : null);
+                    // For audits, use dot_user_id; for visits, use user_id
+                    const responsibleUserId = isAudit ? (visit as any).dot_user_id : visit.user_id;
+                    const dotUser = responsibleUserId ? users.find(u => u.id === responsibleUserId) : null;
                     return (
                       <tr 
                         key={`${visit.visitType}-${visit.id}`} 

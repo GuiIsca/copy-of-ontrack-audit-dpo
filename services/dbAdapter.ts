@@ -270,7 +270,7 @@ class DatabaseAdapter {
     }
 
     // If this is an 'AUDITORIA' type, create an actual audit record
-    if (typeStr === 'AUDITORIA') {
+        if (typeStr === 'AUDITORIA') { 
       // Map statusStr back to AuditStatus enum where possible for createAudit helper
       // createAudit expects numeric AuditStatus values; map common strings
       let statusEnum = undefined as any;
@@ -284,7 +284,7 @@ class DatabaseAdapter {
 
       const audit = await this.createAudit({
         store_id: visitData.store_id,
-        user_id: visitData.user_id, // dot user id
+            dot_user_id: visitData.user_id, // user_id is the Amont (executor)
         dtstart: visitData.dtstart,
         status: statusEnum,
         created_by: visitData.created_by
@@ -293,9 +293,10 @@ class DatabaseAdapter {
       return audit as any;
     }
 
+    // userId é sempre o utilizador autenticado (Amont ou DOT)
     return api.createVisit({
       storeId: visitData.store_id,
-      userId: visitData.user_id,
+      userId: visitData.user_id, // quem está autenticado
       type: typeStr,
       title: visitData.title,
       description: visitData.description || '',
