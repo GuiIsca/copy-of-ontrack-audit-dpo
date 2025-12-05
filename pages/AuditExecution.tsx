@@ -194,6 +194,29 @@ export const AuditExecution: React.FC = () => {
                 });
             }
     };
+    
+    // For text fields, only update local state without auto-save
+    const handleTextChange = (criteriaId: number, text: string) => {
+        setCriteriaComments(prev => ({ ...prev, [criteriaId]: text }));
+    };
+    
+    // Save text fields manually (can be called on blur or via save button)
+    const saveTextField = async (criteriaId: number) => {
+        if (!audit) return;
+        const comment = criteriaComments[criteriaId] || '';
+        
+        try {
+            await db.saveScore({
+                audit_id: audit.id,
+                criteria_id: criteriaId,
+                score: null,
+                comment,
+                photo_url: null
+            });
+        } catch (error) {
+            console.error('Error saving text field:', error);
+        }
+    };
 
     const handlePhotoUpload = (criteriaId: number, event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
@@ -439,7 +462,12 @@ export const AuditExecution: React.FC = () => {
                               
                               return (
                                   <div key={crit.id} className="p-4">
-                                      <p className="text-sm font-medium text-gray-800 mb-3">{crit.name}</p>
+                                      <p className={`text-sm ${critType === 'text' ? 'font-bold' : 'font-medium'} text-gray-800 mb-3`}>
+                                          {crit.name}
+                                          {critType === 'text' && (crit.id === 23001 || crit.id === 23002) && (
+                                              <span className="text-red-500 ml-1">*</span>
+                                          )}
+                                      </p>
                                       
                                       {/* Rating Buttons (1-5) */}
                                       {critType === 'rating' && (
@@ -500,19 +528,9 @@ export const AuditExecution: React.FC = () => {
                                               className="w-full text-sm border border-gray-200 rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none resize-none"
                                               rows={3}
                                               value={criteriaComments[crit.id] || ''}
-                                              onChange={(e) => handleCommentChange(crit.id, e.target.value)}
-                                          />
-                                      )}
-                                      
-                                      {/* Comment Input for Ratings */}
-                                      {critType === 'rating' && scoreVal !== null && scoreVal !== undefined && (
-                                          <textarea 
-                                              placeholder={scoreVal <= 2 ? "Ação corretiva obrigatória..." : "Observações (opcional)..."} 
-                                              className={`mt-3 w-full text-sm border rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none resize-none ${scoreVal <= 2 ? 'border-red-300' : 'border-gray-200'}`}
-                                              rows={2}
-                                              value={criteriaComments[crit.id] || ''}
-                                              onChange={(e) => handleCommentChange(crit.id, e.target.value)}
-                                              disabled={isReadOnly || isSaving}
+                                              onChange={(e) => handleTextChange(crit.id, e.target.value)}
+                                              onBlur={() => saveTextField(crit.id)}
+                                              required={crit.id === 23001 || crit.id === 23002}
                                           />
                                       )}
                                   </div>
