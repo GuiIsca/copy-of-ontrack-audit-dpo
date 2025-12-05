@@ -17,6 +17,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { auditId, criteriaId, score, comment, photoUrl } = req.body;
+    console.log('POST /api/scores received:', { auditId, criteriaId, score, comment, photoUrl });
     const result = await query(
       `INSERT INTO audit_scores (audit_id, criteria_id, score, comment, photo_url) 
        VALUES ($1, $2, $3, $4, $5) 
@@ -25,9 +26,11 @@ router.post('/', async (req, res) => {
        RETURNING *`,
       [auditId, criteriaId, score, comment, photoUrl]
     );
+    console.log('Score saved successfully:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to save score' });
+    console.error('Error saving score:', error);
+    res.status(500).json({ error: 'Failed to save score', details: error.message });
   }
 });
 

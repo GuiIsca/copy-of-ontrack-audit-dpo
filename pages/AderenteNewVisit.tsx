@@ -87,7 +87,7 @@ export const AderenteNewVisit: React.FC = () => {
         store_id: Number(formData.storeId),
         checklist_id: Number(formData.checklistId),
         dtstart: new Date(formData.dtstart).toISOString(),
-        status: 1, // NEW
+        status: 2, // IN_PROGRESS
         createdBy: currentUser.userId,
         visitSourceType: 'ADERENTE_VISIT'
       });

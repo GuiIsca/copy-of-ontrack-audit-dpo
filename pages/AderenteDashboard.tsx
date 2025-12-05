@@ -2,16 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
-import { CheckCircle, Clock, AlertCircle, FileText, List, MapPin, Filter } from 'lucide-react';
+import { CheckCircle, Clock, FileText, MapPin, Filter } from 'lucide-react';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditStatus, Store, ActionPlan, ActionStatus } from '../types';
+import { Audit, AuditStatus, Store } from '../types';
 import { getCurrentUser } from '../utils/auth';
 
 export const AderenteDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [audits, setAudits] = useState<(Audit & { store: Store })[]>([]);
   const [myVisits, setMyVisits] = useState<(Audit & { store: Store })[]>([]); // Visitas criadas pelo Aderente
-  const [allActions, setAllActions] = useState<ActionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [aderenteStores, setAderenteStores] = useState<Store[]>([]); // Lojas do Aderente
   const [selectedStoreFilter, setSelectedStoreFilter] = useState<number | 'all'>('all');
@@ -39,8 +38,8 @@ export const AderenteDashboard: React.FC = () => {
       // IDs das lojas do Aderente
       const myStoreIds = myStores.map(s => s.id);
 
-      // Carregar TODAS as auditorias (não filtrar por userId)
-      const allAudits = await db.getAudits(1); // userId não importa, retorna todas
+      // Carregar TODAS as auditorias (sem filtrar por userId)
+      const allAudits = await db.getAudits(); // Sem parâmetro = retorna todas
       
       // Filtrar auditorias das lojas do Aderente que foram submetidas
       const enriched = allAudits
@@ -56,9 +55,19 @@ export const AderenteDashboard: React.FC = () => {
 
       setAudits(enriched);
 
-      // Filtrar visitas criadas pelo próprio Aderente (a outras lojas)
+      // Filtrar visitas criadas pelo próprio Aderente (a outras lojas) - TODAS, não apenas submetidas
+      console.log('AderenteDashboard: Filtering visits');
+      console.log('  currentUser.userId:', currentUser.userId);
+      console.log('  myStoreIds:', myStoreIds);
+      console.log('  allAudits count:', allAudits.length);
+      
       const myCreatedVisits = allAudits
-        .filter(a => a.createdBy === currentUser.userId && !myStoreIds.includes(a.store_id))
+        .filter(a => {
+          const isCreatedByMe = a.createdBy === currentUser.userId;
+          const isNotMyStore = !myStoreIds.includes(a.store_id);
+          console.log(`  Audit ${a.id}: createdBy=${a.createdBy}, store_id=${a.store_id}, isCreatedByMe=${isCreatedByMe}, isNotMyStore=${isNotMyStore}, visit_source_type=${(a as any).visit_source_type}`);
+          return isCreatedByMe && isNotMyStore;
+        })
         .map(a => {
           const visitStore = stores.find(s => s.id === a.store_id);
           return {
@@ -67,15 +76,8 @@ export const AderenteDashboard: React.FC = () => {
           };
         });
 
+      console.log('  myCreatedVisits count:', myCreatedVisits.length);
       setMyVisits(myCreatedVisits);
-
-      // Load all actions for received audits
-      const actions: ActionPlan[] = [];
-      for (const audit of enriched) {
-        const auditActions = await db.getActions(audit.id);
-        actions.push(...auditActions);
-      }
-      setAllActions(actions);
 
       setLoading(false);
     };
@@ -88,13 +90,6 @@ export const AderenteDashboard: React.FC = () => {
     return audits.filter(a => a.store_id === selectedStoreFilter);
   }, [audits, selectedStoreFilter]);
 
-  // Ações filtradas por loja
-  const filteredActions = useMemo(() => {
-    if (selectedStoreFilter === 'all') return allActions;
-    const filteredAuditIds = filteredAudits.map(a => a.id);
-    return allActions.filter(action => filteredAuditIds.includes(action.audit_id));
-  }, [allActions, selectedStoreFilter, filteredAudits]);
-
   const getStatusBadge = (status: AuditStatus) => {
     switch(status) {
       case AuditStatus.SUBMITTED:
@@ -106,12 +101,28 @@ export const AderenteDashboard: React.FC = () => {
     }
   };
 
-  const myActions = filteredActions.filter(a => 
-    a.responsible === 'Aderente' || a.responsible === 'Ambos'
-  );
-  const pendingActions = myActions.filter(a => a.status === ActionStatus.PENDING);
-  const inProgressActions = myActions.filter(a => a.status === ActionStatus.IN_PROGRESS);
-  const completedActions = myActions.filter(a => a.status === ActionStatus.COMPLETED);
+  // Stats for own visits
+  const filteredMyVisits = useMemo(() => {
+    console.log('filteredMyVisits memo:');
+    console.log('  selectedStoreFilter:', selectedStoreFilter);
+    console.log('  myVisits.length:', myVisits.length);
+    if (selectedStoreFilter === 'all') return myVisits;
+    const filtered = myVisits.filter(v => v.store_id === selectedStoreFilter);
+    console.log('  filtered.length:', filtered.length);
+    return filtered;
+  }, [myVisits, selectedStoreFilter]);
+
+  const myVisitsInProgress = filteredMyVisits.filter(v => v.status < AuditStatus.SUBMITTED);
+  const myVisitsCompleted = filteredMyVisits.filter(v => v.status >= AuditStatus.SUBMITTED);
+  
+  console.log('Stats computed:');
+  console.log('  filteredMyVisits.length:', filteredMyVisits.length);
+  if (filteredMyVisits.length > 0) {
+    console.log('  Visit statuses:', filteredMyVisits.map(v => ({ id: v.id, status: v.status, statusType: typeof v.status })));
+    console.log('  AuditStatus.SUBMITTED value:', AuditStatus.SUBMITTED);
+  }
+  console.log('  myVisitsInProgress.length:', myVisitsInProgress.length);
+  console.log('  myVisitsCompleted.length:', myVisitsCompleted.length);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -158,7 +169,35 @@ export const AderenteDashboard: React.FC = () => {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <button 
+            type="button"
+            onClick={() => {}}
+            className="bg-yellow-50 rounded-lg shadow-sm border border-yellow-100 p-4 hover:shadow-md transition-shadow text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-yellow-600">{myVisitsInProgress.length}</div>
+                <div className="text-sm text-yellow-600">Minhas Visitas - Em Progresso</div>
+              </div>
+              <Clock className="text-yellow-400" size={32} />
+            </div>
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => {}}
+            className="bg-green-50 rounded-lg shadow-sm border border-green-100 p-4 hover:shadow-md transition-shadow text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-green-600">{myVisitsCompleted.length}</div>
+                <div className="text-sm text-green-600">Minhas Visitas - Concluídas</div>
+              </div>
+              <CheckCircle className="text-green-400" size={32} />
+            </div>
+          </button>
+
           <button 
             type="button"
             onClick={() => {
@@ -175,48 +214,6 @@ export const AderenteDashboard: React.FC = () => {
                 <div className="text-sm text-gray-500">Visitas Recebidas</div>
               </div>
               <FileText className="text-gray-400" size={32} />
-            </div>
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => navigate('/aderente/actions')}
-            className="bg-red-50 rounded-lg shadow-sm border border-red-100 p-4 hover:shadow-md transition-shadow text-left"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-red-600">{pendingActions.length}</div>
-                <div className="text-sm text-red-600">Ações Pendentes</div>
-              </div>
-              <AlertCircle className="text-red-400" size={32} />
-            </div>
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => navigate('/aderente/actions')}
-            className="bg-yellow-50 rounded-lg shadow-sm border border-yellow-100 p-4 hover:shadow-md transition-shadow text-left"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-yellow-600">{inProgressActions.length}</div>
-                <div className="text-sm text-yellow-600">Em Progresso</div>
-              </div>
-              <Clock className="text-yellow-400" size={32} />
-            </div>
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => navigate('/aderente/actions')}
-            className="bg-green-50 rounded-lg shadow-sm border border-green-100 p-4 hover:shadow-md transition-shadow text-left"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-green-600">{completedActions.length}</div>
-                <div className="text-sm text-green-600">Concluídas</div>
-              </div>
-              <CheckCircle className="text-green-400" size={32} />
             </div>
           </button>
         </div>
@@ -295,13 +292,13 @@ export const AderenteDashboard: React.FC = () => {
         </div>
 
         {/* My Visits to Other Stores */}
-        {myVisits.length > 0 && (
+        {filteredMyVisits.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
             <div className="p-4 border-b border-gray-100">
               <h3 className="font-semibold text-gray-700">Minhas Visitas a Outras Lojas</h3>
             </div>
             <div className="divide-y divide-gray-100">
-              {myVisits.map(visit => (
+              {filteredMyVisits.map(visit => (
                 <div
                   key={visit.id}
                   className="p-4 hover:bg-gray-50 transition-colors"
@@ -362,61 +359,6 @@ export const AderenteDashboard: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* My Actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-700">Minhas Ações</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/aderente/actions')}
-            >
-              <List className="mr-2" size={16} />
-              Ver Todas
-            </Button>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {myActions.length === 0 ? (
-              <p className="p-4 text-gray-500">Nenhuma ação atribuída.</p>
-            ) : (
-              myActions.slice(0, 5).map(action => {
-                const audit = filteredAudits.find(a => a.id === action.audit_id);
-                const isOverdue =
-                  new Date(action.dueDate) < new Date() &&
-                  action.status !== ActionStatus.COMPLETED;
-
-                return (
-                  <div key={action.id} className="p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-gray-900">{action.title}</h4>
-                          {isOverdue && (
-                            <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">
-                              Atrasada
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{action.description}</p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          {audit && (
-                            <span>
-                              {audit.store.brand} - {audit.store.city}
-                            </span>
-                          )}
-                          <span>
-                            Prazo: {new Date(action.dueDate).toLocaleDateString('pt-PT')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
 
       </main>
     </div>

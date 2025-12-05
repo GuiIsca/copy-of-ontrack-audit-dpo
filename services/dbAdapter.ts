@@ -98,30 +98,67 @@ class DatabaseAdapter {
   // ============ AUDITS ============
   async getAudits(userId?: number): Promise<Audit[]> {
     const data = await api.getAudits(userId);
-    return data.map(d => ({
-      ...d,
-      // For Aderente visits (visit_source_type = ADERENTE_VISIT), use createdBy as user_id
-      // For DOT audits, use dotUserId
-      user_id: d.dotUserId || d.createdBy || d.user_id,
-      dot_user_id: d.dotUserId,
-      store_id: d.storeId || d.store_id,
-      checklist_id: d.checklistId || d.checklist_id,
-      final_score: d.finalScore || d.final_score
-    }));
+    return data.map(d => {
+      // Convert status string to AuditStatus enum
+      let statusNum = AuditStatus.NEW;
+      if (typeof d.status === 'string') {
+        switch (d.status) {
+          case 'SCHEDULED': statusNum = AuditStatus.NEW; break;
+          case 'IN_PROGRESS': statusNum = AuditStatus.IN_PROGRESS; break;
+          case 'COMPLETED': statusNum = AuditStatus.SUBMITTED; break;
+          case 'CANCELLED': statusNum = AuditStatus.CANCELLED; break;
+          default: statusNum = AuditStatus.NEW;
+        }
+      } else {
+        statusNum = d.status;
+      }
+      
+      return {
+        ...d,
+        status: statusNum,
+        // For Aderente visits (visit_source_type = ADERENTE_VISIT), use createdBy as user_id
+        // For DOT audits, use dotUserId
+        user_id: d.dotUserId || d.createdBy || d.user_id,
+        dot_user_id: d.dotUserId,
+        createdBy: d.createdBy || d.created_by,
+        store_id: d.storeId || d.store_id,
+        checklist_id: d.checklistId || d.checklist_id,
+        final_score: d.finalScore || d.final_score,
+        visit_source_type: d.visitSourceType || d.visit_source_type
+      };
+    });
   }
 
   async getAuditById(id: number): Promise<Audit | undefined> {
     try {
       const data = await api.getAuditById(id);
+      
+      // Convert status string to AuditStatus enum
+      let statusNum = AuditStatus.NEW;
+      if (typeof data.status === 'string') {
+        switch (data.status) {
+          case 'SCHEDULED': statusNum = AuditStatus.NEW; break;
+          case 'IN_PROGRESS': statusNum = AuditStatus.IN_PROGRESS; break;
+          case 'COMPLETED': statusNum = AuditStatus.SUBMITTED; break;
+          case 'CANCELLED': statusNum = AuditStatus.CANCELLED; break;
+          default: statusNum = AuditStatus.NEW;
+        }
+      } else {
+        statusNum = data.status;
+      }
+      
       // Normalize: For Aderente visits, use createdBy as user_id; for DOT, use dotUserId
       // Also map camelCase fields back to snake_case for type compatibility
       return {
         ...data,
+        status: statusNum,
         user_id: data.dotUserId || data.createdBy || data.user_id,
         dot_user_id: data.dotUserId,
+        createdBy: data.createdBy || data.created_by,
         store_id: data.storeId || data.store_id,
         checklist_id: data.checklistId || data.checklist_id,
-        final_score: data.finalScore || data.final_score
+        final_score: data.finalScore || data.final_score,
+        visit_source_type: data.visitSourceType || data.visit_source_type
       };
     } catch (error) {
       console.error('Error fetching audit:', error);

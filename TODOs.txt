@@ -6,8 +6,7 @@ pagina amount
 pagina aderente
 - ao criar nova visita nao temos checklist disponivel, criar uma do mesmo estilo (mas nao pode ser a mesma) que criamos para o DOT
 - nao podemos partilhar essa checklist por isso impleemnta outra mas com a mesma logica.
-- esta checklist depois de submetida sera enviada para o DOT responsavel por aquele aderente para aprovação
-- criar na pagina do DOT as visitas do aderente para aprovação 
-- pagina palnos de ação nao tem botao de retroceder
+- botões Guardar e Submeter implementados: Guardar graba sem submeter, Submeter marca como SUBMITTED e bloqueia edição
+
 
 
