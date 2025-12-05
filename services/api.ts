@@ -5,6 +5,21 @@ const API_URL = `${window.location.origin}/api`;
 // Derive server root (without /api) for legacy endpoints
 const SERVER_URL = API_URL.replace(/\/api$/, '');
 
+// Convert snake_case keys to camelCase
+const toCamelCase = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj.map(toCamelCase);
+  }
+  if (obj !== null && typeof obj === 'object') {
+    return Object.keys(obj).reduce((result, key) => {
+      const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+      result[camelKey] = toCamelCase(obj[key]);
+      return result;
+    }, {} as any);
+  }
+  return obj;
+};
+
 class ApiClient {
   async request(endpoint: string, options: RequestInit = {}) {
     const response = await fetch(`${API_URL}${endpoint}`, {
@@ -109,25 +124,29 @@ class ApiClient {
   // Audits
   async getAudits(userId?: number) {
     const query = userId ? `?userId=${userId}` : '';
-    return this.request(`/audits${query}`);
+    const data = await this.request(`/audits${query}`);
+    return data.map((d: any) => toCamelCase(d));
   }
 
   async getAuditById(id: number) {
-    return this.request(`/audits/${id}`);
+    const data = await this.request(`/audits/${id}`);
+    return toCamelCase(data);
   }
 
   async createAudit(data: any) {
-    return this.request('/audits', {
+    const result = await this.request('/audits', {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    return toCamelCase(result);
   }
 
   async updateAudit(id: number, data: any) {
-    return this.request(`/audits/${id}`, {
+    const result = await this.request(`/audits/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+    return toCamelCase(result);
   }
 
   // Visits

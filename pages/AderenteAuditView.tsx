@@ -36,7 +36,7 @@ export const AderenteAuditView: React.FC = () => {
       setAudit(auditData);
       const stores = await db.getStores();
       setStore(stores.find(s => s.id === auditData.store_id) || null);
-      const checklistData = await db.getChecklist();
+      const checklistData = await db.getChecklist(auditData.checklist_id);
       setChecklist(checklistData);
       const scoresData = await db.getScores(Number(id));
       setScores(scoresData);

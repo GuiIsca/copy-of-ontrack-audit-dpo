@@ -60,13 +60,14 @@ CREATE TABLE checklists (
 CREATE TABLE audits (
     id SERIAL PRIMARY KEY,
     store_id INTEGER NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-    dot_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    dot_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     checklist_id INTEGER REFERENCES checklists(id) ON DELETE SET NULL,
     dtstart TIMESTAMP NOT NULL,
     dtend TIMESTAMP,
     status audit_status DEFAULT 'SCHEDULED',
     final_score DECIMAL(5, 2),
     created_by INTEGER NOT NULL REFERENCES users(id),
+    visit_source_type VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

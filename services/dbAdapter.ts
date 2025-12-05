@@ -97,18 +97,39 @@ class DatabaseAdapter {
 
   // ============ AUDITS ============
   async getAudits(userId?: number): Promise<Audit[]> {
-    return api.getAudits(userId);
+    const data = await api.getAudits(userId);
+    return data.map(d => ({
+      ...d,
+      // For Aderente visits (visit_source_type = ADERENTE_VISIT), use createdBy as user_id
+      // For DOT audits, use dotUserId
+      user_id: d.dotUserId || d.createdBy || d.user_id,
+      dot_user_id: d.dotUserId,
+      store_id: d.storeId || d.store_id,
+      checklist_id: d.checklistId || d.checklist_id,
+      final_score: d.finalScore || d.final_score
+    }));
   }
 
   async getAuditById(id: number): Promise<Audit | undefined> {
     try {
-      return await api.getAuditById(id);
-    } catch {
+      const data = await api.getAuditById(id);
+      // Normalize: For Aderente visits, use createdBy as user_id; for DOT, use dotUserId
+      // Also map camelCase fields back to snake_case for type compatibility
+      return {
+        ...data,
+        user_id: data.dotUserId || data.createdBy || data.user_id,
+        dot_user_id: data.dotUserId,
+        store_id: data.storeId || data.store_id,
+        checklist_id: data.checklistId || data.checklist_id,
+        final_score: data.finalScore || data.final_score
+      };
+    } catch (error) {
+      console.error('Error fetching audit:', error);
       return undefined;
     }
   }
 
-  async createAudit(auditData: Partial<Audit> & { user_id?: number; store_id?: number; checklist_id?: number; created_by?: number }): Promise<Audit> {
+  async createAudit(auditData: Partial<Audit> & { user_id?: number; store_id?: number; checklist_id?: number; created_by?: number; visitSourceType?: string }): Promise<Audit> {
     let statusStr = 'SCHEDULED';
     if (auditData.status) {
       switch (auditData.status) {
@@ -122,14 +143,25 @@ class DatabaseAdapter {
       }
     }
 
-    return api.createAudit({
+    const result = await api.createAudit({
       storeId: auditData.store_id,
       dotUserId: auditData.dot_user_id || auditData.user_id, // Suporta tanto dot_user_id (DOT) como user_id (Aderente)
       checklistId: auditData.checklist_id || 1,
       dtstart: auditData.dtstart,
       status: statusStr,
-      createdBy: auditData.created_by || auditData.createdBy
+      createdBy: auditData.created_by || auditData.createdBy,
+      visitSourceType: auditData.visitSourceType || 'DOT_AUDIT'
     });
+
+    // Normalize response - for Aderente visits, createdBy becomes user_id
+    return {
+      ...result,
+      user_id: result.dotUserId || result.createdBy || result.user_id,
+      dot_user_id: result.dotUserId,
+      store_id: result.storeId || result.store_id,
+      checklist_id: result.checklistId || result.checklist_id,
+      final_score: result.finalScore || result.final_score
+    };
   }
 
   async updateAudit(auditOrId: Audit | number, partialData?: Partial<Audit>): Promise<void> {
@@ -281,7 +313,10 @@ class DatabaseAdapter {
   }
 
   // ============ CHECKLISTS ============
-  async getChecklist(): Promise<Checklist | null> {
+  async getChecklist(id?: number): Promise<Checklist | null> {
+    if (id) {
+      return this.getChecklistById(id);
+    }
     const checklists = await api.getChecklists();
     return checklists[0] || null;
   }

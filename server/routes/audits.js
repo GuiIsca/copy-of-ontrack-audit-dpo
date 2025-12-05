@@ -43,11 +43,11 @@ router.get('/:id', async (req, res) => {
 // Create audit
 router.post('/', async (req, res) => {
   try {
-    const { storeId, dotUserId, checklistId, dtstart, status, createdBy } = req.body;
+    const { storeId, dotUserId, checklistId, dtstart, status, createdBy, visitSourceType } = req.body;
     const result = await query(
-      `INSERT INTO audits (store_id, dot_user_id, checklist_id, dtstart, status, created_by) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [storeId, dotUserId, checklistId || 1, dtstart, status || 'SCHEDULED', createdBy]
+      `INSERT INTO audits (store_id, dot_user_id, checklist_id, dtstart, status, created_by, visit_source_type) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [storeId, dotUserId || null, checklistId || 1, dtstart, status || 'SCHEDULED', createdBy, visitSourceType || 'DOT_AUDIT']
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {

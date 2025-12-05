@@ -88,7 +88,8 @@ export const AderenteNewVisit: React.FC = () => {
         checklist_id: Number(formData.checklistId),
         dtstart: new Date(formData.dtstart).toISOString(),
         status: 1, // NEW
-        createdBy: currentUser.userId
+        createdBy: currentUser.userId,
+        visitSourceType: 'ADERENTE_VISIT'
       });
 
       // Navegar para execução da auditoria

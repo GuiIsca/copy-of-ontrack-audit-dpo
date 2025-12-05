@@ -39,6 +39,20 @@ export const canEditAudit = (auditStatus: number | string, auditUserId?: number,
     }
     return isEditable;
   }
+
+  // Aderente pode editar suas próprias visitas enquanto não estão submetidas
+  if (hasRole(UserRole.ADERENTE) && createdBy && createdBy === currentUser.userId) {
+    let isEditable = false;
+    if (typeof auditStatus === 'number') {
+      // Legacy numeric statuses: allow anything below submitted/closed
+      isEditable = auditStatus < 3;
+    } else {
+      // String statuses: allow NEW and SCHEDULED and IN_PROGRESS
+      const statusStr = String(auditStatus).toUpperCase();
+      isEditable = statusStr === 'NEW' || statusStr === 'SCHEDULED' || statusStr === 'IN_PROGRESS';
+    }
+    return isEditable;
+  }
   
   return false;
 };
@@ -81,6 +95,30 @@ export const canDeleteAudit = (createdBy?: number): boolean => {
 export const canViewAudit = (): boolean => {
   // Todos podem ver auditorias (com filtros apropriados)
   return true;
+};
+
+export const canViewAuditAsAderente = (
+  auditCreatedBy: number | undefined,
+  storeAderenteId: number | undefined,
+  visitSourceType?: string
+): boolean => {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return false;
+
+  // ADMIN e AMONT podem ver tudo
+  if (hasRole(UserRole.ADMIN) || hasRole(UserRole.AMONT)) return true;
+
+  // Se não é uma visita do Aderente, retorna false (apenas DOT pode ver auditorias DOT_AUDIT)
+  if (visitSourceType !== 'ADERENTE_VISIT') return false;
+
+  // Aderente pode ver se:
+  // 1. É o criador (Aderente visitante), OU
+  // 2. É o Aderente da loja visitada (storeAderenteId = seu ID)
+  if (hasRole(UserRole.ADERENTE)) {
+    return currentUser.userId === auditCreatedBy || currentUser.userId === storeAderenteId;
+  }
+
+  return false;
 };
 
 export const canSubmitAudit = (auditUserId: number | undefined, auditStatus?: number | string): boolean => {

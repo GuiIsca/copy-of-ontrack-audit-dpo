@@ -18,6 +18,7 @@ export const AuditExecution: React.FC = () => {
   
   const [audit, setAudit] = useState<Audit | null>(null);
   const [store, setStore] = useState<Store | null>(null);
+  const [stores, setStores] = useState<Store[]>([]);
   const [checklist, setChecklist] = useState<Checklist | null>(null);
   const [scores, setScores] = useState<AuditScore[]>([]);
   
@@ -38,12 +39,21 @@ export const AuditExecution: React.FC = () => {
       // Reset loading state when id changes
       setLoading(true);
       
+      console.log('AuditExecution: Starting loadData, id:', id);
+      
       if (!id) {
+        console.log('AuditExecution: No id provided');
         setLoading(false);
         return;
       }
-      const aud = await db.getAuditById(parseInt(id));
-      if (!aud) {
+      
+      try {
+        console.log('AuditExecution: Fetching audit with id:', id);
+        const aud = await db.getAuditById(parseInt(id));
+        console.log('AuditExecution: Audit fetched:', aud);
+        
+        if (!aud) {
+          console.log('AuditExecution: Audit not found, redirecting');
           // Redirecionar para o dashboard correto baseado no role
           if (currentUser?.roles.includes(UserRole.ADERENTE)) {
             navigate('/aderente/dashboard');
@@ -51,35 +61,52 @@ export const AuditExecution: React.FC = () => {
             navigate('/dashboard');
           }
           return;
-      }
-      // Ensure user_id is set for DOT audits
-      if (!aud.user_id && !aud.dot_user_id && currentUser?.userId) {
-        aud.user_id = currentUser.userId;
-        aud.dot_user_id = currentUser.userId;
-      }
-      setAudit(aud);
-      
-      const stores = await db.getStores();
-      setStore(stores.find(s => s.id === aud.store_id) || null);
-      
-      const cl = await db.getChecklist();
-      setChecklist(cl);
+        }
+        // Ensure user_id is set for DOT audits
+        if (!aud.user_id && !aud.dot_user_id && currentUser?.userId) {
+          aud.user_id = currentUser.userId;
+          aud.dot_user_id = currentUser.userId;
+        }
+        setAudit(aud);
+        
+        console.log('AuditExecution: Fetching stores');
+        const allStores = await db.getStores();
+        setStores(allStores);
+        setStore(allStores.find(s => s.id === aud.store_id || s.id === (aud as any).storeId) || null);
+        
+        console.log('AuditExecution: Fetching checklist, checklist_id:', aud.checklist_id || (aud as any).checklistId);
+        const cl = await db.getChecklist(aud.checklist_id || (aud as any).checklistId);
+        console.log('AuditExecution: Checklist fetched:', cl);
+        setChecklist(cl);
 
-      const sc = await db.getScores(aud.id);
-      setScores(sc);
-      
-      // Load comments and photos from scores
-      const comments: Record<number, string> = {};
-      const photos: Record<number, string[]> = {};
-      sc.forEach(s => {
-        if (s.comment) comments[s.criteria_id] = s.comment;
-        if (s.photos) photos[s.criteria_id] = s.photos;
-      });
-      setCriteriaComments(comments);
-      setCriteriaPhotos(photos);
-      setGeneralComments(aud.auditorcomments || '');
-      
-      setLoading(false);
+        console.log('AuditExecution: Fetching scores');
+        const sc = await db.getScores(aud.id);
+        setScores(sc);
+        
+        // Load comments and photos from scores
+        const comments: Record<number, string> = {};
+        const photos: Record<number, string[]> = {};
+        sc.forEach(s => {
+          if (s.comment) comments[s.criteria_id] = s.comment;
+          if (s.photos) photos[s.criteria_id] = s.photos;
+        });
+        
+        // Auto-fill "Loja visitada" (criteria 21002) if not already filled
+        const visitedStore = allStores.find(s => s.id === aud.store_id);
+        if (visitedStore && !comments[21002]) {
+          comments[21002] = `${visitedStore.brand} - ${visitedStore.city}`;
+        }
+        
+        setCriteriaComments(comments);
+        setCriteriaPhotos(photos);
+        setGeneralComments(aud.auditorcomments || '');
+        
+        console.log('AuditExecution: All data loaded successfully');
+        setLoading(false);
+      } catch (error) {
+        console.error('AuditExecution: Error loading data:', error);
+        setLoading(false);
+      }
     };
     loadData();
   }, [id]);
@@ -342,7 +369,7 @@ export const AuditExecution: React.FC = () => {
   const sectionScore = calculateSectionScore(currentSection);
   
   // Verificar se pode editar baseado nas permissões
-  const canEdit = canEditAudit(audit.status, audit.user_id);
+  const canEdit = canEditAudit(audit.status, audit.user_id, audit.createdBy);
     const canSubmit = canSubmitAudit(audit.user_id, audit.status);
   const isReadOnly = !canEdit;
 
@@ -408,13 +435,14 @@ export const AuditExecution: React.FC = () => {
                           {item.criteria.map(crit => {
                               const scoreVal = scores.find(s => s.criteria_id === crit.id)?.score;
                               const isSaving = savingCriteria.has(crit.id);
+                              const critType = (crit as any).type || 'rating'; // Default to rating for DOT audits
                               
                               return (
                                   <div key={crit.id} className="p-4">
                                       <p className="text-sm font-medium text-gray-800 mb-3">{crit.name}</p>
                                       
-                                      <div className="flex flex-wrap items-center justify-between gap-4">
-                                          {/* Scoring Buttons */}
+                                      {/* Rating Buttons (1-5) */}
+                                      {critType === 'rating' && (
                                           <div className="flex items-center space-x-1">
                                               {[1, 2, 3, 4, 5].map(val => (
                                                   <button
@@ -430,61 +458,61 @@ export const AuditExecution: React.FC = () => {
                                                       {val}
                                                   </button>
                                               ))}
-                                              <div className="w-px h-6 bg-gray-300 mx-2"></div>
-                                              <button
-                                                  disabled={isReadOnly}
-                                                  onClick={() => handleScoreChange(crit.id, 0)} // 0 for N/A
-                                                  className={`px-2 py-1 text-xs rounded border ${scoreVal === 0 ? 'bg-gray-600 text-white border-gray-600' : 'bg-white text-gray-500 border-gray-200'}`}
-                                              >
-                                                  NA
-                                              </button>
-                                          </div>
-
-                                          {/* Actions */}
-                                          <div className="flex items-center space-x-2">
-                                              <label className="cursor-pointer">
-                                                  <input 
-                                                      type="file" 
-                                                      accept="image/*" 
-                                                      className="hidden" 
-                                                      onChange={(e) => handlePhotoUpload(crit.id, e)}
-                                                      disabled={isReadOnly || isSaving}
-                                                  />
-                                                  <div className="p-2 text-gray-400 hover:text-mousquetaires rounded-full hover:bg-red-50">
-                                                      <Camera size={20} />
-                                                  </div>
-                                              </label>
-                                          </div>
-                                      </div>
-                                      
-                                      {/* Photos Preview */}
-                                      {criteriaPhotos[crit.id] && criteriaPhotos[crit.id].length > 0 && (
-                                          <div className="mt-3 flex flex-wrap gap-2">
-                                              {criteriaPhotos[crit.id].map((photo, idx) => (
-                                                  <div key={idx} className="relative group">
-                                                      <img src={photo} alt="" className="w-20 h-20 object-cover rounded border" />
-                                                      {!isReadOnly && (
-                                                          <button 
-                                                              onClick={() => handleRemovePhoto(crit.id, idx)}
-                                                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                          >
-                                                              <X size={12} />
-                                                          </button>
-                                                      )}
-                                                  </div>
-                                              ))}
                                           </div>
                                       )}
                                       
-                                      {/* Comment Input */}
-                                      {scoreVal !== null && scoreVal !== undefined && (
-                                                                                    <textarea 
-                                            placeholder={scoreVal <= 2 ? "Ação corretiva obrigatória..." : "Observações (opcional)..."} 
-                                            className={`mt-3 w-full text-sm border rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none resize-none ${scoreVal <= 2 ? 'border-red-300' : 'border-gray-200'}`}
-                                            rows={2}
-                                            value={criteriaComments[crit.id] || ''}
-                                                                                        onChange={(e) => handleCommentChange(crit.id, e.target.value)}
-                                                                                        disabled={isReadOnly || isSaving}
+                                      {/* Dropdown */}
+                                      {critType === 'dropdown' && (
+                                          <select
+                                              disabled={isReadOnly || isSaving}
+                                              value={criteriaComments[crit.id] || ''}
+                                              onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                              className="w-full text-sm border border-gray-200 rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none"
+                                          >
+                                              <option value="">Selecionar...</option>
+                                              {crit.id === 21001 && (
+                                                  <>
+                                                      <option value="FRUTAS E LEGUMES">FRUTAS E LEGUMES</option>
+                                                      <option value="PADARIA">PADARIA</option>
+                                                      <option value="TALHO">TALHO</option>
+                                                      <option value="PEIXARIA">PEIXARIA</option>
+                                                      <option value="CHARCUTARIA">CHARCUTARIA</option>
+                                                      <option value="LACTICÍNIOS/CONGELADOS">LACTICÍNIOS/CONGELADOS</option>
+                                                  </>
+                                              )}
+                                              {crit.id === 21002 && stores.length > 0 && (
+                                                  <>
+                                                      {stores.map(s => (
+                                                          <option key={s.id} value={`${s.brand} - ${s.city}`}>
+                                                              {s.brand} - {s.city}
+                                                          </option>
+                                                      ))}
+                                                  </>
+                                              )}
+                                          </select>
+                                      )}
+                                      
+                                      {/* Text Area */}
+                                      {critType === 'text' && (
+                                          <textarea
+                                              disabled={isReadOnly || isSaving}
+                                              placeholder="Clique aqui para digitar..."
+                                              className="w-full text-sm border border-gray-200 rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none resize-none"
+                                              rows={3}
+                                              value={criteriaComments[crit.id] || ''}
+                                              onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                          />
+                                      )}
+                                      
+                                      {/* Comment Input for Ratings */}
+                                      {critType === 'rating' && scoreVal !== null && scoreVal !== undefined && (
+                                          <textarea 
+                                              placeholder={scoreVal <= 2 ? "Ação corretiva obrigatória..." : "Observações (opcional)..."} 
+                                              className={`mt-3 w-full text-sm border rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none resize-none ${scoreVal <= 2 ? 'border-red-300' : 'border-gray-200'}`}
+                                              rows={2}
+                                              value={criteriaComments[crit.id] || ''}
+                                              onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                              disabled={isReadOnly || isSaving}
                                           />
                                       )}
                                   </div>
@@ -495,27 +523,7 @@ export const AuditExecution: React.FC = () => {
               ))}
           </div>
 
-          {/* General Observations Section */}
-          {currentSectionIndex === checklist.sections.length - 1 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mt-6">
-                  <h4 className="font-semibold text-gray-700 mb-3">Observações Gerais</h4>
-                  <textarea
-                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none resize-none"
-                      rows={4}
-                      placeholder="Comentários gerais sobre a visita..."
-                      value={generalComments}
-                      onChange={(e) => setGeneralComments(e.target.value)}
-                      disabled={isReadOnly}
-                  />
-                  {!isReadOnly && (
-                      <div className="mt-3 flex justify-end">
-                          <Button variant="outline" onClick={handleSave}>
-                              <Save className="mr-2" size={16} /> Guardar Rascunho
-                          </Button>
-                      </div>
-                  )}
-              </div>
-          )}
+
 
       </main>
 

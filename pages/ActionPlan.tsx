@@ -43,7 +43,7 @@ export const ActionPlan: React.FC = () => {
       const stores = await db.getStores();
       setStore(stores.find(s => s.id === aud.store_id) || null);
 
-      const cl = await db.getChecklist();
+      const cl = await db.getChecklist(aud.checklist_id);
       setChecklist(cl);
 
       await loadActions();

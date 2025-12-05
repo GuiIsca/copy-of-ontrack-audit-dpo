@@ -103,68 +103,54 @@ INSERT INTO checklists (id, name, target_role, sections) VALUES
     ]
   }
 ]'::jsonb),
-(2, 'Visita Aderente - Avaliação Cruzada', 'ADERENTE', 
+(2, 'Survey Aderente – Visitas às lojas', 'ADERENTE', 
 '[
   {
     "id": 201,
-    "name": "Atendimento ao Cliente",
+    "name": "1. Identificação",
     "orderindex": 1,
     "items": [
       {
         "id": 2101,
-        "name": "Qualidade do Atendimento",
+        "name": "Dados da Loja",
         "criteria": [
-          {"id": 21001, "name": "Colaboradores disponíveis e simpáticos", "weight": 1},
-          {"id": 21002, "name": "Tempo de espera adequado nas caixas", "weight": 1},
-          {"id": 21003, "name": "Respostas claras às dúvidas dos clientes", "weight": 1}
-        ]
-      },
-      {
-        "id": 2102,
-        "name": "Serviço Personalizado",
-        "criteria": [
-          {"id": 21004, "name": "Secções assistidas bem atendidas (talho, charcutaria, peixaria)", "weight": 2},
-          {"id": 21005, "name": "Colaboradores com conhecimento dos produtos", "weight": 1}
+          {"id": 21001, "name": "Microsetor", "weight": 1, "type": "dropdown", "options": []},
+          {"id": 21002, "name": "Loja visitada", "weight": 1, "type": "dropdown", "options": []}
         ]
       }
     ]
   },
   {
     "id": 202,
-    "name": "Apresentação da Loja",
+    "name": "2. Avaliação Geral da Loja",
     "orderindex": 2,
     "items": [
       {
         "id": 2201,
-        "name": "Organização Geral",
+        "name": "Escala 1 a 5 (1 = Muito Mau | 5 = Excelente)",
         "criteria": [
-          {"id": 22001, "name": "Corredores livres e organizados", "weight": 1},
-          {"id": 22002, "name": "Sinalética clara e visível", "weight": 1},
-          {"id": 22003, "name": "Promoções bem destacadas", "weight": 1}
-        ]
-      },
-      {
-        "id": 2202,
-        "name": "Ambiente",
-        "criteria": [
-          {"id": 22004, "name": "Iluminação adequada", "weight": 1},
-          {"id": 22005, "name": "Ambiente agradável (música, climatização)", "weight": 1}
+          {"id": 22001, "name": "Limpeza e organização geral", "weight": 1, "type": "rating"},
+          {"id": 22002, "name": "Disponibilidade de artigos (sem ruturas visíveis)", "weight": 1, "type": "rating"},
+          {"id": 22003, "name": "Frescura e qualidade dos produtos", "weight": 1, "type": "rating"},
+          {"id": 22004, "name": "Execução comercial (PLV, folheto, teatralização)", "weight": 1, "type": "rating"},
+          {"id": 22005, "name": "Atendimento ao cliente observado", "weight": 1, "type": "rating"},
+          {"id": 22006, "name": "Impressão geral da loja (experiência cliente)", "weight": 1, "type": "rating"}
         ]
       }
     ]
   },
   {
     "id": 203,
-    "name": "Boas Práticas",
+    "name": "3. Destaques da Loja",
     "orderindex": 3,
     "items": [
       {
         "id": 2301,
-        "name": "Práticas Diferenciadas",
+        "name": "Observações",
         "criteria": [
-          {"id": 23001, "name": "Identificação de boas práticas a replicar", "weight": 2},
-          {"id": 23002, "name": "Inovações no ponto de venda", "weight": 1},
-          {"id": 23003, "name": "Práticas sustentáveis visíveis", "weight": 1}
+          {"id": 23001, "name": "Pontos fortes que observou", "weight": 1, "type": "text"},
+          {"id": 23002, "name": "Pontos a melhorar", "weight": 1, "type": "text"},
+          {"id": 23003, "name": "Sugestões ao Aderente Visitado (opcional, mas útil)", "weight": 1, "type": "text"}
         ]
       }
     ]
