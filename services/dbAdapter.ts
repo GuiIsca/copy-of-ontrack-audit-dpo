@@ -225,14 +225,82 @@ class DatabaseAdapter {
   }
 
   async createVisit(visitData: Partial<Visit>): Promise<Visit> {
+    // Map frontend enums/values to DB enum strings
+    let typeStr = 'OUTROS';
+    if (visitData.type) {
+      switch ((visitData.type as any).toString()) {
+        case 'Auditoria':
+        case 'AUDITORIA':
+          typeStr = 'AUDITORIA';
+          break;
+        case 'Formacao':
+        case 'FORMACAO':
+          typeStr = 'FORMACAO';
+          break;
+        case 'Acompanhamento':
+        case 'ACOMPANHAMENTO':
+          typeStr = 'ACOMPANHAMENTO';
+          break;
+        default:
+          typeStr = 'OUTROS';
+      }
+    }
+
+    let statusStr = 'SCHEDULED';
+    if (visitData.status !== undefined && visitData.status !== null) {
+      switch (visitData.status) {
+        case AuditStatus.NEW:
+          statusStr = 'SCHEDULED';
+          break;
+        case AuditStatus.IN_PROGRESS:
+          statusStr = 'IN_PROGRESS';
+          break;
+        case AuditStatus.SUBMITTED:
+        case AuditStatus.ENDED:
+        case AuditStatus.CLOSED:
+          statusStr = 'COMPLETED';
+          break;
+        case AuditStatus.CANCELLED:
+          statusStr = 'CANCELLED';
+          break;
+        default:
+          // accept already string statuses passed through
+          if (typeof visitData.status === 'string') statusStr = visitData.status as string;
+      }
+    }
+
+    // If this is an 'AUDITORIA' type, create an actual audit record
+    if (typeStr === 'AUDITORIA') {
+      // Map statusStr back to AuditStatus enum where possible for createAudit helper
+      // createAudit expects numeric AuditStatus values; map common strings
+      let statusEnum = undefined as any;
+      switch (statusStr) {
+        case 'SCHEDULED': statusEnum = AuditStatus.NEW; break;
+        case 'IN_PROGRESS': statusEnum = AuditStatus.IN_PROGRESS; break;
+        case 'COMPLETED': statusEnum = AuditStatus.ENDED; break;
+        case 'CANCELLED': statusEnum = AuditStatus.CANCELLED; break;
+        default: statusEnum = AuditStatus.NEW;
+      }
+
+      const audit = await this.createAudit({
+        store_id: visitData.store_id,
+        user_id: visitData.user_id, // dot user id
+        dtstart: visitData.dtstart,
+        status: statusEnum,
+        created_by: visitData.created_by
+      } as any);
+
+      return audit as any;
+    }
+
     return api.createVisit({
       storeId: visitData.store_id,
       userId: visitData.user_id,
-      type: visitData.type,
+      type: typeStr,
       title: visitData.title,
       description: visitData.description || '',
       dtstart: visitData.dtstart,
-      status: visitData.status || 'SCHEDULED',
+      status: statusStr,
       createdBy: visitData.created_by
     });
   }
