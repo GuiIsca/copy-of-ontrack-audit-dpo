@@ -21,6 +21,19 @@ export const Dashboard: React.FC = () => {
   const [calendarScope, setCalendarScope] = useState<CalendarScope>('month');
   const [weekFocusDate, setWeekFocusDate] = useState<Date | undefined>(undefined);
 
+  const handleItemClick = (id: number) => {
+    const item = audits.find(a => a.id === id);
+    if (!item) return;
+    
+    // Se checklist_id === 0 ou não existe, é uma Visit
+    if (!item.checklist_id || item.checklist_id === 0) {
+      navigate(`/visit/${id}`);
+    } else {
+      // Se tem checklist_id, é uma Audit
+      navigate(`/dot/audit/${id}`);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       const currentUser = getCurrentUser();
@@ -172,7 +185,7 @@ export const Dashboard: React.FC = () => {
             {calendarScope === 'month' ? (
               <MonthPlanner 
                 audits={audits} 
-                onAuditClick={(id) => navigate(`/dot/audit/${id}`)}
+                onAuditClick={handleItemClick}
                 onDateClick={(date) => {
                   // Navigate to select visit type with pre-selected date
                   navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } });
@@ -182,7 +195,7 @@ export const Dashboard: React.FC = () => {
             ) : (
               <WeekPlanner 
                 audits={audits} 
-                onAuditClick={(id) => navigate(`/dot/audit/${id}`)}
+                onAuditClick={handleItemClick}
                 onDateClick={(date) => {
                   // Navigate to select visit type with pre-selected date
                   navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } });

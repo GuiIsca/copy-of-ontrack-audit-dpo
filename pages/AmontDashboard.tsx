@@ -12,12 +12,14 @@ import { db } from '../services/dbAdapter';
 import { MonthPlanner } from '../components/calendar/MonthPlanner';
 import { WeekPlanner } from '../components/calendar/WeekPlanner';
 import { Audit, AuditStatus, Store, Visit, VisitType } from '../types';
+import { getCurrentUser } from '../utils/auth';
 
 // Unified visit item type that can be either an Audit or a Visit
 type VisitItem = (Audit & { store: Store; visitType: VisitType }) | (Visit & { store: Store; visitType: VisitType });
 
 export const AmontDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const currentUser = getCurrentUser();
   const [visits, setVisits] = useState<VisitItem[]>([]);
   const [filteredVisits, setFilteredVisits] = useState<VisitItem[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -77,6 +79,34 @@ export const AmontDashboard: React.FC = () => {
     
     loadData();
   }, []);
+
+  // Helper function to navigate to the correct view based on ownership
+  const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
+    if (!currentUser) return;
+    
+    if (isAudit) {
+      // Check if this audit belongs to the current AMONT user
+      const audit = visit as Audit;
+      const isMyAudit = audit.user_id === currentUser.userId || audit.dot_user_id === currentUser.userId;
+      
+      // If it's my audit and not completed, go to execute; otherwise view
+      if (isMyAudit && audit.status !== AuditStatus.ENDED && audit.status !== AuditStatus.CLOSED) {
+        navigate(`/amont/execute/${visit.id}`);
+      } else {
+        navigate(`/amont/audit/${visit.id}`);
+      }
+    } else {
+      // For non-audit visits, check if I'm the executor
+      const visitItem = visit as Visit;
+      const isMyVisit = visitItem.user_id === currentUser.userId;
+      
+      if (isMyVisit && visitItem.status !== AuditStatus.ENDED && visitItem.status !== AuditStatus.CLOSED) {
+        navigate(`/amont/execute/${visit.id}`);
+      } else {
+        navigate(`/amont/visit/${visit.id}`);
+      }
+    }
+  };
 
   useEffect(() => {
     let filtered = [...visits];
@@ -240,7 +270,7 @@ export const AmontDashboard: React.FC = () => {
             return (
               <div
                 key={`${v.visitType}-${v.id}`}
-                onClick={() => isAudit ? navigate(`/amont/audit/${v.id}`) : navigate(`/amont/visit/${v.id}`)}
+                onClick={() => handleVisitClick(v, isAudit)}
                 className={`text-xs ${bgColor} text-white px-1 py-0.5 rounded mb-1 cursor-pointer truncate`}
                 title={`${v.store.codehex} - ${v.visitType}`}
               >
@@ -333,7 +363,7 @@ export const AmontDashboard: React.FC = () => {
                 return (
                   <div 
                     key={`${v.visitType}-${v.id}`} 
-                    onClick={() => isAudit ? navigate(`/amont/audit/${v.id}`) : navigate(`/amont/visit/${v.id}`)} 
+                    onClick={() => handleVisitClick(v, isAudit)} 
                     className={`flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer`}
                   >
                     <div className="flex items-center gap-3">
@@ -416,7 +446,7 @@ export const AmontDashboard: React.FC = () => {
                 return (
                   <div 
                     key={`${v.visitType}-${v.id}`} 
-                    onClick={() => isAudit ? navigate(`/amont/audit/${v.id}`) : navigate(`/amont/visit/${v.id}`)} 
+                    onClick={() => handleVisitClick(v, isAudit)} 
                     className={`flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer`}
                   >
                     <div className="flex items-center gap-3">
@@ -698,40 +728,12 @@ export const AmontDashboard: React.FC = () => {
               // Handler that navigates to audit or visit based on type
               // Use `filteredVisits` to disambiguate IDs (audit vs visit) in case both exist
               const handleItemClick = async (id: number, isAuditFlag?: boolean) => {
-                // Use explicit flag from planner to prioritize which table to check (audits IDs and visits IDs are separate!)
-                // Note: isAuditFlag is the source of truth; visitType in filteredMatch may be incorrect due to legacy data
                 const filteredMatch = filteredVisits.find(v => v.id === id);
-
-
-
-                // If planner passed isAuditFlag=true, trust it and check audits first
-                if (isAuditFlag === true) {
-                  try {
-                    const audit = await db.getAuditById(id as number);
-                    if (audit) {
-                      navigate(`/amont/audit/${id}`);
-                      return;
-                    }
-                  } catch (e) {}
-                }
                 
-                // If planner passed isAuditFlag=false, trust it and check visits first
-                if (isAuditFlag === false) {
-                  try {
-                    const visit = await db.getVisitById(id as number);
-                    if (visit) {
-                      navigate(`/amont/visit/${id}`);
-                      return;
-                    }
-                  } catch (e) {}
-                }
-
-                // If no flag, fallback to heuristic: check filteredMatch visitType
-                const isAuditFromMatch = (filteredMatch as any)?.isAudit === true || filteredMatch?.visitType === VisitType.AUDITORIA;
-                if (isAuditFromMatch) {
-                  navigate(`/amont/audit/${id}`);
-                } else {
-                  navigate(`/amont/visit/${id}`);
+                if (filteredMatch) {
+                  // Use the existing helper that checks ownership and status
+                  const isAudit = isAuditFlag ?? ((filteredMatch as any)?.isAudit === true || filteredMatch.visitType === VisitType.AUDITORIA);
+                  handleVisitClick(filteredMatch, isAudit);
                 }
               };
 
@@ -794,7 +796,7 @@ export const AmontDashboard: React.FC = () => {
                       <tr 
                         key={`${visit.visitType}-${visit.id}`} 
                         className="hover:bg-gray-50 cursor-pointer" 
-                        onClick={() => isAudit ? navigate(`/amont/audit/${visit.id}`) : navigate(`/amont/visit/${visit.id}`)}
+                        onClick={() => handleVisitClick(visit, isAudit)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{visit.store.codehex}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -821,8 +823,8 @@ export const AmontDashboard: React.FC = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); isAudit ? navigate(`/amont/audit/${visit.id}`) : navigate(`/amont/visit/${visit.id}`); }}>
-                            Ver Detalhes
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleVisitClick(visit, isAudit); }}>
+                            Ver detalhes
                           </Button>
                         </td>
                       </tr>
@@ -859,3 +861,4 @@ export const AmontDashboard: React.FC = () => {
     </div>
   );
 };
+

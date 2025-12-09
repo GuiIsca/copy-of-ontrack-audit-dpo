@@ -107,6 +107,11 @@ const App: React.FC = () => {
                 <AuditExecution />
             </ProtectedRoute>
         } />
+        <Route path="/visit/:id" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <VisitDetail />
+            </ProtectedRoute>
+        } />
          <Route path="/audit/:id/actions" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
                 <ActionPlan />
@@ -160,6 +165,11 @@ const App: React.FC = () => {
         <Route path="/amont/audit/:id" element={
             <ProtectedRoute requireRole={canAccessAmontDashboard}>
                 <AmontAuditView />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/execute/:id" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <AuditExecution />
             </ProtectedRoute>
         } />
         <Route path="/amont/visit/:id" element={

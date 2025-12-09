@@ -41,7 +41,7 @@ export const AmontAuditView: React.FC = () => {
       const stores = await db.getStores();
       setStore(stores.find(s => s.id === auditData.store_id) || null);
 
-      const checklistData = await db.getChecklist();
+      const checklistData = await db.getChecklist(auditData.checklist_id);
       setChecklist(checklistData || null);
 
       const scoresData = await db.getScores(Number(id));

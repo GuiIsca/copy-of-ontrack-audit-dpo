@@ -18,6 +18,9 @@ CREATE TYPE action_status AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCE
 -- Action Responsible Enum
 CREATE TYPE action_responsible AS ENUM ('DOT', 'ADERENTE', 'BOTH');
 
+-- Evaluation Type Enum
+CREATE TYPE evaluation_type AS ENUM ('SCALE_1_5', 'OK_KO');
+
 -- Users Table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -93,12 +96,18 @@ CREATE TABLE audit_scores (
     id SERIAL PRIMARY KEY,
     audit_id INTEGER NOT NULL REFERENCES audits(id) ON DELETE CASCADE,
     criteria_id INTEGER NOT NULL,
-    score INTEGER CHECK (score >= 0 AND score <= 4),
+    score INTEGER CHECK (score >= 0 AND score <= 5),
+    evaluation_type evaluation_type DEFAULT 'SCALE_1_5',
     comment TEXT,
     photo_url TEXT,
+    requires_photo BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(audit_id, criteria_id)
+    UNIQUE(audit_id, criteria_id),
+    CHECK (
+        (evaluation_type = 'SCALE_1_5' AND score >= 1 AND score <= 5) OR
+        (evaluation_type = 'OK_KO' AND score IN (0, 1))
+    )
 );
 
 -- Action Plans Table
@@ -143,6 +152,7 @@ CREATE INDEX idx_visits_user_id ON visits(user_id);
 CREATE INDEX idx_visits_type ON visits(type);
 CREATE INDEX idx_visits_dtstart ON visits(dtstart);
 CREATE INDEX idx_audit_scores_audit_id ON audit_scores(audit_id);
+CREATE INDEX idx_audit_scores_evaluation_type ON audit_scores(evaluation_type);
 CREATE INDEX idx_action_plans_audit_id ON action_plans(audit_id);
 CREATE INDEX idx_action_plans_status ON action_plans(status);
 CREATE INDEX idx_audit_comments_audit_id ON audit_comments(audit_id);

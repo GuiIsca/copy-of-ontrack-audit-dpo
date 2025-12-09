@@ -159,9 +159,9 @@ INSERT INTO checklists (id, name, target_role, sections) VALUES
 
 -- Insert Sample Audits
 INSERT INTO audits (id, store_id, dot_user_id, checklist_id, dtstart, status, created_by) VALUES
-(1, 1, 3, 1, '2025-12-10 09:00:00', 'SCHEDULED', 2),
-(2, 2, 3, 1, '2025-12-12 10:00:00', 'SCHEDULED', 2),
-(3, 4, 4, 1, '2025-12-11 14:00:00', 'SCHEDULED', 2);
+(1, 1, 3, 3, '2025-12-10 09:00:00', 'SCHEDULED', 2),
+(2, 2, 3, 3, '2025-12-12 10:00:00', 'SCHEDULED', 2),
+(3, 4, 4, 3, '2025-12-11 14:00:00', 'SCHEDULED', 2);
 
 -- Insert Sample Visits
 INSERT INTO visits (id, store_id, user_id, type, title, description, dtstart, status, created_by) VALUES
@@ -171,6 +171,6 @@ INSERT INTO visits (id, store_id, user_id, type, title, description, dtstart, st
 -- Reset sequences
 SELECT setval('users_id_seq', 20, true);
 SELECT setval('stores_id_seq', 10, true);
-SELECT setval('checklists_id_seq', 2, true);
+SELECT setval('checklists_id_seq', 3, true);
 SELECT setval('audits_id_seq', 3, true);
 SELECT setval('visits_id_seq', 2, true);

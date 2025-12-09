@@ -58,17 +58,33 @@ export const AmontNewVisitAmont: React.FC = () => {
     setError('');
     try {
       const datetime = new Date(`${date}T${time}`);
-      // Garante que user_id é sempre o do Amont autenticado
-      await db.createVisit({
-        type: visitType,
-        title: title.trim(),
-        description: text.trim(),
-        user_id: currentUser.userId, // Amont é sempre o executor
-        store_id: selectedStoreId as number,
-        dtstart: datetime.toISOString(),
-        status: AuditStatus.NEW,
-        created_by: currentUser.userId
-      });
+      
+      // Se for AUDITORIA, criar um Audit com checklist AMONT (ID=3)
+      // Caso contrário, criar uma Visit normal
+      if (visitType === VisitType.AUDITORIA) {
+        await db.createAudit({
+          store_id: selectedStoreId as number,
+          user_id: currentUser.userId, // AMONT é o executor
+          dot_user_id: currentUser.userId,
+          checklist_id: 3, // Checklist AMONT 2025 - Guião Completo
+          dtstart: datetime.toISOString(),
+          status: AuditStatus.NEW,
+          created_by: currentUser.userId
+        });
+      } else {
+        // Para outros tipos de visita (Formação, Acompanhamento, Outros)
+        await db.createVisit({
+          type: visitType,
+          title: title.trim(),
+          description: text.trim(),
+          user_id: currentUser.userId,
+          store_id: selectedStoreId as number,
+          dtstart: datetime.toISOString(),
+          status: AuditStatus.NEW,
+          created_by: currentUser.userId
+        });
+      }
+      
       navigate('/amont/dashboard');
     } catch (error) {
       console.error('Erro ao criar visita:', error);

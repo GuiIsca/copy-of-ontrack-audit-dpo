@@ -55,10 +55,16 @@ export interface Checklist {
   targetRole?: UserRole; // Para qual role este checklist se destina (DOT ou ADERENTE)
 }
 
+export enum EvaluationType {
+  SCALE_1_5 = 'SCALE_1_5',
+  OK_KO = 'OK_KO'
+}
+
 export interface Section {
   id: number;
   name: string;
   orderindex: number;
+  is_mandatory?: boolean; // Secção obrigatória (Exterior, Frescos, Promocional)
   items: Item[];
 }
 
@@ -72,6 +78,8 @@ export interface Criteria {
   id: number;
   name: string;
   weight: number;
+  evaluation_type?: EvaluationType; // Tipo de avaliação (padrão SCALE_1_5)
+  requires_photo_on_ko?: boolean; // Foto obrigatória quando KO
 }
 
 export interface Audit {
@@ -110,9 +118,12 @@ export interface AuditScore {
   id: number;
   audit_id: number;
   criteria_id: number;
-  score: number | null; // 0=NA, 1-5, null=unscored
+  score: number | null; // OK_KO: 0=KO, 1=OK | SCALE_1_5: 1-5 | null=unscored
+  evaluation_type?: EvaluationType; // Tipo de avaliação (padrão SCALE_1_5)
+  requires_photo?: boolean; // Foto obrigatória para este score
   comment?: string; // Comentário específico do critério
-  photos?: string[]; // URLs/base64 das fotos
+  photo_url?: string; // URL da foto (backend usa singular)
+  photos?: string[]; // URLs/base64 das fotos (frontend pode usar array)
 }
 
 export enum ActionStatus {

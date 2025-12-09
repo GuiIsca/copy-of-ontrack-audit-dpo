@@ -75,17 +75,31 @@ export const AmontNewVisitDOT: React.FC = () => {
     try {
       const datetime = new Date(`${date}T${time}`);
       
-      // Create visit assigned to the selected DOT
-      await db.createVisit({
-        type: visitType,
-        title: title.trim(),
-        description: text.trim(),
-        user_id: selectedDotId as number, // DOT is the user assigned to the visit
-        store_id: selectedStoreId as number,
-        dtstart: datetime.toISOString(),
-        status: AuditStatus.NEW,
-        created_by: currentUser.userId // Amont created it
-      });
+      // Se for AUDITORIA, criar um Audit com checklist AMONT 2025 (ID=3)
+      // O DOT e AMONT usam o mesmo guião completo
+      if (visitType === VisitType.AUDITORIA) {
+        await db.createAudit({
+          store_id: selectedStoreId as number,
+          user_id: selectedDotId as number, // DOT é o executor
+          dot_user_id: selectedDotId as number,
+          checklist_id: 3, // Checklist AMONT 2025 - Guião Completo (usado por DOT e AMONT)
+          dtstart: datetime.toISOString(),
+          status: AuditStatus.NEW,
+          created_by: currentUser.userId // AMONT criou
+        });
+      } else {
+        // Para outros tipos de visita (Formação, Acompanhamento, Outros)
+        await db.createVisit({
+          type: visitType,
+          title: title.trim(),
+          description: text.trim(),
+          user_id: selectedDotId as number, // DOT é o executor
+          store_id: selectedStoreId as number,
+          dtstart: datetime.toISOString(),
+          status: AuditStatus.NEW,
+          created_by: currentUser.userId // AMONT criou
+        });
+      }
 
       navigate('/amont/dashboard');
     } catch (error) {

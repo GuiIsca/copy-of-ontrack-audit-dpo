@@ -62,14 +62,13 @@ export const NewAudit: React.FC = () => {
         }
       }
 
-      const checklist = await db.getChecklist();
-      const checklistId = checklist?.id || 1;
+
       
         const newAudit = await db.createAudit({
           dot_user_id: user?.id || 0,
           user_id: user?.id || 0,
           store_id: parseInt(selectedStore),
-          checklist_id: checklistId,
+          checklist_id: 3,
           dtstart: new Date(date).toISOString(),
           // DB expects string status enum; use 'SCHEDULED' for new audits
           status: 'SCHEDULED',
