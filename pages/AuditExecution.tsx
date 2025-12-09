@@ -137,9 +137,7 @@ export const AuditExecution: React.FC = () => {
                 });
                 
                 console.log('Score saved successfully');
-                setToastType('success');
-                setToastMsg('Pontuação guardada');
-                setTimeout(() => setToastMsg(null), 1500);
+                // Não mostrar toast ao guardar automaticamente
                 
                 // If audit was new, set to in progress
                 if (audit && audit.status === AuditStatus.NEW) {
@@ -343,11 +341,13 @@ export const AuditExecution: React.FC = () => {
           
           console.log('  Save successful');
           setToastType('success');
-          setToastMsg('Visita guardada com sucesso');
+          setToastMsg('Progresso guardado com sucesso');
           setTimeout(() => {
               setToastMsg(null);
               // Redirecionar para o dashboard
-              if (currentUser?.roles.includes(UserRole.ADERENTE)) {
+              if (currentUser?.roles.includes(UserRole.AMONT)) {
+                  navigate('/amont/dashboard');
+              } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
                   navigate('/aderente/dashboard');
               } else {
                   navigate('/dashboard');
@@ -457,7 +457,9 @@ export const AuditExecution: React.FC = () => {
   const sectionScore = calculateSectionScore(currentSection);
   
   // Verificar se pode editar baseado nas permissões
+  console.log('AuditExecution: audit.status =', audit.status, 'type =', typeof audit.status);
   const canEdit = canEditAudit(audit.status, audit.user_id, audit.createdBy);
+  console.log('AuditExecution: canEdit =', canEdit);
     const canSubmit = canSubmitAudit(audit.user_id, audit.status);
   const isReadOnly = !canEdit;
   
@@ -827,6 +829,18 @@ export const AuditExecution: React.FC = () => {
                     {currentSectionIndex + 1} / {checklist.sections.length}
                 </div>
                 
+                {/* Save Button - only show if not readonly */}
+                {!isReadOnly && (
+                  <button 
+                    onClick={handleSaveVisit}
+                    disabled={submitting}
+                    className="p-2 text-gray-500 hover:text-mousquetaires hover:bg-red-50 rounded-full transition-colors relative disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Guardar Progresso"
+                  >
+                    <Save size={20} />
+                  </button>
+                )}
+
                 {/* Comments Toggle Button */}
                 <button 
                   onClick={() => setShowComments(true)}
@@ -846,7 +860,7 @@ export const AuditExecution: React.FC = () => {
                     <span className="hidden sm:inline">Próximo</span> <ChevronRight className="ml-1" size={18} />
                    </Button>
               ) : (
-                  // Show Save/Submit buttons for Aderente visits, or Finalize for DOT audits
+                  // Show Save/Submit buttons for Aderente visits, or Save/Finalize for DOT/AMONT audits
                   (audit as any).visit_source_type === 'ADERENTE_VISIT' ? (
                     <div className="flex gap-2 flex-1 sm:flex-none">
                       <Button 
@@ -866,10 +880,20 @@ export const AuditExecution: React.FC = () => {
                       </Button>
                     </div>
                   ) : (
-                    canSubmit && (
-                      <Button onClick={handleFinish} className="flex-1 sm:flex-none">
+                    canSubmit && !isReadOnly && (
+                      <div className="flex gap-2 flex-1 sm:flex-none">
+                        <Button 
+                          variant="outline"
+                          onClick={handleSaveVisit}
+                          disabled={submitting}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Save className="mr-1" size={18} /> Guardar
+                        </Button>
+                        <Button onClick={handleFinish} className="flex-1 sm:flex-none">
                           Finalizar <CheckCircle className="ml-1" size={18} />
-                      </Button>
+                        </Button>
+                      </div>
                     )
                   )
               )}

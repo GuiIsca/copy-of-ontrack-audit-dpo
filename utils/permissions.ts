@@ -20,23 +20,23 @@ export const canEditAudit = (auditStatus: number | string, auditUserId?: number,
   // ADMIN pode editar sempre
   if (hasRole(UserRole.ADMIN)) return true;
   
-  // AMONT pode editar metadados (não conteúdo específico do DOT)
-  if (hasRole(UserRole.AMONT)) return true;
+  // Verificar se o status permite edição (tanto para AMONT como DOT)
+  let isEditable = false;
+  if (typeof auditStatus === 'number') {
+    // Legacy numeric statuses: allow anything below submitted/closed
+    isEditable = auditStatus < 3;
+  } else {
+    // String statuses: allow NEW and SCHEDULED and IN_PROGRESS only
+    // COMPLETED, CANCELLED são read-only
+    const statusStr = String(auditStatus).toUpperCase();
+    isEditable = statusStr === 'NEW' || statusStr === 'SCHEDULED' || statusStr === 'IN_PROGRESS';
+  }
+  
+  // AMONT pode editar enquanto não submetida
+  if (hasRole(UserRole.AMONT)) return isEditable;
   
   // DOT pode editar conteúdos enquanto não submetida.
-  // Relaxamos a restrição do criador para permitir preenchimento
-  // de auditorias atribuídas/geradas pelo AMONT.
   if (hasRole(UserRole.DOT)) {
-    // Normalize status to a comparable form
-    let isEditable = false;
-    if (typeof auditStatus === 'number') {
-      // Legacy numeric statuses: allow anything below submitted/closed
-      isEditable = auditStatus < 3;
-    } else {
-      // String statuses: allow NEW and SCHEDULED and IN_PROGRESS
-      const statusStr = String(auditStatus).toUpperCase();
-      isEditable = statusStr === 'NEW' || statusStr === 'SCHEDULED' || statusStr === 'IN_PROGRESS';
-    }
     return isEditable;
   }
 
