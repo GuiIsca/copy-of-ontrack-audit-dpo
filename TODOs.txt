@@ -1,12 +1,31 @@
-pagina admin
-- sem todos por agora
+PAGINA Amont
 
-pagina amount
+Dashboard:
+-Quando iniciada uma visita fica em estado "Nova" e não pode ser editada. Deve ficar "Em progresso" (editável) até ser submetida e aí fica "Concluída" (não editável)
 
-pagina aderente
-- ao criar nova visita nao temos checklist disponivel, criar uma do mesmo estilo (mas nao pode ser a mesma) que criamos para o DOT
-- nao podemos partilhar essa checklist por isso impleemnta outra mas com a mesma logica.
-- botões Guardar e Submeter implementados: Guardar graba sem submeter, Submeter marca como SUBMITTED e bloqueia edição
+-----------------------//----------------------------
+PAGINA DOT
 
+Dashboard:
+-Não dá para ver os detalhes das visitas de Formação/Acompanhamento/Outros
 
+Histórico:
+-(IMPORTANTE) Quando clicamos em "Por Loja" ou "Por DOT" leva-nos para uma página em Branco
+-Quando estamos a visualizar os detalhes duma visita a seta para trás manda-nos de volta para o dashboard e não para o histórico
 
+Plano de Ação:
+-Deviam aparecer as visitas enviadas pelo Amont
+
+-----------------------//----------------------------
+Página Aderente
+-Remover "Plano de Ação"
+
+-----------------------//----------------------------
+Overall da Aplicação
+-Em "Indicadores" o cálculo do relatório e Analytics não funciona
+
+-Na Vista Semanal do Calendário não dá para ver o tipo nem o estado da visita (DOT e Amont)
+
+Lógica Hierárquica de Auditoria:
+- Uma Visita DOT e Aderente submetida pode ser consultável pelo Amont e Aderente da Loja
+- Uma Visita Amont submetida só pode ser consultável pelo Amont
