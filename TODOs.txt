@@ -1,14 +1,11 @@
 PAGINA Amont
 
+-Pesquisa "Por DOT" aparecem amonts e aderentes
 
-Dashboard:
--Quando iniciada uma visita fica em estado "Nova" e não pode ser editada. Deve ficar "Em progresso" (editável) até ser submetida e aí fica "Concluída" (não editável)
 
 -----------------------//----------------------------
 PAGINA DOT
 
-Dashboard:
--Não dá para ver os detalhes das visitas de Formação/Acompanhamento/Outros
 
 Histórico:
 -(IMPORTANTE) Quando clicamos em "Por Loja" ou "Por DOT" leva-nos para uma página em Branco
@@ -16,11 +13,20 @@ Histórico:
 
 
 -----------------------//----------------------------
+
+PAGINA ADERENTE
+
+Meter escala de 1 a 5 na visita dele, neste momento esta com ok KO
+
+
+
+-----------------------//----------------------------
+
+
 Overall da Aplicação
 
 -Em "Indicadores" o cálculo do relatório e Analytics não funciona
 
 
 Lógica Hierárquica de Auditoria:
-- Uma Visita DOT e Aderente submetida pode ser consultável pelo Amont e Aderente da Loja
-- Uma Visita Amont submetida só pode ser consultável pelo Amont
+Uma Visita DOT e Aderente submetida pode ser consultável pelo Amont e Aderente da Loja
