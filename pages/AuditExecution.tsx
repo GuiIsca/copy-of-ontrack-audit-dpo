@@ -33,6 +33,12 @@ export const AuditExecution: React.FC = () => {
     const [savingCriteria, setSavingCriteria] = useState<Set<number>>(new Set());
     const [toastMsg, setToastMsg] = useState<string | null>(null);
     const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  
+  // Section evaluations state (support both number keys for sections and string keys for subsections like "3_3.1")
+  const [sectionRatings, setSectionRatings] = useState<Record<number | string, number | null>>({});
+  const [sectionActionPlans, setSectionActionPlans] = useState<Record<number | string, string>>({});
+  const [sectionResponsible, setSectionResponsible] = useState<Record<number | string, string>>({});
+  const [sectionDueDates, setSectionDueDates] = useState<Record<number | string, string>>({});
 
   useEffect(() => {
     const loadData = async () => {
@@ -101,6 +107,27 @@ export const AuditExecution: React.FC = () => {
         setCriteriaPhotos(photos);
         setGeneralComments(aud.auditorcomments || '');
         
+        // Load section evaluations
+        console.log('AuditExecution: Fetching section evaluations');
+        const sectionEvals = await db.getSectionEvaluations(aud.id);
+        const ratings: Record<number | string, number | null> = {};
+        const actions: Record<number | string, string> = {};
+        const responsibles: Record<number | string, string> = {};
+        const dueDates: Record<number | string, string> = {};
+        
+        sectionEvals.forEach((ev: any) => {
+          const key = ev.section_id; // Can be number or string (e.g., "3_3.1" for subsections)
+          if (ev.rating) ratings[key] = ev.rating;
+          if (ev.action_plan) actions[key] = ev.action_plan;
+          if (ev.responsible) responsibles[key] = ev.responsible;
+          if (ev.due_date) dueDates[key] = ev.due_date;
+        });
+        
+        setSectionRatings(ratings);
+        setSectionActionPlans(actions);
+        setSectionResponsible(responsibles);
+        setSectionDueDates(dueDates);
+        
         console.log('AuditExecution: All data loaded successfully');
         setLoading(false);
       } catch (error) {
@@ -133,7 +160,9 @@ export const AuditExecution: React.FC = () => {
                     criteria_id: criteriaId,
                     score: value,
                     comment: criteriaComments[criteriaId] || '',
-                    photo_url: (criteriaPhotos[criteriaId] || [])[0] // store first photo for now
+                    photo_url: (criteriaPhotos[criteriaId] || [])[0], // store first photo for now
+                    evaluation_type: 'OK_KO',
+                    requires_photo: value === 0
                 });
                 
                 console.log('Score saved successfully');
@@ -164,7 +193,13 @@ export const AuditExecution: React.FC = () => {
             // Update local state immediately
             setCriteriaComments(prev => ({ ...prev, [criteriaId]: comment }));
             
+            // Don't auto-save on every keystroke - let it happen on blur or explicit save
+    };
+
+    // Save comment with debounce to avoid excessive API calls
+    const saveComment = async (criteriaId: number) => {
             if (!audit) return;
+            const comment = criteriaComments[criteriaId] || '';
             const currentScore = scores.find(s => s.criteria_id === criteriaId)?.score || null;
             
             try {
@@ -196,6 +231,14 @@ export const AuditExecution: React.FC = () => {
     // For text fields, only update local state without auto-save
     const handleTextChange = (criteriaId: number, text: string) => {
         setCriteriaComments(prev => ({ ...prev, [criteriaId]: text }));
+    };
+
+    // Format rating for display (remove .0 for integers)
+    const formatRating = (score: number): string => {
+        const scaled = score / 20; // Convert 0-100 to 0-5
+        const formatted = scaled.toFixed(1);
+        // Remove .0 if it's an integer
+        return formatted.endsWith('.0') ? Math.round(scaled).toString() : formatted;
     };
     
     // Save text fields manually (can be called on blur or via save button)
@@ -301,6 +344,81 @@ export const AuditExecution: React.FC = () => {
       }
   };
 
+  // Section evaluation handlers
+  // Extract subsection prefix from item name (e.g., "3.1", "3.2", etc.)
+  const getSubsectionPrefix = (itemName: string): string | null => {
+    const match = itemName.match(/^(\d+\.\d+)/);
+    return match ? match[1] : null;
+  };
+
+  // Group items by subsection for FRESCOS section
+  const groupItemsBySubsection = (section: Section) => {
+    const groups: { [prefix: string]: typeof section.items } = {};
+    section.items.forEach(item => {
+      const prefix = getSubsectionPrefix(item.name);
+      if (prefix) {
+        if (!groups[prefix]) groups[prefix] = [];
+        groups[prefix].push(item);
+      } else {
+        // Items without subsection prefix go to their own group
+        if (!groups['_other']) groups['_other'] = [];
+        groups['_other'].push(item);
+      }
+    });
+    return groups;
+  };
+
+  const handleSectionFieldChange = async (sectionId: number | string, field: 'action_plan' | 'responsible' | 'due_date', value: string) => {
+    if (!audit) return;
+    
+    if (field === 'action_plan') {
+      setSectionActionPlans(prev => ({ ...prev, [sectionId]: value }));
+    } else if (field === 'responsible') {
+      setSectionResponsible(prev => ({ ...prev, [sectionId]: value }));
+    } else if (field === 'due_date') {
+      setSectionDueDates(prev => ({ ...prev, [sectionId]: value }));
+    }
+    
+    // Debounce save - only save after user stops typing
+    // For now, save immediately on blur (we'll add onBlur to inputs)
+  };
+
+  const handleSaveSectionEvaluation = async (sectionId: number, subsectionPrefix?: string, items?: typeof currentSection.items) => {
+    if (!audit || !checklist) return;
+    
+    // Use subsection-specific unique key if provided
+    const evalKey = subsectionPrefix ? `${sectionId}_${subsectionPrefix}` : sectionId;
+    
+    // Calculate rating from items (either full section or subsection items)
+    let autoRating: number;
+    if (items) {
+      autoRating = calculateRatingFromItems(items);
+    } else {
+      const section = checklist.sections.find(s => s.id === sectionId);
+      if (!section) return;
+      autoRating = calculateSectionRating(section);
+    }
+    
+    try {
+      await db.saveSectionEvaluation({
+        audit_id: audit.id,
+        section_id: evalKey as any, // Store compound key for subsections
+        rating: autoRating,
+        action_plan: sectionActionPlans[evalKey],
+        responsible: sectionResponsible[evalKey],
+        due_date: sectionDueDates[evalKey]
+      });
+      setToastType('success');
+      setToastMsg('Plano de ação guardado');
+      setTimeout(() => setToastMsg(null), 1500);
+    } catch (error) {
+      console.error('Error saving section evaluation:', error);
+      setToastType('error');
+      setToastMsg('Erro ao guardar');
+      setTimeout(() => setToastMsg(null), 2000);
+    }
+  };
+
   const handleSave = async () => {
       if (audit) {
           const finalScore = calculateTotalScore();
@@ -365,6 +483,25 @@ export const AuditExecution: React.FC = () => {
 
   const handleSubmit = async () => {
             if (!audit) return;
+            
+            // Validate that all KO scores have photos
+            const koScoresWithoutPhotos: number[] = [];
+            scores.forEach(s => {
+                if (s.score === 0) { // KO score
+                    const hasPhoto = criteriaPhotos[s.criteria_id]?.length > 0;
+                    if (!hasPhoto) {
+                        koScoresWithoutPhotos.push(s.criteria_id);
+                    }
+                }
+            });
+            
+            if (koScoresWithoutPhotos.length > 0) {
+                setToastType('error');
+                setToastMsg(`${koScoresWithoutPhotos.length} critério(s) KO sem foto obrigatória`);
+                setTimeout(() => setToastMsg(null), 3000);
+                return;
+            }
+            
             try {
                 setSubmitting(true);
                 const isAderenteVisit = (audit as any).visit_source_type === 'ADERENTE_VISIT';
@@ -401,31 +538,55 @@ export const AuditExecution: React.FC = () => {
             }
   };
 
-  const calculateSectionScore = (section: Section) => {
-      let total = 0;
-      let count = 0;
-      section.items.forEach(item => {
+  // Calculate score for a specific set of items (used for both sections and subsections)
+  const calculateItemsScore = (items: typeof currentSection.items) => {
+      let okCount = 0;
+      let totalCount = 0;
+      items.forEach(item => {
           item.criteria.forEach(crit => {
-              const s = scores.find(sc => sc.criteria_id === crit.id);
-              if (s && s.score !== null && s.score > 0) { // Assuming 0 is N/A
-                  total += s.score;
-                  count++;
+              const critType = (crit as any).type || 'rating';
+              // Only count rating criteria (not text or dropdown)
+              if (critType === 'rating') {
+                  const s = scores.find(sc => sc.criteria_id === crit.id);
+                  if (s && s.score !== null) {
+                      totalCount++;
+                      if (s.score === 1) okCount++; // 1 = OK, 0 = KO
+                  }
               }
           });
       });
-      return count === 0 ? 0 : (total / (count * 5)) * 100; // Percentage
+      return totalCount === 0 ? 0 : (okCount / totalCount) * 100; // Percentage based on OK/KO
+  };
+
+  const calculateSectionScore = (section: Section) => {
+      return calculateItemsScore(section.items);
+  };
+
+  // Calculate automatic section/subsection rating (1-5) based on OK/KO percentage
+  const calculateRatingFromItems = (items: typeof currentSection.items): number => {
+      const percentage = calculateItemsScore(items);
+      // Convert percentage to 1-5 scale: 0-20% = 1, 20-40% = 2, 40-60% = 3, 60-80% = 4, 80-100% = 5
+      if (percentage >= 80) return 5;
+      if (percentage >= 60) return 4;
+      if (percentage >= 40) return 3;
+      if (percentage >= 20) return 2;
+      return 1;
+  };
+
+  const calculateSectionRating = (section: Section): number => {
+      return calculateRatingFromItems(section.items);
   };
 
   const calculateTotalScore = () => {
-      let total = 0;
-      let count = 0;
+      let okCount = 0;
+      let totalCount = 0;
       scores.forEach(s => {
-          if (s.score !== null && s.score > 0) {
-              total += s.score;
-              count++;
+          if (s.score !== null) {
+              totalCount++;
+              if (s.score === 1) okCount++; // 1 = OK, 0 = KO
           }
       });
-      return count === 0 ? 0 : (total / (count * 5)) * 100;
+      return totalCount === 0 ? 0 : (okCount / totalCount) * 100; // Percentage based on OK/KO
   };
 
   // Calculate final score for Aderente visits based on Section 2 (criteria 22001-22006)
@@ -549,23 +710,81 @@ export const AuditExecution: React.FC = () => {
                                     )}
                                   </p>
                                   
-                                  {/* Rating Buttons (1-5) */}
+                                  {/* OK/KO Buttons */}
                                   {critType === 'rating' && (
-                                    <div className="flex items-center space-x-1">
-                                      {[1, 2, 3, 4, 5].map(val => (
+                                    <div className="space-y-3">
+                                      <div className="flex items-center space-x-3">
                                         <button
-                                          key={val}
                                           disabled={isReadOnly || isSaving}
-                                          onClick={() => handleScoreChange(crit.id, val)}
-                                          className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                                            scoreVal === val 
-                                            ? val <= 2 ? 'bg-red-500 text-white' : val === 3 ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
-                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                          onClick={() => handleScoreChange(crit.id, 1)}
+                                          className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                            scoreVal === 1
+                                            ? 'bg-green-500 text-white shadow-md'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
                                           }`}
                                         >
-                                          {val}
+                                          ✓ OK
                                         </button>
-                                      ))}
+                                        <button
+                                          disabled={isReadOnly || isSaving}
+                                          onClick={() => handleScoreChange(crit.id, 0)}
+                                          className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                            scoreVal === 0
+                                            ? 'bg-red-500 text-white shadow-md'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
+                                          }`}
+                                        >
+                                          ✗ KO
+                                        </button>
+                                      </div>
+                                      
+                                      {/* Comment field */}
+                                      <textarea
+                                        disabled={isReadOnly || isSaving}
+                                        placeholder="Comentário (opcional)..."
+                                        className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                                        rows={2}
+                                        value={criteriaComments[crit.id] || ''}
+                                        onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                        onBlur={() => saveComment(crit.id)}
+                                      />
+                                      
+                                      {/* Photo upload section */}
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                          <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
+                                            <Camera size={16} />
+                                            <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
+                                            <input
+                                              type="file"
+                                              accept="image/*"
+                                              className="hidden"
+                                              disabled={isReadOnly || isSaving}
+                                              onChange={(e) => handlePhotoUpload(crit.id, e)}
+                                            />
+                                          </label>
+                                          {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
+                                            <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
+                                          )}
+                                        </div>
+                                        {criteriaPhotos[crit.id]?.length > 0 && (
+                                          <div className="flex flex-wrap gap-2">
+                                            {criteriaPhotos[crit.id].map((photo, idx) => (
+                                              <div key={idx} className="relative group">
+                                                <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
+                                                {!isReadOnly && (
+                                                  <button
+                                                    onClick={() => handleRemovePhoto(crit.id, idx)}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                  >
+                                                    <X size={12} />
+                                                  </button>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   )}
                                   
@@ -642,8 +861,42 @@ export const AuditExecution: React.FC = () => {
 
           {/* Items & Criteria */}
           <div className="space-y-6">
-              {currentSection.items.map(item => (
-                  <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              {(() => {
+                // Check if this is FRESCOS section (id=3) with subsections
+                const isFrescosSection = currentSection.id === 3;
+                const subsectionGroups = isFrescosSection ? groupItemsBySubsection(currentSection) : null;
+                
+                if (isFrescosSection && subsectionGroups) {
+                  // Render subsections with individual evaluations
+                  return Object.entries(subsectionGroups).map(([prefix, items]) => {
+                    const subsectionScore = calculateItemsScore(items);
+                    const subsectionRating = calculateRatingFromItems(items);
+                    const evalKey = `${currentSection.id}_${prefix}`;
+                    
+                    // Extract subsection name from first item
+                    const subsectionName = prefix !== '_other' 
+                      ? items[0]?.name.match(/^\d+\.\d+\s+([^-]+)/)?.[1]?.trim() || prefix
+                      : 'Outros';
+                    
+                    return (
+                      <div key={prefix} className="space-y-4">
+                        {/* Subsection Header */}
+                        <div className="bg-gradient-to-r from-mousquetaires to-red-700 rounded-lg shadow-md p-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-white text-base">{prefix} {subsectionName}</h4>
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              subsectionScore < 50 ? 'bg-red-100 text-red-600' 
+                              : subsectionScore < 80 ? 'bg-yellow-100 text-yellow-600' 
+                              : 'bg-green-100 text-green-600'
+                            }`}>
+                              {subsectionScore.toFixed(0)}%
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Subsection Items */}
+                        {items.map(item => (
+                          <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                       <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
                           <h4 className="font-semibold text-gray-700">{item.name}</h4>
                       </div>
@@ -662,23 +915,81 @@ export const AuditExecution: React.FC = () => {
                                           )}
                                       </p>
                                       
-                                      {/* Rating Buttons (1-5) */}
+                                      {/* OK/KO Buttons */}
                                       {critType === 'rating' && (
-                                          <div className="flex items-center space-x-1">
-                                              {[1, 2, 3, 4, 5].map(val => (
+                                          <div className="space-y-3">
+                                              <div className="flex items-center space-x-3">
                                                   <button
-                                                      key={val}
                                                       disabled={isReadOnly || isSaving}
-                                                      onClick={() => handleScoreChange(crit.id, val)}
-                                                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                                                          scoreVal === val 
-                                                          ? val <= 2 ? 'bg-red-500 text-white' : val === 3 ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
-                                                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                      onClick={() => handleScoreChange(crit.id, 1)}
+                                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                          scoreVal === 1
+                                                          ? 'bg-green-500 text-white shadow-md'
+                                                          : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
                                                       }`}
                                                   >
-                                                      {val}
+                                                      ✓ OK
                                                   </button>
-                                              ))}
+                                                  <button
+                                                      disabled={isReadOnly || isSaving}
+                                                      onClick={() => handleScoreChange(crit.id, 0)}
+                                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                          scoreVal === 0
+                                                          ? 'bg-red-500 text-white shadow-md'
+                                                          : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
+                                                      }`}
+                                                  >
+                                                      ✗ KO
+                                                  </button>
+                                              </div>
+                                              
+                                              {/* Comment field */}
+                                              <textarea
+                                                  disabled={isReadOnly || isSaving}
+                                                  placeholder="Comentário (opcional)..."
+                                                  className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                                                  rows={2}
+                                                  value={criteriaComments[crit.id] || ''}
+                                                  onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                                  onBlur={() => saveComment(crit.id)}
+                                              />
+                                              
+                                              {/* Photo upload section */}
+                                              <div className="space-y-2">
+                                                  <div className="flex items-center gap-2">
+                                                      <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
+                                                          <Camera size={16} />
+                                                          <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
+                                                          <input
+                                                              type="file"
+                                                              accept="image/*"
+                                                              className="hidden"
+                                                              disabled={isReadOnly || isSaving}
+                                                              onChange={(e) => handlePhotoUpload(crit.id, e)}
+                                                          />
+                                                      </label>
+                                                      {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
+                                                          <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
+                                                      )}
+                                                  </div>
+                                                  {criteriaPhotos[crit.id]?.length > 0 && (
+                                                      <div className="flex flex-wrap gap-2">
+                                                          {criteriaPhotos[crit.id].map((photo, idx) => (
+                                                              <div key={idx} className="relative group">
+                                                                  <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
+                                                                  {!isReadOnly && (
+                                                                      <button
+                                                                          onClick={() => handleRemovePhoto(crit.id, idx)}
+                                                                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                      >
+                                                                          <X size={12} />
+                                                                      </button>
+                                                                  )}
+                                                              </div>
+                                                          ))}
+                                                      </div>
+                                                  )}
+                                              </div>
                                           </div>
                                       )}
                                       
@@ -731,8 +1042,234 @@ export const AuditExecution: React.FC = () => {
                           })}
                       </div>
                   </div>
-              ))}
+                ))}
+                        
+                        {/* Subsection Action Plan */}
+                        {!isReadOnly && (
+                          <div className="bg-white rounded-xl shadow-sm border border-mousquetaires p-4">
+                            <div className="flex items-center justify-between mb-4">
+                              <h5 className="font-semibold text-gray-900">Plano de Ação - {prefix} {subsectionName}</h5>
+                              <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                                subsectionRating <= 2 ? 'bg-red-100 text-red-700' 
+                                : subsectionRating === 3 ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-green-100 text-green-700'
+                              }`}>
+                                Avaliação: {formatRating(subsectionScore)}/5
+                              </span>
+                            </div>
+                            
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Ação
+                                </label>
+                                <textarea
+                                  placeholder="Descrever ações a tomar para melhorias..."
+                                  className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                                  rows={3}
+                                  value={sectionActionPlans[evalKey] || ''}
+                                  onChange={(e) => handleSectionFieldChange(evalKey as any, 'action_plan', e.target.value)}
+                                  onBlur={() => handleSaveSectionEvaluation(currentSection.id, prefix, items)}
+                                />
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Responsável
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="Nome do responsável..."
+                                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none"
+                                    value={sectionResponsible[evalKey] || ''}
+                                    onChange={(e) => handleSectionFieldChange(evalKey as any, 'responsible', e.target.value)}
+                                    onBlur={() => handleSaveSectionEvaluation(currentSection.id, prefix, items)}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Prazo
+                                  </label>
+                                  <input
+                                    type="date"
+                                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none"
+                                    value={sectionDueDates[evalKey] || ''}
+                                    onChange={(e) => handleSectionFieldChange(evalKey as any, 'due_date', e.target.value)}
+                                    onBlur={() => handleSaveSectionEvaluation(currentSection.id, prefix, items)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                } else {
+                  // Regular section rendering (non-FRESCOS)
+                  return currentSection.items.map(item => (
+                    <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                      <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
+                        <h4 className="font-semibold text-gray-700">{item.name}</h4>
+                      </div>
+                      <div className="divide-y divide-gray-100">
+                        {item.criteria.map(crit => {
+                          const scoreVal = scores.find(s => s.criteria_id === crit.id)?.score;
+                          const isSaving = savingCriteria.has(crit.id);
+                          const critType = (crit as any).type || 'rating';
+                          
+                          return (
+                            <div key={crit.id} className="p-4">
+                              <p className={`text-sm ${critType === 'text' ? 'font-bold' : 'font-medium'} text-gray-800 mb-3`}>
+                                {crit.name}
+                              </p>
+                              
+                              {critType === 'rating' && (
+                                <div className="space-y-3">
+                                  <div className="flex items-center space-x-3">
+                                    <button
+                                      disabled={isReadOnly || isSaving}
+                                      onClick={() => handleScoreChange(crit.id, 1)}
+                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                        scoreVal === 1
+                                        ? 'bg-green-500 text-white shadow-md'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
+                                      }`}
+                                    >
+                                      ✓ OK
+                                    </button>
+                                    <button
+                                      disabled={isReadOnly || isSaving}
+                                      onClick={() => handleScoreChange(crit.id, 0)}
+                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                        scoreVal === 0
+                                        ? 'bg-red-500 text-white shadow-md'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
+                                      }`}
+                                    >
+                                      ✗ KO
+                                    </button>
+                                  </div>
+                                  
+                                  <textarea
+                                    disabled={isReadOnly || isSaving}
+                                    placeholder="Comentário (opcional)..."
+                                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                                    rows={2}
+                                    value={criteriaComments[crit.id] || ''}
+                                    onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                    onBlur={() => saveComment(crit.id)}
+                                  />
+                                  
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
+                                        <Camera size={16} />
+                                        <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          disabled={isReadOnly || isSaving}
+                                          onChange={(e) => handlePhotoUpload(crit.id, e)}
+                                        />
+                                      </label>
+                                      {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
+                                        <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
+                                      )}
+                                    </div>
+                                    {criteriaPhotos[crit.id]?.length > 0 && (
+                                      <div className="flex flex-wrap gap-2">
+                                        {criteriaPhotos[crit.id].map((photo, idx) => (
+                                          <div key={idx} className="relative group">
+                                            <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
+                                            {!isReadOnly && (
+                                              <button
+                                                onClick={() => handleRemovePhoto(crit.id, idx)}
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                              >
+                                                <X size={12} />
+                                              </button>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ));
+                }
+              })()}
           </div>
+          
+          {/* Section Action Plan - Only for non-FRESCOS sections */}
+          {!isReadOnly && currentSection.id !== 3 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mt-4">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold text-gray-900">Plano de Ação da Secção</h4>
+                <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                  calculateSectionRating(currentSection) <= 2 ? 'bg-red-100 text-red-700' 
+                  : calculateSectionRating(currentSection) === 3 ? 'bg-yellow-100 text-yellow-700'
+                  : 'bg-green-100 text-green-700'
+                }`}>
+                  Avaliação: {formatRating(sectionScore)}/5
+                </span>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ação
+                  </label>
+                  <textarea
+                    placeholder="Descrever ações a tomar para melhorias..."
+                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                    rows={3}
+                    value={sectionActionPlans[currentSection.id] || ''}
+                    onChange={(e) => handleSectionFieldChange(currentSection.id, 'action_plan', e.target.value)}
+                    onBlur={() => handleSaveSectionEvaluation(currentSection.id)}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Responsável
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nome do responsável..."
+                      className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none"
+                      value={sectionResponsible[currentSection.id] || ''}
+                      onChange={(e) => handleSectionFieldChange(currentSection.id, 'responsible', e.target.value)}
+                      onBlur={() => handleSaveSectionEvaluation(currentSection.id)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Prazo
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none"
+                      value={sectionDueDates[currentSection.id] || ''}
+                      onChange={(e) => handleSectionFieldChange(currentSection.id, 'due_date', e.target.value)}
+                      onBlur={() => handleSaveSectionEvaluation(currentSection.id)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           </>
           )}
 

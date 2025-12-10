@@ -242,6 +242,18 @@ class ApiClient {
     return this.request(`/checklists/${id}`);
   }
 
+  // Section Evaluations
+  async getSectionEvaluations(auditId: number) {
+    return this.request(`/section-evaluations?auditId=${auditId}`);
+  }
+
+  async saveSectionEvaluation(data: any) {
+    return this.request('/section-evaluations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // Amont legacy: import visitas from CSV string
   async importVisitasFromCsv(csv: string) {
     const response = await fetch(`${SERVER_URL}/amont/import-visitas`, {

@@ -15,6 +15,7 @@ import scoresRoutes from './routes/scores.js';
 import commentsRoutes from './routes/comments.js';
 import checklistsRoutes from './routes/checklists.js';
 import amontRoutes from './routes/amont.js';
+import sectionEvaluationsRoutes from './routes/section-evaluations.js';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use('/api/actions', actionsRoutes);
 app.use('/api/scores', scoresRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/checklists', checklistsRoutes);
+app.use('/api/section-evaluations', sectionEvaluationsRoutes);
 // Non-API legacy route for Amont integrations
 app.use('/amont', amontRoutes);
 

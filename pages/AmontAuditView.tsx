@@ -75,14 +75,25 @@ export const AmontAuditView: React.FC = () => {
 
   const getScoreBadge = (score: number | null) => {
     if (score === null) return <span className="text-gray-400 text-sm">Não avaliado</span>;
-    if (score === 0) return <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">N/A</span>;
     
-    const color = score <= 2 ? 'red' : score === 3 ? 'yellow' : 'green';
-    return (
-      <span className={`bg-${color}-100 text-${color}-800 text-xs px-2 py-1 rounded font-medium`}>
-        {score}/5
-      </span>
-    );
+    // OK/KO system: 1 = OK, 0 = KO
+    if (score === 1) {
+      return (
+        <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-semibold">
+          ✓ OK
+        </span>
+      );
+    }
+    if (score === 0) {
+      return (
+        <span className="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full font-semibold">
+          ✗ KO
+        </span>
+      );
+    }
+    
+    // Fallback for legacy scores (should not happen with new system)
+    return <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">{score}</span>;
   };
 
   const getStatusBadge = (status: AuditStatus) => {

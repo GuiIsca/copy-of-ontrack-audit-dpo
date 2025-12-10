@@ -126,6 +126,16 @@ export interface AuditScore {
   photos?: string[]; // URLs/base64 das fotos (frontend pode usar array)
 }
 
+export interface SectionEvaluation {
+  id: number;
+  audit_id: number;
+  section_id: number;
+  rating: number | null; // 1-5
+  action_plan?: string;
+  responsible?: string;
+  due_date?: string; // ISO Date
+}
+
 export enum ActionStatus {
   PENDING = 'pending',
   IN_PROGRESS = 'in_progress',

@@ -361,13 +361,31 @@ class DatabaseAdapter {
     return api.getScores(auditId);
   }
 
-  async saveScore(score: Partial<AuditScore> & { photo_url?: string }): Promise<void> {
+  async saveScore(score: Partial<AuditScore> & { photo_url?: string; evaluation_type?: string; requires_photo?: boolean }): Promise<void> {
     await api.saveScore({
       auditId: score.audit_id,
       criteriaId: score.criteria_id,
       score: score.score,
       comment: score.comment,
-      photoUrl: (score as any).photo_url || (score as any).photoUrl
+      photoUrl: (score as any).photo_url || (score as any).photoUrl,
+      evaluationType: (score as any).evaluation_type,
+      requiresPhoto: (score as any).requires_photo
+    });
+  }
+
+  // ============ SECTION EVALUATIONS ============
+  async getSectionEvaluations(auditId: number): Promise<any[]> {
+    return api.getSectionEvaluations(auditId);
+  }
+
+  async saveSectionEvaluation(evaluation: { audit_id: number; section_id: number | string; rating?: number; action_plan?: string; responsible?: string; due_date?: string }): Promise<void> {
+    await api.saveSectionEvaluation({
+      auditId: evaluation.audit_id,
+      sectionId: evaluation.section_id,
+      rating: evaluation.rating,
+      actionPlan: evaluation.action_plan,
+      responsible: evaluation.responsible,
+      dueDate: evaluation.due_date
     });
   }
 

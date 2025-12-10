@@ -16,15 +16,15 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { auditId, criteriaId, score, comment, photoUrl } = req.body;
-    console.log('POST /api/scores received:', { auditId, criteriaId, score, comment, photoUrl });
+    const { auditId, criteriaId, score, comment, photoUrl, evaluationType, requiresPhoto } = req.body;
+    console.log('POST /api/scores received:', { auditId, criteriaId, score, comment, photoUrl, evaluationType, requiresPhoto });
     const result = await query(
-      `INSERT INTO audit_scores (audit_id, criteria_id, score, comment, photo_url) 
-       VALUES ($1, $2, $3, $4, $5) 
+      `INSERT INTO audit_scores (audit_id, criteria_id, score, comment, photo_url, evaluation_type, requires_photo) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) 
        ON CONFLICT (audit_id, criteria_id) 
-       DO UPDATE SET score = $3, comment = $4, photo_url = $5 
+       DO UPDATE SET score = $3, comment = $4, photo_url = $5, evaluation_type = $6, requires_photo = $7 
        RETURNING *`,
-      [auditId, criteriaId, score, comment, photoUrl]
+      [auditId, criteriaId, score, comment, photoUrl, evaluationType || 'OK_KO', requiresPhoto || false]
     );
     console.log('Score saved successfully:', result.rows[0]);
     res.status(201).json(result.rows[0]);

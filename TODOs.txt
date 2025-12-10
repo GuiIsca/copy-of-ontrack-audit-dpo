@@ -1,18 +1,3 @@
-**** IMPORTANTE ****
-Adicionar Lógica na visita de auditoria:
-Item terá: 
--avaliação OK/KO
--Comentário 
--Foto obrigatória para KO
-
-Secção terá: 
--Avaliação de 1 a 5 (Média dos itens com OK/KO) 
--Plano de Ação (Exemplo: Reforçar limpeza) com responsável e prazo 
-
-
-
-
-
 PAGINA Amont
 Auditoria:
 -Remover ter de colocar titulo numa nova auditoria

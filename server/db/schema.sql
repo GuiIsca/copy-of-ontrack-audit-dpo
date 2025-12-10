@@ -138,6 +138,21 @@ CREATE TABLE audit_comments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Section Evaluations Table
+-- section_id can be a number (for regular sections) or a string like "3_3.1" (for subsections within FRESCOS)
+CREATE TABLE section_evaluations (
+    id SERIAL PRIMARY KEY,
+    audit_id INTEGER NOT NULL REFERENCES audits(id) ON DELETE CASCADE,
+    section_id VARCHAR(50) NOT NULL,
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    action_plan TEXT,
+    responsible VARCHAR(255),
+    due_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(audit_id, section_id)
+);
+
 -- Indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_roles ON users USING GIN(roles);
@@ -156,6 +171,7 @@ CREATE INDEX idx_audit_scores_evaluation_type ON audit_scores(evaluation_type);
 CREATE INDEX idx_action_plans_audit_id ON action_plans(audit_id);
 CREATE INDEX idx_action_plans_status ON action_plans(status);
 CREATE INDEX idx_audit_comments_audit_id ON audit_comments(audit_id);
+CREATE INDEX idx_section_evaluations_audit_id ON section_evaluations(audit_id);
 
 -- Triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -179,6 +195,9 @@ CREATE TRIGGER update_visits_updated_at BEFORE UPDATE ON visits
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_action_plans_updated_at BEFORE UPDATE ON action_plans
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_section_evaluations_updated_at BEFORE UPDATE ON section_evaluations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ADMIN user seed with password '123456'
