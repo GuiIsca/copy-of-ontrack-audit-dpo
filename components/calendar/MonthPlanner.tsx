@@ -102,14 +102,17 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
     return currentDate.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
   };
 
-  const getStatusColor = (status: number) => {
-    switch(status) {
-      case 1: return 'bg-blue-500'; // NEW
-      case 2: return 'bg-yellow-500'; // IN_PROGRESS
-      case 3: return 'bg-purple-500'; // SUBMITTED
-      case 4: return 'bg-green-500'; // ENDED
-      case 5: return 'bg-gray-500'; // CLOSED
-      default: return 'bg-gray-400';
+  const getVisitTypeColor = (audit: Audit & { store: Store; isAudit?: boolean }) => {
+    // Verificar se tem visitType definido
+    const visitType = (audit as any).visitType;
+    
+    // Outros tipos de visita
+    switch(visitType) {
+      case 'Auditoria': return 'bg-red-600'; // Auditoria - vermelho
+      case 'Formacao': return 'bg-blue-600'; // Formação - azul
+      case 'Acompanhamento': return 'bg-emerald-600'; // Acompanhamento - verde
+      case 'Outros': return 'bg-gray-600'; // Outros - cinza
+      default: return 'bg-red-600'; // Default auditoria
     }
   };
 
@@ -238,7 +241,7 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
                     >
                       <div className="flex items-center gap-1">
                         <div
-                          className={`w-1 h-6 ${getStatusColor(audit.status)} rounded-full flex-shrink-0`}
+                          className={`w-1 h-6 ${getVisitTypeColor(audit)} rounded-full flex-shrink-0`}
                         />
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires">
@@ -272,48 +275,23 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
 
       {/* Legend */}
       <div className="p-3 border-t border-gray-200 bg-gray-50">
-        <div className="flex flex-col gap-3">
-          <div>
-            <div className="text-xs font-semibold text-gray-700 mb-2">Estados da Auditoria:</div>
-            <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-gray-600">Nova</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span className="text-gray-600">Em curso</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span className="text-gray-600">Submetida</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-gray-600">Concluída</span>
-              </div>
-            </div>
+        <div className="text-xs font-semibold text-gray-700 mb-2 text-center">Tipos de Visita:</div>
+        <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+            <span className="text-gray-600">Auditoria</span>
           </div>
-          <div>
-            <div className="text-xs font-semibold text-gray-700 mb-2">Tipos de Visita:</div>
-            <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-mousquetaires rounded-full"></div>
-                <span className="text-gray-600">Auditoria</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                <span className="text-gray-600">Formação</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-emerald-600 rounded-full"></div>
-                <span className="text-gray-600">Acompanhamento</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
-                <span className="text-gray-600">Outros</span>
-              </div>
-            </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+            <span className="text-gray-600">Formação</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-emerald-600 rounded-full"></div>
+            <span className="text-gray-600">Acompanhamento</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
+            <span className="text-gray-600">Outros</span>
           </div>
         </div>
       </div>

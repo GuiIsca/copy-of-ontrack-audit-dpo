@@ -361,13 +361,14 @@ class DatabaseAdapter {
     return api.getScores(auditId);
   }
 
-  async saveScore(score: Partial<AuditScore> & { photo_url?: string; evaluation_type?: string; requires_photo?: boolean }): Promise<void> {
+  async saveScore(score: Partial<AuditScore> & { photo_url?: string; allPhotos?: string[]; evaluation_type?: string; requires_photo?: boolean }): Promise<void> {
     await api.saveScore({
       auditId: score.audit_id,
       criteriaId: score.criteria_id,
       score: score.score,
       comment: score.comment,
       photoUrl: (score as any).photo_url || (score as any).photoUrl,
+      allPhotos: (score as any).allPhotos,
       evaluationType: (score as any).evaluation_type,
       requiresPhoto: (score as any).requires_photo
     });

@@ -4,7 +4,7 @@ import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { PlusCircle, Store as StoreIcon, AlertCircle } from 'lucide-react';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditStatus, Store, Visit } from '../types';
+import { Audit, AuditStatus, Store, Visit, VisitType } from '../types';
 import { getCurrentUser } from '../utils/auth';
 import { canCreateAudit } from '../utils/permissions';
 import { ScoreGauge } from '../components/charts/ScoreGauge';
@@ -13,7 +13,7 @@ import { WeekPlanner } from '../components/calendar/WeekPlanner';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [audits, setAudits] = useState<(Audit & { store: Store })[]>([]);
+  const [audits, setAudits] = useState<(Audit & { store: Store; visitType?: VisitType })[]>([]);
   const [assignedStores, setAssignedStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [showStores, setShowStores] = useState(false);
@@ -58,9 +58,24 @@ export const Dashboard: React.FC = () => {
       const visits: Visit[] = user ? await db.getVisitsForDOT(user.id) : [];
       const stores = await db.getStores();
       
+      // Helper to map visit type from backend
+      const mapVisitType = (t: any): VisitType => {
+        if (!t) return VisitType.OUTROS;
+        const u = String(t).toUpperCase();
+        switch(u) {
+          case 'AUDITORIA': return VisitType.AUDITORIA;
+          case 'FORMACAO':
+          case 'FORMAÇÃO': return VisitType.FORMACAO;
+          case 'ACOMPANHAMENTO': return VisitType.ACOMPANHAMENTO;
+          case 'OUTROS': return VisitType.OUTROS;
+          default: return VisitType.OUTROS;
+        }
+      };
+      
       const enrichedAudits = rawAudits.map(a => ({
           ...a,
-          store: stores.find(s => s.id === a.store_id) as Store
+          store: stores.find(s => s.id === a.store_id) as Store,
+          visitType: VisitType.AUDITORIA
       }));
 
       // Convert visits to audit-like shape for calendar display
@@ -71,8 +86,9 @@ export const Dashboard: React.FC = () => {
           checklist_id: 0,
           dtstart: v.dtstart,
           status: v.status,
-          store: stores.find(s => s.id === v.store_id) as Store
-      })) as (Audit & { store: Store })[];
+          store: stores.find(s => s.id === v.store_id) as Store,
+          visitType: mapVisitType(v.type)
+      })) as (Audit & { store: Store; visitType: VisitType })[];
 
       // Merge audits and visits for calendar display
       setAudits([...enrichedAudits, ...enrichedVisits]);

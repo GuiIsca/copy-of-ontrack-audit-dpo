@@ -200,7 +200,7 @@ export const AuditExecution: React.FC = () => {
     const saveComment = async (criteriaId: number) => {
             if (!audit) return;
             const comment = criteriaComments[criteriaId] || '';
-            const currentScore = scores.find(s => s.criteria_id === criteriaId)?.score || null;
+            const currentScore = scores.find(s => s.criteria_id === criteriaId)?.score ?? null;
             
             try {
                 setSavingCriteria(prev => new Set(prev).add(criteriaId));
@@ -209,7 +209,9 @@ export const AuditExecution: React.FC = () => {
                     criteria_id: criteriaId,
                     score: currentScore,
                     comment,
-                    photo_url: (criteriaPhotos[criteriaId] || [])[0]
+                    photo_url: (criteriaPhotos[criteriaId] || [])[0],
+                    evaluation_type: 'OK_KO',
+                    requires_photo: currentScore === 0
                 });
                 setToastType('success');
                 setToastMsg('Comentário guardado');
@@ -274,7 +276,7 @@ export const AuditExecution: React.FC = () => {
               }));
               
               if (!audit) return;
-              const currentScore = scores.find(s => s.criteria_id === criteriaId)?.score || null;
+              const currentScore = scores.find(s => s.criteria_id === criteriaId)?.score ?? null;
               
               try {
                   setSavingCriteria(prev => new Set(prev).add(criteriaId));
@@ -283,7 +285,9 @@ export const AuditExecution: React.FC = () => {
                       criteria_id: criteriaId,
                       score: currentScore,
                       comment: criteriaComments[criteriaId] || '',
-                      photo_url: base64
+                      photo_url: base64,
+                      evaluation_type: 'OK_KO',
+                      requires_photo: currentScore === 0
                   });
                   setToastType('success');
                   setToastMsg('Foto anexada');
@@ -316,7 +320,7 @@ export const AuditExecution: React.FC = () => {
       }));
       
       if (!audit) return;
-      const currentScore = scores.find(s => s.criteria_id === criteriaId)?.score || null;
+      const currentScore = scores.find(s => s.criteria_id === criteriaId)?.score ?? null;
       
       try {
           setSavingCriteria(prev => new Set(prev).add(criteriaId));
@@ -325,7 +329,9 @@ export const AuditExecution: React.FC = () => {
               criteria_id: criteriaId,
               score: currentScore,
               comment: criteriaComments[criteriaId] || '',
-              photo_url: newPhotos[0]
+              allPhotos: newPhotos, // Send all remaining photos
+              evaluation_type: 'OK_KO',
+              requires_photo: currentScore === 0
           });
           setToastType('success');
           setToastMsg('Foto removida');

@@ -1,5 +1,8 @@
 -- OnTrack Database Schema
 
+-- Define encoding para garantir acentos corretos
+SET CLIENT_ENCODING TO 'UTF8';
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

@@ -1,5 +1,8 @@
 -- Seed Data for OnTrack Application
 
+-- Define encoding para garantir acentos corretos
+SET CLIENT_ENCODING TO 'UTF8';
+
 -- NOTA IMPORTANTE:
 -- A senha para TODOS os utilizadores abaixo é: 123456
 -- O hash utilizado é compatível com bcrypt.

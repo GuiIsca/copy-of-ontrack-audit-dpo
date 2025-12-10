@@ -24,7 +24,7 @@ export const AmontDashboard: React.FC = () => {
   const [filteredVisits, setFilteredVisits] = useState<VisitItem[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | AuditStatus>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'em_progresso' | 'concluida'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | VisitType>('all');
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
@@ -129,8 +129,10 @@ export const AmontDashboard: React.FC = () => {
     }
 
     // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(v => v.status === statusFilter);
+    if (statusFilter === 'em_progresso') {
+      filtered = filtered.filter(v => v.status === AuditStatus.NEW || v.status === AuditStatus.IN_PROGRESS);
+    } else if (statusFilter === 'concluida') {
+      filtered = filtered.filter(v => v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED);
     }
 
     // Type filter
@@ -203,11 +205,11 @@ export const AmontDashboard: React.FC = () => {
   const getStatusBadge = (status: AuditStatus) => {
     switch(status) {
       case AuditStatus.NEW:
-        return <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-medium">Nova</span>;
+        return <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium">Em Progresso</span>;
       case AuditStatus.IN_PROGRESS:
         return <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium">Em Progresso</span>;
       case AuditStatus.SUBMITTED:
-        return <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded font-medium">Submetida</span>;
+        return <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-medium">Concluída</span>;
       case AuditStatus.ENDED:
         return <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-medium">Concluída</span>;
       case AuditStatus.CLOSED:
@@ -490,9 +492,8 @@ export const AmontDashboard: React.FC = () => {
 
   const stats = {
     total: visits.length,
-    inProgress: visits.filter(v => v.status === AuditStatus.IN_PROGRESS).length,
-    submitted: visits.filter(v => v.status === AuditStatus.SUBMITTED).length,
-    ended: visits.filter(v => v.status === AuditStatus.ENDED).length,
+    inProgress: visits.filter(v => v.status === AuditStatus.NEW || v.status === AuditStatus.IN_PROGRESS).length,
+    ended: visits.filter(v => v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED).length,
     avgScore: (() => {
       const auditsWithScore = visits.filter(v => v.visitType === VisitType.AUDITORIA && 'score' in v && v.score !== undefined);
       return auditsWithScore.length > 0
@@ -521,7 +522,7 @@ export const AmontDashboard: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -539,16 +540,6 @@ export const AmontDashboard: React.FC = () => {
                 <div className="text-sm text-yellow-600">Em Progresso</div>
               </div>
               <Clock className="text-yellow-400" size={32} />
-            </div>
-          </div>
-
-          <div className="bg-purple-50 rounded-lg shadow-sm border border-purple-100 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-purple-600">{stats.submitted}</div>
-                <div className="text-sm text-purple-600">Submetidas</div>
-              </div>
-              <AlertTriangle className="text-purple-400" size={32} />
             </div>
           </div>
 
@@ -592,19 +583,14 @@ export const AmontDashboard: React.FC = () => {
             </div>
 
             <div className="flex gap-2 items-center">
-              <Filter size={20} className="text-gray-500" />
-              
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value === 'all' ? 'all' : Number(e.target.value) as AuditStatus)}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'em_progresso' | 'concluida')}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">Todos os Estados</option>
-                <option value={AuditStatus.NEW}>Nova</option>
-                <option value={AuditStatus.IN_PROGRESS}>Em Progresso</option>
-                <option value={AuditStatus.SUBMITTED}>Submetida</option>
-                <option value={AuditStatus.ENDED}>Concluída</option>
-                <option value={AuditStatus.CLOSED}>Fechada</option>
+                <option value="em_progresso">Em Progresso</option>
+                <option value="concluida">Concluída</option>
               </select>
 
               <select

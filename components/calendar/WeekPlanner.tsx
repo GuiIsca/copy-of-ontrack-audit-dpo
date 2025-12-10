@@ -74,13 +74,15 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
     }
   };
 
-  const getStatusColor = (status: number) => {
-    switch(status) {
-      case 1: return 'bg-blue-500'; // NEW
-      case 2: return 'bg-yellow-500'; // IN_PROGRESS
-      case 3: return 'bg-green-500'; // ENDED
-      case 4: return 'bg-gray-500'; // CLOSED
-      default: return 'bg-gray-400';
+  const getVisitTypeColor = (audit: Audit & { store: Store; isAudit?: boolean }) => {
+    const visitType = (audit as any).visitType;
+    
+    switch(visitType) {
+      case 'Auditoria': return 'bg-red-600';
+      case 'Formacao': return 'bg-blue-600';
+      case 'Acompanhamento': return 'bg-emerald-600';
+      case 'Outros': return 'bg-gray-600';
+      default: return 'bg-red-600';
     }
   };
 
@@ -160,7 +162,7 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
                     >
                       <div className="flex items-start gap-2">
                         <div
-                          className={`w-1 h-full ${getStatusColor(audit.status)} rounded-full flex-shrink-0 mt-1`}
+                          className={`w-1.5 h-16 ${getVisitTypeColor(audit)} rounded-full flex-shrink-0`}
                         />
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires">
@@ -199,44 +201,23 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
 
       {/* Legend */}
       <div className="p-3 border-t border-gray-200 bg-gray-50">
-        <div className="flex flex-col gap-3">
-          <div>
-            <div className="text-xs font-semibold text-gray-700 mb-2">Estados da Auditoria:</div>
-            <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-gray-600">Não iniciada</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span className="text-gray-600">Em curso</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-gray-600">Concluída</span>
-              </div>
-            </div>
+        <div className="text-xs font-semibold text-gray-700 mb-2 text-center">Tipos de Visita:</div>
+        <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+            <span className="text-gray-600">Auditoria</span>
           </div>
-          <div>
-            <div className="text-xs font-semibold text-gray-700 mb-2">Tipos de Visita:</div>
-            <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-mousquetaires rounded-full"></div>
-                <span className="text-gray-600">Auditoria</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                <span className="text-gray-600">Formação</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-emerald-600 rounded-full"></div>
-                <span className="text-gray-600">Acompanhamento</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
-                <span className="text-gray-600">Outros</span>
-              </div>
-            </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+            <span className="text-gray-600">Formação</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-emerald-600 rounded-full"></div>
+            <span className="text-gray-600">Acompanhamento</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
+            <span className="text-gray-600">Outros</span>
           </div>
         </div>
       </div>

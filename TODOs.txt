@@ -1,6 +1,5 @@
 PAGINA Amont
-Auditoria:
--Remover ter de colocar titulo numa nova auditoria
+
 
 Dashboard:
 -Quando iniciada uma visita fica em estado "Nova" e não pode ser editada. Deve ficar "Em progresso" (editável) até ser submetida e aí fica "Concluída" (não editável)
@@ -21,7 +20,6 @@ Overall da Aplicação
 
 -Em "Indicadores" o cálculo do relatório e Analytics não funciona
 
--Na Vista Semanal do Calendário não dá para ver o tipo nem o estado da visita (DOT e Amont)
 
 Lógica Hierárquica de Auditoria:
 - Uma Visita DOT e Aderente submetida pode ser consultável pelo Amont e Aderente da Loja

@@ -47,7 +47,8 @@ export const AmontNewVisitAmont: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedStoreId || !title.trim()) {
+    // Para auditorias, o título não é obrigatório
+    if (!selectedStoreId || (visitType !== VisitType.AUDITORIA && !title.trim())) {
       setError('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -204,36 +205,40 @@ export const AmontNewVisitAmont: React.FC = () => {
             </div>
           </div>
 
-          {/* Title */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Título <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Acompanhamento mensal, Visita de supervisão..."
-              required
-              maxLength={200}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
-            />
-          </div>
+          {/* Title - Only for non-audit visits */}
+          {visitType !== VisitType.AUDITORIA && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Título <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Acompanhamento mensal, Visita de supervisão..."
+                required
+                maxLength={200}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
+              />
+            </div>
+          )}
 
-          {/* Description */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Descrição / Notas
-            </label>
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Descreva os objetivos, tópicos abordados, ou outras observações relevantes..."
-              rows={4}
-              maxLength={2000}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires resize-none"
-            />
-          </div>
+          {/* Description - Only for non-audit visits */}
+          {visitType !== VisitType.AUDITORIA && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Descrição / Notas
+              </label>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Descreva os objetivos, tópicos abordados, ou outras observações relevantes..."
+                rows={4}
+                maxLength={2000}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires resize-none"
+              />
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-4 justify-end bg-white rounded-lg shadow-sm border border-gray-200 p-6">
