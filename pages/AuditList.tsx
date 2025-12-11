@@ -202,7 +202,7 @@ export const AuditList: React.FC = () => {
 
     return (
       <div className="space-y-4">
-        {storeGroups.map(({ store, audits }) => (
+        {storeGroups.map(({ store, audits, visits: storeVisits }) => (
           <div key={store.id} className="bg-white border border-gray-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {store.city} <span className="text-sm text-gray-500">({store.codehex})</span>
@@ -230,7 +230,7 @@ export const AuditList: React.FC = () => {
                   </span>
                 </div>
               ))}
-              {g.visits.slice(0, 3).map(visit => (
+              {storeVisits.slice(0, 3).map(visit => (
                 <div
                   key={`v-${visit.id}`}
                   className="flex items-center justify-between p-2 bg-gray-50 rounded"
@@ -267,7 +267,7 @@ export const AuditList: React.FC = () => {
 
     return (
       <div className="space-y-4">
-        {dotGroups.map(({ dot, audits, stores }) => (
+        {dotGroups.map(({ dot, audits, stores, visits: dotVisits }) => (
           <div key={dot.id} className="bg-white border border-gray-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">{dot.fullname}</h3>
             <div className="text-sm text-gray-600 mb-3">
@@ -294,7 +294,7 @@ export const AuditList: React.FC = () => {
                   </span>
                 </div>
               ))}
-              {g.visits.slice(0, 3).map(visit => (
+              {dotVisits.slice(0, 3).map(visit => (
                 <div
                   key={`v-${visit.id}`}
                   className="flex items-center justify-between p-2 bg-gray-50 rounded"

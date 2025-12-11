@@ -11,7 +11,7 @@ import {
 import { db } from '../services/dbAdapter';
 import { MonthPlanner } from '../components/calendar/MonthPlanner';
 import { WeekPlanner } from '../components/calendar/WeekPlanner';
-import { Audit, AuditStatus, Store, Visit, VisitType } from '../types';
+import { Audit, AuditStatus, Store, UserRole, Visit, VisitType } from '../types';
 import { getCurrentUser } from '../utils/auth';
 
 // Unified visit item type that can be either an Audit or a Visit
@@ -40,6 +40,8 @@ export const AmontDashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStore, setSelectedStore] = useState<number | ''>('');
   const [selectedDOT, setSelectedDOT] = useState<number | ''>('');
+  type ProfileFilter = 'all' | UserRole.DOT | UserRole.ADERENTE | UserRole.AMONT;
+  const [profileFilter, setProfileFilter] = useState<ProfileFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -165,8 +167,12 @@ export const AmontDashboard: React.FC = () => {
         return isAudit ? (v as any).dot_user_id : v.user_id;
       }).filter(Boolean)
     ));
-    return users.filter(u => dotIds.includes(u.id));
-  }, [filteredVisits, users]);
+    let candidates = users.filter(u => dotIds.includes(u.id));
+    if (profileFilter !== 'all') {
+      candidates = candidates.filter(u => (u.roles || []).includes(profileFilter));
+    }
+    return candidates;
+  }, [filteredVisits, users, profileFilter]);
 
   // Apply additional filters for current view
   const viewVisits = useMemo(() => {
@@ -200,7 +206,11 @@ export const AmontDashboard: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [viewMode, selectedStore, selectedDOT, selectedMonth, selectedYear, pageSize]);
+  }, [viewMode, selectedStore, selectedDOT, selectedMonth, selectedYear, pageSize, profileFilter]);
+
+  useEffect(() => {
+    setSelectedDOT('');
+  }, [profileFilter]);
 
   const getStatusBadge = (status: AuditStatus) => {
     switch(status) {
@@ -636,7 +646,7 @@ export const AmontDashboard: React.FC = () => {
             </button>
             <button onClick={() => setViewMode('dot')} className={`flex items-center gap-2 px-4 py-2 rounded-lg ${viewMode==='dot'?'bg-mousquetaires text-white':'bg-white text-gray-700 hover:bg-gray-100'}`}>
               <Users size={18} />
-              <span>Por DOT</span>
+              <span>Por Perfil</span>
             </button>
           </div>
           {viewMode==='list' && (
@@ -664,13 +674,30 @@ export const AmontDashboard: React.FC = () => {
         )}
         {viewMode==='dot' && (
           <div className="mb-6 bg-white p-4 rounded-lg">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Filtrar por DOT:</label>
-            <select value={selectedDOT} onChange={e=>setSelectedDOT(e.target.value ? Number(e.target.value) : '')} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mousquetaires">
-              <option value="">Todos os DOTs</option>
-              {dotsInFiltered.map(dot => (
-                <option key={dot.id} value={dot.id}>{dot.fullname} - {dot.email}</option>
-              ))}
-            </select>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Filtrar por perfil:</label>
+                <select
+                  value={profileFilter}
+                  onChange={e => setProfileFilter(e.target.value as ProfileFilter)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mousquetaires"
+                >
+                  <option value="all">Todos</option>
+                  <option value={UserRole.DOT}>DOT</option>
+                  <option value={UserRole.ADERENTE}>Aderente</option>
+                  <option value={UserRole.AMONT}>Amont</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Filtrar por utilizador:</label>
+                <select value={selectedDOT} onChange={e=>setSelectedDOT(e.target.value ? Number(e.target.value) : '')} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mousquetaires">
+                  <option value="">Todos os utilizadores</option>
+                  {dotsInFiltered.map(dot => (
+                    <option key={dot.id} value={dot.id}>{dot.fullname} - {dot.email}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
         )}
 

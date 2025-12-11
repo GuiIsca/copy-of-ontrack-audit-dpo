@@ -1,11 +1,4 @@
-PAGINA Amont
-
--Pesquisa "Por DOT" aparecem amonts e aderentes
-
-
------------------------//----------------------------
 PAGINA DOT
-
 
 Histórico:
 -(IMPORTANTE) Quando clicamos em "Por Loja" ou "Por DOT" leva-nos para uma página em Branco
@@ -21,4 +14,4 @@ Overall da Aplicação
 
 
 Lógica Hierárquica de Auditoria:
-Uma Visita DOT e Aderente submetida pode ser consultável pelo Amont e Aderente da Loja
+-Uma Visita DOT e Aderente submetida pode ser consultável pelo Amont e Aderente da Loja
