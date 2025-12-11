@@ -91,8 +91,8 @@ export const AmontDashboard: React.FC = () => {
       const audit = visit as Audit;
       const isMyAudit = audit.user_id === currentUser.userId || audit.dot_user_id === currentUser.userId;
       
-      // If it's my audit and not completed, go to execute; otherwise view
-      if (isMyAudit && audit.status !== AuditStatus.ENDED && audit.status !== AuditStatus.CLOSED) {
+      // If it's my audit and still in execution (NEW or IN_PROGRESS), go to execute; otherwise view
+      if (isMyAudit && (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS)) {
         navigate(`/amont/execute/${visit.id}`);
       } else {
         navigate(`/amont/audit/${visit.id}`);
@@ -443,7 +443,17 @@ export const AmontDashboard: React.FC = () => {
         const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
         return isAudit ? (v as any).dot_user_id === dot.id : v.user_id === dot.id;
       }),
-      stores: storesInFiltered.filter(s => s.dotUserId === dot.id)
+      stores: storesInFiltered.filter(s => {
+        // Check the role of the user to determine which field to use
+        const userRoles = dot.roles || [];
+        if (userRoles.includes(UserRole.DOT)) {
+          return (s.dotUserId === dot.id || s.dot_user_id === dot.id);
+        } else if (userRoles.includes(UserRole.ADERENTE)) {
+          return (s.aderenteId === dot.id || s.aderente_id === dot.id);
+        }
+        // For AMONT and others, return all stores from visits
+        return true;
+      })
     })).filter(g => g.visits.length > 0);
     return (
       <div className="space-y-4">

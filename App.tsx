@@ -23,6 +23,8 @@ import { AmontImportTasksCSV } from './pages/AmontImportTasksCSV';
 import { AmontNewVisitAmont } from './pages/AmontNewVisitAmont';
 import { AmontNewVisitDOT } from './pages/AmontNewVisitDOT';
 import { AmontSelectNewVisit } from './pages/AmontSelectNewVisit';
+import { DotAuditPage } from './pages/DotAuditPage';
+import { AderenteVisitPage } from './pages/AderenteVisitPage';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
 import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessAmontDashboard, canViewReports, canAccessAdminDashboard } from './utils/permissions';
@@ -104,7 +106,7 @@ const App: React.FC = () => {
         } />
         <Route path="/dot/audit/:id" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
-                <AuditExecution />
+                <DotAuditPage />
             </ProtectedRoute>
         } />
         <Route path="/visit/:id" element={
@@ -149,7 +151,7 @@ const App: React.FC = () => {
         } />
         <Route path="/aderente/visit/:id" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
-                <AuditExecution />
+                <AderenteVisitPage />
             </ProtectedRoute>
         } />
         <Route path="/amont/dashboard" element={

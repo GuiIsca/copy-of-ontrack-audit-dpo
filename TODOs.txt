@@ -1,17 +1,6 @@
-PAGINA DOT
-
-Histórico:
--(IMPORTANTE) Quando clicamos em "Por Loja" ou "Por DOT" leva-nos para uma página em Branco
--Quando estamos a visualizar os detalhes duma visita a seta para trás manda-nos de volta para o dashboard e não para o histórico
-
-
 -----------------------//----------------------------
-
-
 Overall da Aplicação
 
 -Em "Indicadores" o cálculo do relatório e Analytics não funciona
 
-
-Lógica Hierárquica de Auditoria:
--Uma Visita DOT e Aderente submetida pode ser consultável pelo Amont e Aderente da Loja
+-Plano de Ação ???

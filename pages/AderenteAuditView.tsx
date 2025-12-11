@@ -3,17 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { CommentThread } from '../components/audit/CommentThread';
-import { ArrowLeft, Image as ImageIcon, FileText } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, FileText, ListTodo, User as UserIcon, Calendar } from 'lucide-react';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditScore, Checklist, Store } from '../types';
+import { Audit, AuditScore, Checklist, Store, User, SectionEvaluation } from '../types';
 
 export const AderenteAuditView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [audit, setAudit] = useState<Audit | null>(null);
   const [store, setStore] = useState<Store | null>(null);
+  const [creator, setCreator] = useState<User | null>(null);
   const [checklist, setChecklist] = useState<Checklist | null>(null);
   const [scores, setScores] = useState<AuditScore[]>([]);
+  const [sectionEvaluations, setSectionEvaluations] = useState<SectionEvaluation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,10 +38,17 @@ export const AderenteAuditView: React.FC = () => {
       setAudit(auditData);
       const stores = await db.getStores();
       setStore(stores.find(s => s.id === auditData.store_id) || null);
+      
+      // Get the creator of the audit
+      const creatorData = await db.getUserById(auditData.createdBy);
+      setCreator(creatorData || null);
+      
       const checklistData = await db.getChecklist(auditData.checklist_id);
       setChecklist(checklistData);
       const scoresData = await db.getScores(Number(id));
       setScores(scoresData);
+      const sectionEvalsData = await db.getSectionEvaluations(Number(id));
+      setSectionEvaluations(sectionEvalsData || []);
       setLoading(false);
     };
     loadData();
@@ -47,6 +56,10 @@ export const AderenteAuditView: React.FC = () => {
 
   const getScoreForCriteria = (criteriaId: number): AuditScore | undefined => {
     return scores.find(s => s.criteria_id === criteriaId);
+  };
+
+  const getSectionEvaluation = (sectionId: number): SectionEvaluation | undefined => {
+    return sectionEvaluations.find(se => Number(se.section_id) === sectionId);
   };
 
   const getScoreBadge = (score: number | null, criteria?: any) => {
@@ -147,6 +160,11 @@ export const AderenteAuditView: React.FC = () => {
                       year: 'numeric'
                     })}
                   </div>
+                  {creator && (
+                    <div>
+                      <span className="font-medium">Nome:</span> {creator.fullname}
+                    </div>
+                  )}
                   {audit.score !== undefined && (
                     <div>
                       <span className="font-medium">Pontuação Final:</span>{' '}
@@ -187,11 +205,52 @@ export const AderenteAuditView: React.FC = () => {
           </div>
           
           <div className="divide-y divide-gray-100">
-            {checklist.sections.map(section => (
+            {checklist.sections.map(section => {
+              const sectionEval = getSectionEvaluation(section.id);
+              return (
               <div key={section.id} className="p-6">
                 <h3 className="text-base font-semibold text-gray-800 mb-4">
                   {section.name}
                 </h3>
+
+                {/* Section Evaluation (Rating 1-5) */}
+                {sectionEval && sectionEval.rating && (
+                  <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-semibold text-gray-900">Avaliação da Secção:</span>
+                      <span className="bg-gray-600 text-white px-3 py-1 rounded-full font-bold">
+                        {sectionEval.rating}/5
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Section Action Plan */}
+                {sectionEval && (sectionEval.action_plan || sectionEval.responsible || sectionEval.due_date) && (
+                  <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <ListTodo size={16} />
+                      Plano de Ação da Secção
+                    </h4>
+                    {sectionEval.action_plan && (
+                      <p className="text-sm text-gray-700 mb-2">{sectionEval.action_plan}</p>
+                    )}
+                    <div className="flex gap-4 text-xs text-gray-600">
+                      {sectionEval.responsible && (
+                        <div className="flex items-center gap-1">
+                          <UserIcon size={12} />
+                          <span>Responsável: {sectionEval.responsible}</span>
+                        </div>
+                      )}
+                      {sectionEval.due_date && (
+                        <div className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          <span>Data Limite: {new Date(sectionEval.due_date).toLocaleDateString('pt-PT')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 
                 {section.items.map(item => (
                   <div key={item.id} className="ml-4 mb-6 last:mb-0">
@@ -212,9 +271,6 @@ export const AderenteAuditView: React.FC = () => {
                               <div className="flex-1">
                                 <p className="text-sm text-gray-900 font-medium">
                                   {criteria.name}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Peso: {criteria.weight}
                                 </p>
                               </div>
                             <div className="ml-4">
@@ -270,7 +326,8 @@ export const AderenteAuditView: React.FC = () => {
                   </div>
                 ))}
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
 

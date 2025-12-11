@@ -24,6 +24,7 @@ export const AderenteDashboard: React.FC = () => {
       }
 
       const stores = await db.getStores();
+      const allUsers = await db.getUsers();
       
       // Encontrar TODAS as lojas do Aderente (pode ter múltiplas)
       const myStores = stores.filter(s => s.aderenteId === currentUser.userId);
@@ -41,9 +42,15 @@ export const AderenteDashboard: React.FC = () => {
       // Carregar TODAS as auditorias (sem filtrar por userId)
       const allAudits = await db.getAudits(); // Sem parâmetro = retorna todas
       
-      // Filtrar auditorias das lojas do Aderente que foram submetidas
+      // Filtrar auditorias das lojas do Aderente que foram submetidas E criadas por DOT (não por AMONT)
       const enriched = allAudits
-        .filter(a => myStoreIds.includes(a.store_id) && a.status >= AuditStatus.SUBMITTED)
+        .filter(a => {
+          const isMyStore = myStoreIds.includes(a.store_id);
+          const isSubmitted = a.status >= AuditStatus.SUBMITTED;
+          const creator = allUsers.find(u => u.id === a.createdBy);
+          const isCreatedByDOT = creator?.roles?.includes('DOT');
+          return isMyStore && isSubmitted && isCreatedByDOT;
+        })
         .map(a => {
           const auditStore = myStores.find(s => s.id === a.store_id);
           return {
@@ -222,6 +229,7 @@ export const AderenteDashboard: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
           <div className="p-4 border-b border-gray-100">
             <h3 className="font-semibold text-gray-700">Visitas Recentes</h3>
+            <p className="text-xs text-gray-500 mt-1">Visitas realizadas por DOTs às suas lojas</p>
           </div>
           <div className="divide-y divide-gray-100">
             {loading ? (
