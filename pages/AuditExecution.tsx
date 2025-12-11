@@ -155,13 +155,15 @@ export const AuditExecution: React.FC = () => {
             // Then persist to API
             try {
                 setSavingCriteria(prev => new Set(prev).add(criteriaId));
+                const evalType = getEvaluationTypeById(criteriaId);
+                console.log('handleScoreChange: evaluation_type for criteriaId', criteriaId, '=', evalType, 'checklist=', checklist?.name);
                 await db.saveScore({
                     audit_id: audit.id,
                     criteria_id: criteriaId,
                     score: value,
                     comment: criteriaComments[criteriaId] || '',
                     photo_url: (criteriaPhotos[criteriaId] || [])[0], // store first photo for now
-                    evaluation_type: 'OK_KO',
+                    evaluation_type: evalType,
                     requires_photo: value === 0
                 });
                 
@@ -204,13 +206,15 @@ export const AuditExecution: React.FC = () => {
             
             try {
                 setSavingCriteria(prev => new Set(prev).add(criteriaId));
+                const evalType = getEvaluationTypeById(criteriaId);
+                console.log('saveComment: evaluation_type for criteriaId', criteriaId, '=', evalType);
                 await db.saveScore({
                     audit_id: audit.id,
                     criteria_id: criteriaId,
                     score: currentScore,
                     comment,
                     photo_url: (criteriaPhotos[criteriaId] || [])[0],
-                    evaluation_type: 'OK_KO',
+                    evaluation_type: evalType,
                     requires_photo: currentScore === 0
                 });
                 setToastType('success');
@@ -241,6 +245,43 @@ export const AuditExecution: React.FC = () => {
         const formatted = scaled.toFixed(1);
         // Remove .0 if it's an integer
         return formatted.endsWith('.0') ? Math.round(scaled).toString() : formatted;
+    };
+    
+    // Determine evaluation type for a criteria (OK_KO vs SCALE_1_5)
+    const getEvaluationType = (crit: any): 'OK_KO' | 'SCALE_1_5' => {
+        const evalType = (crit as any).evaluation_type;
+        const critType = (crit as any).type;
+        
+        if (evalType === 'OK_KO') return 'OK_KO';
+        if (critType === 'rating') return 'SCALE_1_5';
+        return 'OK_KO';
+    };
+    
+    // Get evaluation type by criteria ID from checklist
+    const getEvaluationTypeById = (criteriaId: number): 'OK_KO' | 'SCALE_1_5' => {
+        if (!checklist) {
+            console.warn('getEvaluationTypeById: checklist not available, returning OK_KO');
+            return 'OK_KO';
+        }
+        
+        for (const section of checklist.sections) {
+            // All criteria are inside items (no direct section.criteria)
+            if (section.items && Array.isArray(section.items)) {
+                for (const item of section.items) {
+                    if (item.criteria) {
+                        const found = item.criteria.find((c: any) => c.id === criteriaId);
+                        if (found) {
+                            const evalType = getEvaluationType(found);
+                            console.log(`getEvaluationTypeById(${criteriaId}): found in item.criteria, type=${evalType}, crit=`, found);
+                            return evalType;
+                        }
+                    }
+                }
+            }
+        }
+        
+        console.warn(`getEvaluationTypeById(${criteriaId}): not found in checklist, returning OK_KO`);
+        return 'OK_KO';
     };
     
     // Save text fields manually (can be called on blur or via save button)
@@ -280,13 +321,15 @@ export const AuditExecution: React.FC = () => {
               
               try {
                   setSavingCriteria(prev => new Set(prev).add(criteriaId));
+                  const evalType = getEvaluationTypeById(criteriaId);
+                  console.log('handlePhotoUpload: evaluation_type for criteriaId', criteriaId, '=', evalType);
                   await db.saveScore({
                       audit_id: audit.id,
                       criteria_id: criteriaId,
                       score: currentScore,
                       comment: criteriaComments[criteriaId] || '',
                       photo_url: base64,
-                      evaluation_type: 'OK_KO',
+                      evaluation_type: evalType,
                       requires_photo: currentScore === 0
                   });
                   setToastType('success');
@@ -324,13 +367,15 @@ export const AuditExecution: React.FC = () => {
       
       try {
           setSavingCriteria(prev => new Set(prev).add(criteriaId));
+          const evalType = getEvaluationTypeById(criteriaId);
+          console.log('handleRemovePhoto: evaluation_type for criteriaId', criteriaId, '=', evalType);
           await db.saveScore({
               audit_id: audit.id,
               criteria_id: criteriaId,
               score: currentScore,
               comment: criteriaComments[criteriaId] || '',
               allPhotos: newPhotos, // Send all remaining photos
-              evaluation_type: 'OK_KO',
+              evaluation_type: evalType,
               requires_photo: currentScore === 0
           });
           setToastType('success');
@@ -678,19 +723,12 @@ export const AuditExecution: React.FC = () => {
             // Show all sections in one page for Aderente
             <div className="space-y-6">
               {checklist.sections.map((section, sectionIndex) => {
-                const secScore = calculateSectionScore(section);
                 return (
                   <div key={sectionIndex}>
                     {/* Section Header */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="font-bold text-lg">{section.name}</h3>
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${secScore < 50 ? 'bg-red-100 text-red-600' : secScore < 80 ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>
-                          {secScore.toFixed(0)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className={`h-2 rounded-full ${secScore < 50 ? 'bg-red-500' : secScore < 80 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${secScore}%` }}></div>
                       </div>
                     </div>
 
@@ -716,81 +754,114 @@ export const AuditExecution: React.FC = () => {
                                     )}
                                   </p>
                                   
-                                  {/* OK/KO Buttons */}
+                                  {/* Rating Buttons - OK/KO or SCALE_1_5 */}
                                   {critType === 'rating' && (
                                     <div className="space-y-3">
-                                      <div className="flex items-center space-x-3">
-                                        <button
-                                          disabled={isReadOnly || isSaving}
-                                          onClick={() => handleScoreChange(crit.id, 1)}
-                                          className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-                                            scoreVal === 1
-                                            ? 'bg-green-500 text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
-                                          }`}
-                                        >
-                                          ✓ OK
-                                        </button>
-                                        <button
-                                          disabled={isReadOnly || isSaving}
-                                          onClick={() => handleScoreChange(crit.id, 0)}
-                                          className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-                                            scoreVal === 0
-                                            ? 'bg-red-500 text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
-                                          }`}
-                                        >
-                                          ✗ KO
-                                        </button>
-                                      </div>
-                                      
-                                      {/* Comment field */}
-                                      <textarea
-                                        disabled={isReadOnly || isSaving}
-                                        placeholder="Comentário (opcional)..."
-                                        className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
-                                        rows={2}
-                                        value={criteriaComments[crit.id] || ''}
-                                        onChange={(e) => handleCommentChange(crit.id, e.target.value)}
-                                        onBlur={() => saveComment(crit.id)}
-                                      />
-                                      
-                                      {/* Photo upload section */}
-                                      <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                          <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
-                                            <Camera size={16} />
-                                            <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
-                                            <input
-                                              type="file"
-                                              accept="image/*"
-                                              className="hidden"
-                                              disabled={isReadOnly || isSaving}
-                                              onChange={(e) => handlePhotoUpload(crit.id, e)}
-                                            />
-                                          </label>
-                                          {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
-                                            <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
-                                          )}
-                                        </div>
-                                        {criteriaPhotos[crit.id]?.length > 0 && (
-                                          <div className="flex flex-wrap gap-2">
-                                            {criteriaPhotos[crit.id].map((photo, idx) => (
-                                              <div key={idx} className="relative group">
-                                                <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
-                                                {!isReadOnly && (
-                                                  <button
-                                                    onClick={() => handleRemovePhoto(crit.id, idx)}
-                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                  >
-                                                    <X size={12} />
-                                                  </button>
+                                      {(() => {
+                                        const evalType = getEvaluationType(crit);
+                                        
+                                        if (evalType === 'OK_KO') {
+                                          // OK/KO for Amont/DOT
+                                          return (
+                                            <>
+                                              <div className="flex items-center space-x-3">
+                                                <button
+                                                  disabled={isReadOnly || isSaving}
+                                                  onClick={() => handleScoreChange(crit.id, 1)}
+                                                  className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                    scoreVal === 1
+                                                    ? 'bg-green-500 text-white shadow-md'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
+                                                  }`}
+                                                >
+                                                  ✓ OK
+                                                </button>
+                                                <button
+                                                  disabled={isReadOnly || isSaving}
+                                                  onClick={() => handleScoreChange(crit.id, 0)}
+                                                  className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                    scoreVal === 0
+                                                    ? 'bg-red-500 text-white shadow-md'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
+                                                  }`}
+                                                >
+                                                  ✗ KO
+                                                </button>
+                                              </div>
+                                              
+                                              {/* Comment field */}
+                                              <textarea
+                                                disabled={isReadOnly || isSaving}
+                                                placeholder="Comentário (opcional)..."
+                                                className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                                                rows={2}
+                                                value={criteriaComments[crit.id] || ''}
+                                                onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                                onBlur={() => saveComment(crit.id)}
+                                              />
+                                              
+                                              {/* Photo upload section */}
+                                              <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                  <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
+                                                    <Camera size={16} />
+                                                    <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
+                                                    <input
+                                                      type="file"
+                                                      accept="image/*"
+                                                      className="hidden"
+                                                      disabled={isReadOnly || isSaving}
+                                                      onChange={(e) => handlePhotoUpload(crit.id, e)}
+                                                    />
+                                                  </label>
+                                                  {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
+                                                    <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
+                                                  )}
+                                                </div>
+                                                {criteriaPhotos[crit.id]?.length > 0 && (
+                                                  <div className="flex flex-wrap gap-2">
+                                                    {criteriaPhotos[crit.id].map((photo, idx) => (
+                                                      <div key={idx} className="relative group">
+                                                        <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
+                                                        {!isReadOnly && (
+                                                          <button
+                                                            onClick={() => handleRemovePhoto(crit.id, idx)}
+                                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                          >
+                                                            <X size={12} />
+                                                          </button>
+                                                        )}
+                                                      </div>
+                                                    ))}
+                                                  </div>
                                                 )}
                                               </div>
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
+                                            </>
+                                          );
+                                        } else {
+                                          // SCALE_1_5 for Aderente
+                                          return (
+                                            <>
+                                              <div className="flex items-center gap-2">
+                                                {[1, 2, 3, 4, 5].map(rating => (
+                                                  <button
+                                                    key={rating}
+                                                    disabled={isReadOnly || isSaving}
+                                                    onClick={() => handleScoreChange(crit.id, rating)}
+                                                    className={`flex-1 px-3 py-2 rounded font-semibold text-sm transition-all ${
+                                                      scoreVal === rating
+                                                      ? 'bg-mousquetaires text-white shadow-md'
+                                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                                                    }`}
+                                                  >
+                                                    {rating}
+                                                  </button>
+                                                ))}
+                                              </div>
+                                            </>
+                                          );
+                                        }
+                                      })()}
                                     </div>
                                   )}
                                   
@@ -800,6 +871,7 @@ export const AuditExecution: React.FC = () => {
                                       disabled={isReadOnly || isSaving}
                                       value={criteriaComments[crit.id] || ''}
                                       onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                      onBlur={() => saveComment(crit.id)}
                                       className="w-full text-sm border border-gray-200 rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none"
                                     >
                                       <option value="">Selecionar...</option>
@@ -921,81 +993,114 @@ export const AuditExecution: React.FC = () => {
                                           )}
                                       </p>
                                       
-                                      {/* OK/KO Buttons */}
+                                      {/* Rating Buttons - OK/KO or SCALE_1_5 */}
                                       {critType === 'rating' && (
                                           <div className="space-y-3">
-                                              <div className="flex items-center space-x-3">
-                                                  <button
-                                                      disabled={isReadOnly || isSaving}
-                                                      onClick={() => handleScoreChange(crit.id, 1)}
-                                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-                                                          scoreVal === 1
-                                                          ? 'bg-green-500 text-white shadow-md'
-                                                          : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
-                                                      }`}
-                                                  >
-                                                      ✓ OK
-                                                  </button>
-                                                  <button
-                                                      disabled={isReadOnly || isSaving}
-                                                      onClick={() => handleScoreChange(crit.id, 0)}
-                                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-                                                          scoreVal === 0
-                                                          ? 'bg-red-500 text-white shadow-md'
-                                                          : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
-                                                      }`}
-                                                  >
-                                                      ✗ KO
-                                                  </button>
-                                              </div>
-                                              
-                                              {/* Comment field */}
-                                              <textarea
-                                                  disabled={isReadOnly || isSaving}
-                                                  placeholder="Comentário (opcional)..."
-                                                  className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
-                                                  rows={2}
-                                                  value={criteriaComments[crit.id] || ''}
-                                                  onChange={(e) => handleCommentChange(crit.id, e.target.value)}
-                                                  onBlur={() => saveComment(crit.id)}
-                                              />
-                                              
-                                              {/* Photo upload section */}
-                                              <div className="space-y-2">
-                                                  <div className="flex items-center gap-2">
-                                                      <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
-                                                          <Camera size={16} />
-                                                          <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
-                                                          <input
-                                                              type="file"
-                                                              accept="image/*"
-                                                              className="hidden"
-                                                              disabled={isReadOnly || isSaving}
-                                                              onChange={(e) => handlePhotoUpload(crit.id, e)}
-                                                          />
-                                                      </label>
-                                                      {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
-                                                          <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
-                                                      )}
-                                                  </div>
-                                                  {criteriaPhotos[crit.id]?.length > 0 && (
-                                                      <div className="flex flex-wrap gap-2">
-                                                          {criteriaPhotos[crit.id].map((photo, idx) => (
-                                                              <div key={idx} className="relative group">
-                                                                  <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
-                                                                  {!isReadOnly && (
-                                                                      <button
-                                                                          onClick={() => handleRemovePhoto(crit.id, idx)}
-                                                                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                      >
-                                                                          <X size={12} />
-                                                                      </button>
+                                              {(() => {
+                                                  const evalType = getEvaluationType(crit);
+                                                  
+                                                  if (evalType === 'OK_KO') {
+                                                      // OK/KO for Amont/DOT
+                                                      return (
+                                                          <>
+                                                              <div className="flex items-center space-x-3">
+                                                                  <button
+                                                                      disabled={isReadOnly || isSaving}
+                                                                      onClick={() => handleScoreChange(crit.id, 1)}
+                                                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                                          scoreVal === 1
+                                                                          ? 'bg-green-500 text-white shadow-md'
+                                                                          : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
+                                                                      }`}
+                                                                  >
+                                                                      ✓ OK
+                                                                  </button>
+                                                                  <button
+                                                                      disabled={isReadOnly || isSaving}
+                                                                      onClick={() => handleScoreChange(crit.id, 0)}
+                                                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                                          scoreVal === 0
+                                                                          ? 'bg-red-500 text-white shadow-md'
+                                                                          : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
+                                                                      }`}
+                                                                  >
+                                                                      ✗ KO
+                                                                  </button>
+                                                              </div>
+                                                              
+                                                              {/* Comment field */}
+                                                              <textarea
+                                                                  disabled={isReadOnly || isSaving}
+                                                                  placeholder="Comentário (opcional)..."
+                                                                  className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                                                                  rows={2}
+                                                                  value={criteriaComments[crit.id] || ''}
+                                                                  onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                                                  onBlur={() => saveComment(crit.id)}
+                                                              />
+                                                              
+                                                              {/* Photo upload section */}
+                                                              <div className="space-y-2">
+                                                                  <div className="flex items-center gap-2">
+                                                                      <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
+                                                                          <Camera size={16} />
+                                                                          <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
+                                                                          <input
+                                                                              type="file"
+                                                                              accept="image/*"
+                                                                              className="hidden"
+                                                                              disabled={isReadOnly || isSaving}
+                                                                              onChange={(e) => handlePhotoUpload(crit.id, e)}
+                                                                          />
+                                                                      </label>
+                                                                      {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
+                                                                          <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
+                                                                      )}
+                                                                  </div>
+                                                                  {criteriaPhotos[crit.id]?.length > 0 && (
+                                                                      <div className="flex flex-wrap gap-2">
+                                                                          {criteriaPhotos[crit.id].map((photo, idx) => (
+                                                                              <div key={idx} className="relative group">
+                                                                                  <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
+                                                                                  {!isReadOnly && (
+                                                                                      <button
+                                                                                          onClick={() => handleRemovePhoto(crit.id, idx)}
+                                                                                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                      >
+                                                                                          <X size={12} />
+                                                                                      </button>
+                                                                                  )}
+                                                                              </div>
+                                                                          ))}
+                                                                      </div>
                                                                   )}
                                                               </div>
-                                                          ))}
-                                                      </div>
-                                                  )}
-                                              </div>
+                                                          </>
+                                                      );
+                                                  } else {
+                                                      // SCALE_1_5 for Aderente
+                                                      return (
+                                                          <>
+                                                              <div className="flex items-center gap-2">
+                                                                  {[1, 2, 3, 4, 5].map(rating => (
+                                                                      <button
+                                                                          key={rating}
+                                                                          disabled={isReadOnly || isSaving}
+                                                                          onClick={() => handleScoreChange(crit.id, rating)}
+                                                                          className={`flex-1 px-3 py-2 rounded font-semibold text-sm transition-all ${
+                                                                              scoreVal === rating
+                                                                              ? 'bg-mousquetaires text-white shadow-md'
+                                                                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                                                                          }`}
+                                                                      >
+                                                                          {rating}
+                                                                      </button>
+                                                                  ))}
+                                                              </div>
+                                                          </>
+                                                      );
+                                                  }
+                                              })()}
                                           </div>
                                       )}
                                       
@@ -1134,76 +1239,109 @@ export const AuditExecution: React.FC = () => {
                               
                               {critType === 'rating' && (
                                 <div className="space-y-3">
-                                  <div className="flex items-center space-x-3">
-                                    <button
-                                      disabled={isReadOnly || isSaving}
-                                      onClick={() => handleScoreChange(crit.id, 1)}
-                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-                                        scoreVal === 1
-                                        ? 'bg-green-500 text-white shadow-md'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
-                                      }`}
-                                    >
-                                      ✓ OK
-                                    </button>
-                                    <button
-                                      disabled={isReadOnly || isSaving}
-                                      onClick={() => handleScoreChange(crit.id, 0)}
-                                      className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-                                        scoreVal === 0
-                                        ? 'bg-red-500 text-white shadow-md'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
-                                      }`}
-                                    >
-                                      ✗ KO
-                                    </button>
-                                  </div>
-                                  
-                                  <textarea
-                                    disabled={isReadOnly || isSaving}
-                                    placeholder="Comentário (opcional)..."
-                                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
-                                    rows={2}
-                                    value={criteriaComments[crit.id] || ''}
-                                    onChange={(e) => handleCommentChange(crit.id, e.target.value)}
-                                    onBlur={() => saveComment(crit.id)}
-                                  />
-                                  
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
-                                        <Camera size={16} />
-                                        <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
-                                        <input
-                                          type="file"
-                                          accept="image/*"
-                                          className="hidden"
-                                          disabled={isReadOnly || isSaving}
-                                          onChange={(e) => handlePhotoUpload(crit.id, e)}
-                                        />
-                                      </label>
-                                      {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
-                                        <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
-                                      )}
-                                    </div>
-                                    {criteriaPhotos[crit.id]?.length > 0 && (
-                                      <div className="flex flex-wrap gap-2">
-                                        {criteriaPhotos[crit.id].map((photo, idx) => (
-                                          <div key={idx} className="relative group">
-                                            <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
-                                            {!isReadOnly && (
-                                              <button
-                                                onClick={() => handleRemovePhoto(crit.id, idx)}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                              >
-                                                <X size={12} />
-                                              </button>
+                                  {(() => {
+                                    const evalType = getEvaluationType(crit);
+                                    
+                                    if (evalType === 'OK_KO') {
+                                      // OK/KO for Amont/DOT
+                                      return (
+                                        <>
+                                          <div className="flex items-center space-x-3">
+                                            <button
+                                              disabled={isReadOnly || isSaving}
+                                              onClick={() => handleScoreChange(crit.id, 1)}
+                                              className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                scoreVal === 1
+                                                ? 'bg-green-500 text-white shadow-md'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
+                                              }`}
+                                            >
+                                              ✓ OK
+                                            </button>
+                                            <button
+                                              disabled={isReadOnly || isSaving}
+                                              onClick={() => handleScoreChange(crit.id, 0)}
+                                              className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                scoreVal === 0
+                                                ? 'bg-red-500 text-white shadow-md'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
+                                              }`}
+                                            >
+                                              ✗ KO
+                                            </button>
+                                          </div>
+                                          
+                                          <textarea
+                                            disabled={isReadOnly || isSaving}
+                                            placeholder="Comentário (opcional)..."
+                                            className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                                            rows={2}
+                                            value={criteriaComments[crit.id] || ''}
+                                            onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                            onBlur={() => saveComment(crit.id)}
+                                          />
+                                          
+                                          <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                              <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
+                                                <Camera size={16} />
+                                                <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
+                                                <input
+                                                  type="file"
+                                                  accept="image/*"
+                                                  className="hidden"
+                                                  disabled={isReadOnly || isSaving}
+                                                  onChange={(e) => handlePhotoUpload(crit.id, e)}
+                                                />
+                                              </label>
+                                              {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
+                                                <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
+                                              )}
+                                            </div>
+                                            {criteriaPhotos[crit.id]?.length > 0 && (
+                                              <div className="flex flex-wrap gap-2">
+                                                {criteriaPhotos[crit.id].map((photo, idx) => (
+                                                  <div key={idx} className="relative group">
+                                                    <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
+                                                    {!isReadOnly && (
+                                                      <button
+                                                        onClick={() => handleRemovePhoto(crit.id, idx)}
+                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                      >
+                                                        <X size={12} />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                ))}
+                                              </div>
                                             )}
                                           </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
+                                        </>
+                                      );
+                                    } else {
+                                      // SCALE_1_5 for Aderente
+                                      return (
+                                        <>
+                                          <div className="flex items-center gap-2">
+                                            {[1, 2, 3, 4, 5].map(rating => (
+                                              <button
+                                                key={rating}
+                                                disabled={isReadOnly || isSaving}
+                                                onClick={() => handleScoreChange(crit.id, rating)}
+                                                className={`flex-1 px-3 py-2 rounded font-semibold text-sm transition-all ${
+                                                  scoreVal === rating
+                                                  ? 'bg-mousquetaires text-white shadow-md'
+                                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                                                }`}
+                                              >
+                                                {rating}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </>
+                                      );
+                                    }
+                                  })()}
                                 </div>
                               )}
                             </div>

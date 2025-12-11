@@ -49,10 +49,34 @@ export const AderenteAuditView: React.FC = () => {
     return scores.find(s => s.criteria_id === criteriaId);
   };
 
-  const getScoreBadge = (score: number | null) => {
+  const getScoreBadge = (score: number | null, criteria?: any) => {
     if (score === null) return <span className="text-gray-400 text-sm">Não avaliado</span>;
     
-    // OK/KO system: 1 = OK, 0 = KO
+    // Para critérios de escala 1-5 (Aderente)
+    if (criteria && !criteria.evaluation_type && criteria.type === 'rating') {
+      // Escala 1-5: 1=Muito Mau, 5=Excelente
+      const colors: Record<number, string> = {
+        1: 'bg-red-100 text-red-800',
+        2: 'bg-orange-100 text-orange-800',
+        3: 'bg-yellow-100 text-yellow-800',
+        4: 'bg-lime-100 text-lime-800',
+        5: 'bg-green-100 text-green-800'
+      };
+      const labels: Record<number, string> = {
+        1: 'Muito Mau',
+        2: 'Mau',
+        3: 'Aceitável',
+        4: 'Bom',
+        5: 'Excelente'
+      };
+      return (
+        <span className={`${colors[score] || 'bg-gray-100 text-gray-800'} text-xs px-3 py-1 rounded-full font-semibold`}>
+          {score} - {labels[score] || 'N/A'}
+        </span>
+      );
+    }
+    
+    // OK/KO system: 1 = OK, 0 = KO (default for other types)
     if (score === 1) {
       return (
         <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-semibold">
@@ -68,7 +92,7 @@ export const AderenteAuditView: React.FC = () => {
       );
     }
     
-    // Fallback para outros valores (não deveria acontecer)
+    // Fallback para outros valores
     return (
       <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">
         {score}
@@ -193,9 +217,9 @@ export const AderenteAuditView: React.FC = () => {
                                   Peso: {criteria.weight}
                                 </p>
                               </div>
-                              <div className="ml-4">
-                                {getScoreBadge(scoreData?.score ?? null)}
-                              </div>
+                            <div className="ml-4">
+                              {getScoreBadge(scoreData?.score ?? null, criteria)}
+                            </div>
                             </div>
 
                             {/* Comment */}
