@@ -32,24 +32,27 @@ export const Reports: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const stores = await db.getStores();
-      const users = await db.getUsers();
+      try {
+        const stores = await db.getStores();
+        
+        // Get ALL audits (don't pass userId to get all audits)
+        const allAuditsData = await db.getAudits();
+        
+        const allAudits: (Audit & { store: Store })[] = allAuditsData
+          .map(audit => {
+            const store = stores.find(s => s.id === audit.store_id);
+            return store ? { ...audit, store } : null;
+          })
+          .filter((audit): audit is Audit & { store: Store } => audit !== null);
 
-      const allAudits: (Audit & { store: Store })[] = [];
-      for (const user of users) {
-        const userAudits = await db.getAudits(user.id);
-        for (const audit of userAudits) {
-          const store = stores.find(s => s.id === audit.store_id);
-          if (store) {
-            allAudits.push({ ...audit, store });
-          }
-        }
+        setAudits(allAudits);
+        calculateBrandStats(allAudits);
+        calculateMonthlyStats(allAudits);
+        setLoading(false);
+      } catch (error) {
+        console.error('Reports: Error loading data:', error);
+        setLoading(false);
       }
-
-      setAudits(allAudits);
-      calculateBrandStats(allAudits);
-      calculateMonthlyStats(allAudits);
-      setLoading(false);
     };
     load();
   }, []);
@@ -57,29 +60,33 @@ export const Reports: React.FC = () => {
   const calculateBrandStats = (audits: (Audit & { store: Store })[]) => {
     const brandMap = new Map<string, { total: number; scores: number[]; completed: number }>();
     
-    audits.forEach(audit => {
+    // Only count completed audits (status 3)
+    const completedAudits = audits.filter(a => a.status === 3);
+    
+    completedAudits.forEach(audit => {
       const brand = audit.store.brand;
       if (!brandMap.has(brand)) {
         brandMap.set(brand, { total: 0, scores: [], completed: 0 });
       }
       const data = brandMap.get(brand)!;
       data.total++;
-      if (audit.score !== undefined) {
-        data.scores.push(audit.score);
-      }
-      if (audit.status >= AuditStatus.ENDED) {
-        data.completed++;
+      data.completed++;
+      if (audit.final_score !== undefined && audit.final_score !== null) {
+        data.scores.push(Number(audit.final_score)); // Convert to number
       }
     });
 
-    const stats: BrandStats[] = Array.from(brandMap.entries()).map(([brand, data]) => ({
-      brand,
-      total: data.total,
-      avgScore: data.scores.length > 0 
+    const stats: BrandStats[] = Array.from(brandMap.entries()).map(([brand, data]) => {
+      const avgScore = data.scores.length > 0 
         ? data.scores.reduce((a, b) => a + b, 0) / data.scores.length 
-        : 0,
-      completed: data.completed
-    }));
+        : 0;
+      return {
+        brand,
+        total: data.total,
+        avgScore,
+        completed: data.completed
+      };
+    });
 
     setBrandStats(stats.sort((a, b) => b.avgScore - a.avgScore));
   };
@@ -87,7 +94,10 @@ export const Reports: React.FC = () => {
   const calculateMonthlyStats = (audits: (Audit & { store: Store })[]) => {
     const monthMap = new Map<string, { audits: number; scores: number[] }>();
     
-    audits.forEach(audit => {
+    // Only count completed audits (status 3)
+    const completedAudits = audits.filter(a => a.status === 3);
+    
+    completedAudits.forEach(audit => {
       const date = new Date(audit.dtstart);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const monthName = date.toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' });
@@ -97,8 +107,8 @@ export const Reports: React.FC = () => {
       }
       const data = monthMap.get(monthKey)!;
       data.audits++;
-      if (audit.score !== undefined) {
-        data.scores.push(audit.score);
+      if (audit.final_score !== undefined && audit.final_score !== null) {
+        data.scores.push(Number(audit.final_score)); // Convert to number
       }
     });
 
@@ -109,9 +119,9 @@ export const Reports: React.FC = () => {
         return {
           month: date.toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' }),
           audits: data.audits,
-          avgScore: data.scores.length > 0 
+          avgScore: Number(data.scores.length > 0 
             ? data.scores.reduce((a, b) => a + b, 0) / data.scores.length 
-            : 0
+            : 0)
         };
       })
       .sort((a, b) => a.month.localeCompare(b.month))
@@ -136,19 +146,27 @@ export const Reports: React.FC = () => {
   };
 
   const overallStats = {
-    total: audits.length,
-    completed: audits.filter(a => a.status >= AuditStatus.ENDED).length,
-    avgScore: audits.filter(a => a.score !== undefined).length > 0
-      ? audits.filter(a => a.score !== undefined).reduce((sum, a) => sum + (a.score || 0), 0) / 
-        audits.filter(a => a.score !== undefined).length
-      : 0,
-    bestScore: Math.max(...audits.filter(a => a.score !== undefined).map(a => a.score || 0), 0),
-    worstScore: Math.min(...audits.filter(a => a.score !== undefined).map(a => a.score || 100), 100),
+    total: audits.filter(a => a.status === 3).length, // Only completed
+    completed: audits.filter(a => a.status === 3).length, // Same as total now
+    avgScore: (() => {
+      const completedAudits = audits.filter(a => a.status === 3 && a.final_score !== undefined && a.final_score !== null);
+      return completedAudits.length > 0
+        ? completedAudits.reduce((sum, a) => sum + Number(a.final_score || 0), 0) / completedAudits.length
+        : 0;
+    })(),
+    bestScore: (() => {
+      const scores = audits.filter(a => a.status === 3 && a.final_score !== undefined && a.final_score !== null).map(a => Number(a.final_score || 0));
+      return scores.length > 0 ? Math.max(...scores) : 0;
+    })(),
+    worstScore: (() => {
+      const scores = audits.filter(a => a.status === 3 && a.final_score !== undefined && a.final_score !== null).map(a => Number(a.final_score || 0));
+      return scores.length > 0 ? Math.min(...scores) : 0;
+    })(),
   };
 
-  const completionRate = overallStats.total > 0 
+  const completionRate = Number(overallStats.total > 0 
     ? (overallStats.completed / overallStats.total) * 100 
-    : 0;
+    : 0);
 
   if (loading) {
     return (
@@ -275,8 +293,8 @@ export const Reports: React.FC = () => {
             </div>
             <div className="space-y-4">
               {brandStats.map((stat, idx) => {
-                const maxScore = Math.max(...brandStats.map(s => s.avgScore));
-                const barWidth = (stat.avgScore / maxScore) * 100;
+                const maxScore = brandStats.length > 0 ? Math.max(...brandStats.map(s => s.avgScore)) : 1;
+                const barWidth = maxScore > 0 ? (stat.avgScore / maxScore) * 100 : 0;
                 
                 return (
                   <div key={idx} className="space-y-2">
@@ -319,8 +337,8 @@ export const Reports: React.FC = () => {
             </div>
             <div className="space-y-4">
               {monthlyStats.map((stat, idx) => {
-                const maxAudits = Math.max(...monthlyStats.map(s => s.audits));
-                const barWidth = (stat.audits / maxAudits) * 100;
+                const maxAudits = monthlyStats.length > 0 ? Math.max(...monthlyStats.map(s => s.audits)) : 1;
+                const barWidth = maxAudits > 0 ? (stat.audits / maxAudits) * 100 : 0;
                 
                 return (
                   <div key={idx} className="space-y-2">
@@ -363,11 +381,16 @@ export const Reports: React.FC = () => {
               </h3>
             </div>
             <div className="space-y-3">
-              {audits
-                .filter(a => a.score !== undefined)
-                .sort((a, b) => (b.score || 0) - (a.score || 0))
-                .slice(0, 3)
-                .map((audit, idx) => (
+              {(() => {
+                const filtered = audits.filter(a => {
+                  console.log('Audit:', a.id, 'status:', a.status, 'typeof:', typeof a.status, 'final_score:', a.final_score);
+                  return a.status === 3 && a.final_score !== undefined && a.final_score !== null;
+                });
+                console.log('Filtered audits:', filtered.length);
+                return filtered
+                  .sort((a, b) => (b.final_score || 0) - (a.final_score || 0))
+                  .slice(0, 3)
+                  .map((audit, idx) => (
                   <div
                     key={audit.id}
                     className="bg-white rounded-lg p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
@@ -391,10 +414,11 @@ export const Reports: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-green-600">
-                      {audit.score?.toFixed(0)}%
+                      {audit.final_score ? Number(audit.final_score).toFixed(0) : 0}%
                     </div>
                   </div>
-                ))}
+                ));
+              })()}
             </div>
           </div>
 
@@ -408,8 +432,8 @@ export const Reports: React.FC = () => {
             </div>
             <div className="space-y-3">
               {audits
-                .filter(a => a.score !== undefined)
-                .sort((a, b) => (a.score || 0) - (b.score || 0))
+                .filter(a => a.status === 3 && a.final_score !== undefined && a.final_score !== null)
+                .sort((a, b) => (a.final_score || 0) - (b.final_score || 0))
                 .slice(0, 3)
                 .map((audit) => (
                   <div
@@ -431,7 +455,7 @@ export const Reports: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-red-600">
-                      {audit.score?.toFixed(0)}%
+                      {audit.final_score ? Number(audit.final_score).toFixed(0) : 0}%
                     </div>
                   </div>
                 ))}
