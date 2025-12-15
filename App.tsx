@@ -10,7 +10,6 @@ import { NewVisit } from './pages/NewVisit';
 import { SelectVisitType } from './pages/SelectVisitType';
 import { AuditExecution } from './pages/AuditExecution';
 import { AuditList } from './pages/AuditList';
-import { ActionPlan } from './pages/ActionPlan';
 import { ActionsList } from './pages/ActionsList';
 import { ActionPlans } from './pages/ActionPlans';
 import { AderenteAuditView } from './pages/AderenteAuditView';
@@ -112,11 +111,6 @@ const App: React.FC = () => {
         <Route path="/visit/:id" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
                 <VisitDetail />
-            </ProtectedRoute>
-        } />
-         <Route path="/audit/:id/actions" element={
-            <ProtectedRoute requireRole={canAccessDOTDashboard}>
-                <ActionPlan />
             </ProtectedRoute>
         } />
          <Route path="/actions" element={
