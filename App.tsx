@@ -144,6 +144,11 @@ const App: React.FC = () => {
                 <AderenteActionList />
             </ProtectedRoute>
         } />
+        <Route path="/aderente/history" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <AuditList />
+            </ProtectedRoute>
+        } />
         <Route path="/aderente/new-visit" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
                 <AderenteNewVisit />

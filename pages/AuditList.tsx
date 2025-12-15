@@ -4,9 +4,10 @@ import { Header } from '../components/layout/Header';
 import { db } from '../services/dbAdapter';
 import { Audit, AuditStatus, Store, Visit, VisitType } from '../types';
 import { getCurrentUser } from '../utils/auth';
+import { getDefaultDashboard } from '../utils/permissions';
 import { ArrowLeft, Calendar as CalendarIcon, List, Building2, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 
-type ViewMode = 'list' | 'calendar' | 'store' | 'dot';
+type ViewMode = 'list' | 'calendar' | 'store';
 type PageSize = 5 | 15 | 25;
 
 export const AuditList: React.FC = () => {
@@ -15,6 +16,7 @@ export const AuditList: React.FC = () => {
   const [visits, setVisits] = useState<(Visit & { store: Store })[]>([]);
   const [allStores, setAllStores] = useState<Store[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const currentUser = getCurrentUser();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [pageSize, setPageSize] = useState<PageSize>(15);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,8 +38,26 @@ export const AuditList: React.FC = () => {
       setAllStores(stores);
       setAllUsers(users);
 
-      // DOT vê apenas as suas auditorias; AMONT vê todas
-      const rawAudits = await db.getAudits(user.roles.includes('DOT' as any) ? user.id : undefined);
+      // Carregar auditorias baseadas no perfil
+      let rawAudits: Audit[];
+      let rawVisits: Visit[];
+
+      if (user.roles.includes('ADERENTE' as any)) {
+        // Aderente vê apenas as suas próprias visitas (que ele criou)
+        const allAudits = await db.getAudits();
+        rawAudits = allAudits.filter(a => a.createdBy === user.id);
+        
+        const allVisits = await db.getVisits();
+        rawVisits = allVisits.filter(v => v.createdBy === user.id || v.user_id === user.id);
+      } else if (user.roles.includes('DOT' as any)) {
+        // DOT vê apenas as suas auditorias
+        rawAudits = await db.getAudits(user.id);
+        rawVisits = await db.getVisitsForDOT(user.id);
+      } else {
+        // AMONT e ADMIN veem todas
+        rawAudits = await db.getAudits();
+        rawVisits = await db.getVisits();
+      }
 
       const enriched = rawAudits.map(a => ({
         ...a,
@@ -45,8 +65,6 @@ export const AuditList: React.FC = () => {
       }));
       setAudits(enriched);
 
-      // Load DOT's other visits (Formação/Acompanhamento/Outros) if available
-      const rawVisits = await db.getVisitsForDOT(user.id);
       const enrichedVisits = rawVisits.map(v => ({
         ...v,
         store: stores.find(s => s.id === v.store_id) as Store
@@ -77,10 +95,6 @@ export const AuditList: React.FC = () => {
       filtered = filtered.filter(a => a.store_id === selectedStore);
     }
 
-    if (viewMode === 'dot' && selectedDOT) {
-      filtered = filtered.filter(a => a.store.dotUserId === selectedDOT);
-    }
-
     if (viewMode === 'calendar') {
       filtered = filtered.filter(a => {
         const auditDate = new Date(a.dtstart);
@@ -89,7 +103,7 @@ export const AuditList: React.FC = () => {
     }
 
     return filtered.sort((a, b) => new Date(b.dtstart).getTime() - new Date(a.dtstart).getTime());
-  }, [audits, viewMode, selectedStore, selectedDOT, selectedMonth, selectedYear]);
+  }, [audits, viewMode, selectedStore, selectedMonth, selectedYear]);
 
   // Combine audits + visits for list/calendar views (visits are non-audit types)
   const combinedItems = useMemo(() => {
@@ -116,7 +130,7 @@ export const AuditList: React.FC = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [viewMode, selectedStore, selectedDOT, selectedMonth, selectedYear, pageSize]);
+  }, [viewMode, selectedStore, selectedMonth, selectedYear, pageSize]);
 
   const getStatusLabel = (status: AuditStatus) => {
     switch (status) {
@@ -326,7 +340,7 @@ export const AuditList: React.FC = () => {
         <Header />
         <main className="max-w-7xl mx-auto px-4 py-8">
             <div className="mb-6 flex items-center">
-                <button onClick={() => navigate('/dashboard')} className="mr-4 text-gray-600 hover:text-black">
+                <button onClick={() => navigate(getDefaultDashboard())} className="mr-4 text-gray-600 hover:text-black">
                     <ArrowLeft />
                 </button>
                 <h1 className="text-2xl font-bold text-gray-900">Histórico de Visitas</h1>
@@ -361,15 +375,6 @@ export const AuditList: React.FC = () => {
                 >
                   <Building2 size={18} />
                   <span>Por Loja</span>
-                </button>
-                <button
-                  onClick={() => setViewMode('dot')}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-                    viewMode === 'dot' ? 'bg-mousquetaires text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Users size={18} />
-                  <span>Por DOT</span>
                 </button>
               </div>
 
@@ -448,28 +453,9 @@ export const AuditList: React.FC = () => {
             )}
 
             {/* DOT Filter */}
-            {viewMode === 'dot' && (
-              <div className="mb-6 bg-white p-4 rounded-lg">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Filtrar por DOT:</label>
-                <select
-                  value={selectedDOT || ''}
-                  onChange={(e) => setSelectedDOT(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mousquetaires"
-                >
-                  <option value="">Todos os DOTs</option>
-                  {dots.map(dot => (
-                    <option key={dot.id} value={dot.id}>
-                      {dot.fullname} - {dot.email}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             {/* Content based on view mode */}
             {viewMode === 'calendar' && renderCalendarView()}
             {viewMode === 'store' && renderStoreView()}
-            {viewMode === 'dot' && renderDOTView()}
 
             {/* List View */}
             {viewMode === 'list' && (
@@ -480,43 +466,46 @@ export const AuditList: React.FC = () => {
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loja</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DOT</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {paginatedAudits.map(audit => {
-                          const dotUser = audit.store.dotUserId ? allUsers.find(u => u.id === audit.store.dotUserId) : null;
+                          const detailPath = currentUser?.roles.includes('ADERENTE' as any)
+                            ? `/aderente/visit/${audit.id}`
+                            : `/dot/audit/${audit.id}`;
                           return (
-                            <tr key={audit.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/dot/audit/${audit.id}`)}>
+                            <tr
+                              key={audit.id}
+                              className="hover:bg-gray-50 cursor-pointer"
+                              onClick={() => navigate(detailPath)}
+                            >
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {new Date(audit.dtstart).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {audit.store.city} <span className="text-gray-500 text-xs">({audit.store.codehex})</span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    {dotUser?.fullname || '-'}
-                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(audit.status)}`}>
                                         {getStatusLabel(audit.status)}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                                    {audit.score ? `${audit.score.toFixed(1)}%` : '-'}
-                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <span className="text-mousquetaires hover:text-red-900">Ver</span>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); navigate(detailPath); }}
+                                      className="text-mousquetaires hover:text-red-900"
+                                    >
+                                      Ver
+                                    </button>
                                 </td>
                             </tr>
                           );
                         })}
                         {paginatedAudits.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                            <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                               Nenhuma auditoria encontrada
                             </td>
                           </tr>
