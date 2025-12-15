@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
-import { CheckCircle, Clock, FileText, MapPin, Filter } from 'lucide-react';
+import { CheckCircle, Clock, FileText, MapPin, Filter, AlertCircle, Calendar, AlertTriangle, List as ListIcon, Building2 } from 'lucide-react';
 import { db } from '../services/dbAdapter';
 import { Audit, AuditStatus, Store } from '../types';
 import { getCurrentUser } from '../utils/auth';
@@ -14,6 +14,7 @@ export const AderenteDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [aderenteStores, setAderenteStores] = useState<Store[]>([]); // Lojas do Aderente
   const [selectedStoreFilter, setSelectedStoreFilter] = useState<number | 'all'>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'store'>('list');
 
   useEffect(() => {
     const loadData = async () => {
@@ -42,14 +43,12 @@ export const AderenteDashboard: React.FC = () => {
       // Carregar TODAS as auditorias (sem filtrar por userId)
       const allAudits = await db.getAudits(); // Sem parâmetro = retorna todas
       
-      // Filtrar auditorias das lojas do Aderente que foram submetidas E criadas por DOT (não por AMONT)
+      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT ou AMONT)
       const enriched = allAudits
         .filter(a => {
           const isMyStore = myStoreIds.includes(a.store_id);
           const isSubmitted = a.status >= AuditStatus.SUBMITTED;
-          const creator = allUsers.find(u => u.id === a.createdBy);
-          const isCreatedByDOT = creator?.roles?.includes('DOT');
-          return isMyStore && isSubmitted && isCreatedByDOT;
+          return isMyStore && isSubmitted;
         })
         .map(a => {
           const auditStore = myStores.find(s => s.id === a.store_id);
@@ -62,17 +61,11 @@ export const AderenteDashboard: React.FC = () => {
 
       setAudits(enriched);
 
-      // Filtrar visitas criadas pelo próprio Aderente (a outras lojas) - TODAS, não apenas submetidas
-      console.log('AderenteDashboard: Filtering visits');
-      console.log('  currentUser.userId:', currentUser.userId);
-      console.log('  myStoreIds:', myStoreIds);
-      console.log('  allAudits count:', allAudits.length);
-      
+      // Filtrar visitas criadas pelo próprio Aderente (a outras lojas)
       const myCreatedVisits = allAudits
         .filter(a => {
           const isCreatedByMe = a.createdBy === currentUser.userId;
           const isNotMyStore = !myStoreIds.includes(a.store_id);
-          console.log(`  Audit ${a.id}: createdBy=${a.createdBy}, store_id=${a.store_id}, isCreatedByMe=${isCreatedByMe}, isNotMyStore=${isNotMyStore}, visit_source_type=${(a as any).visit_source_type}`);
           return isCreatedByMe && isNotMyStore;
         })
         .map(a => {
@@ -83,7 +76,6 @@ export const AderenteDashboard: React.FC = () => {
           };
         });
 
-      console.log('  myCreatedVisits count:', myCreatedVisits.length);
       setMyVisits(myCreatedVisits);
 
       setLoading(false);
@@ -110,26 +102,12 @@ export const AderenteDashboard: React.FC = () => {
 
   // Stats for own visits
   const filteredMyVisits = useMemo(() => {
-    console.log('filteredMyVisits memo:');
-    console.log('  selectedStoreFilter:', selectedStoreFilter);
-    console.log('  myVisits.length:', myVisits.length);
     if (selectedStoreFilter === 'all') return myVisits;
-    const filtered = myVisits.filter(v => v.store_id === selectedStoreFilter);
-    console.log('  filtered.length:', filtered.length);
-    return filtered;
+    return myVisits.filter(v => v.store_id === selectedStoreFilter);
   }, [myVisits, selectedStoreFilter]);
 
   const myVisitsInProgress = filteredMyVisits.filter(v => v.status < AuditStatus.SUBMITTED);
   const myVisitsCompleted = filteredMyVisits.filter(v => v.status >= AuditStatus.SUBMITTED);
-  
-  console.log('Stats computed:');
-  console.log('  filteredMyVisits.length:', filteredMyVisits.length);
-  if (filteredMyVisits.length > 0) {
-    console.log('  Visit statuses:', filteredMyVisits.map(v => ({ id: v.id, status: v.status, statusType: typeof v.status })));
-    console.log('  AuditStatus.SUBMITTED value:', AuditStatus.SUBMITTED);
-  }
-  console.log('  myVisitsInProgress.length:', myVisitsInProgress.length);
-  console.log('  myVisitsCompleted.length:', myVisitsCompleted.length);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -140,6 +118,19 @@ export const AderenteDashboard: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Dashboard Aderente</h1>
           <p className="text-gray-500">Bem-vindo, {getCurrentUser()?.name}</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{filteredAudits.length}</div>
+                <div className="text-sm text-gray-500">Auditorias Recebidas</div>
+              </div>
+              <FileText className="text-gray-400" size={32} />
+            </div>
+          </div>
         </div>
 
         {/* Nova Visita Button */}
@@ -153,7 +144,7 @@ export const AderenteDashboard: React.FC = () => {
           </Button>
         </div>
 
-        {/* Filtro por Loja (apenas se tiver mais de uma loja) */}
+        {/* Filtro por Loja (apenas se tiver mais de uma loja) - mostrado em ambas abas */}
         {aderenteStores.length > 1 && (
           <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div className="flex items-center gap-3">
@@ -175,57 +166,8 @@ export const AderenteDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <button 
-            type="button"
-            onClick={() => {}}
-            className="bg-yellow-50 rounded-lg shadow-sm border border-yellow-100 p-4 hover:shadow-md transition-shadow text-left"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-yellow-600">{myVisitsInProgress.length}</div>
-                <div className="text-sm text-yellow-600">Minhas Visitas - Em Progresso</div>
-              </div>
-              <Clock className="text-yellow-400" size={32} />
-            </div>
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => {}}
-            className="bg-green-50 rounded-lg shadow-sm border border-green-100 p-4 hover:shadow-md transition-shadow text-left"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-green-600">{myVisitsCompleted.length}</div>
-                <div className="text-sm text-green-600">Minhas Visitas - Concluídas</div>
-              </div>
-              <CheckCircle className="text-green-400" size={32} />
-            </div>
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => {
-              if (filteredAudits.length > 0) {
-                navigate(`/aderente/audit/${filteredAudits[0].id}`);
-              }
-            }}
-            disabled={filteredAudits.length === 0}
-            className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow text-left disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{filteredAudits.length}</div>
-                <div className="text-sm text-gray-500">Visitas Recebidas</div>
-              </div>
-              <FileText className="text-gray-400" size={32} />
-            </div>
-          </button>
-        </div>
-
-        {/* Recent Audits */}
+        {/* Recent Audits - Vista em Lista */}
+        {viewMode === 'list' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
           <div className="p-4 border-b border-gray-100">
             <h3 className="font-semibold text-gray-700">Visitas Recentes</h3>
@@ -298,6 +240,56 @@ export const AderenteDashboard: React.FC = () => {
             )}
           </div>
         </div>
+        )}
+
+        {/* Audits by Store - Vista Agrupada por Loja */}
+        {viewMode === 'store' && (
+        <div className="space-y-4 mb-8">
+          {loading ? (
+            <p className="text-gray-500">A carregar...</p>
+          ) : filteredAudits.length === 0 ? (
+            <p className="text-gray-500">Nenhuma visita recebida ainda.</p>
+          ) : (
+            aderenteStores.map(store => {
+              const storeAudits = filteredAudits.filter(a => a.store_id === store.id);
+              if (storeAudits.length === 0) return null;
+              
+              return (
+                <div key={store.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {store.city} <span className="text-sm text-gray-500">({store.codehex})</span>
+                  </h3>
+                  <div className="text-sm text-gray-600 mb-4">{store.brand} • {store.size}</div>
+                  <div className="space-y-2">
+                    {storeAudits.map(audit => (
+                      <div
+                        key={audit.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors"
+                        onClick={() => navigate(`/aderente/audit/${audit.id}`)}
+                      >
+                        <div className="flex items-center gap-3 flex-1">
+                          <span className="text-sm text-gray-900">
+                            {new Date(audit.dtstart).toLocaleDateString('pt-PT')}
+                          </span>
+                          {audit.status === 'SUBMITTED' && (
+                            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Submetida</span>
+                          )}
+                          {audit.status === 'COMPLETED' && (
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Concluída</span>
+                          )}
+                        </div>
+                        {audit.score !== undefined && (
+                          <span className="text-sm font-bold text-gray-900">{audit.score.toFixed(0)}%</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+        )}
 
         {/* My Visits to Other Stores */}
         {filteredMyVisits.length > 0 && (

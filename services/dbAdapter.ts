@@ -379,14 +379,17 @@ class DatabaseAdapter {
     return api.getSectionEvaluations(auditId);
   }
 
-  async saveSectionEvaluation(evaluation: { audit_id: number; section_id: number | string; rating?: number; action_plan?: string; responsible?: string; due_date?: string }): Promise<void> {
+  async saveSectionEvaluation(evaluation: { audit_id: number; section_id: number | string; rating?: number; action_plan?: string; responsible?: string; due_date?: string; aderente_id?: number; store_id?: number; created_by?: number }): Promise<void> {
     await api.saveSectionEvaluation({
       auditId: evaluation.audit_id,
       sectionId: evaluation.section_id,
       rating: evaluation.rating,
       actionPlan: evaluation.action_plan,
       responsible: evaluation.responsible,
-      dueDate: evaluation.due_date
+      dueDate: evaluation.due_date,
+      aderenteId: evaluation.aderente_id,
+      storeId: evaluation.store_id,
+      createdBy: evaluation.created_by
     });
   }
 

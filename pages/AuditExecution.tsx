@@ -19,6 +19,7 @@ export const AuditExecution: React.FC = () => {
   const [audit, setAudit] = useState<Audit | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [stores, setStores] = useState<Store[]>([]);
+  const [aderenteName, setAderenteName] = useState<string | null>(null);
   const [checklist, setChecklist] = useState<Checklist | null>(null);
   const [scores, setScores] = useState<AuditScore[]>([]);
   
@@ -78,7 +79,20 @@ export const AuditExecution: React.FC = () => {
         console.log('AuditExecution: Fetching stores');
         const allStores = await db.getStores();
         setStores(allStores);
-        setStore(allStores.find(s => s.id === aud.store_id || s.id === (aud as any).storeId) || null);
+        const selectedStore = allStores.find(s => s.id === aud.store_id || s.id === (aud as any).storeId) || null;
+        setStore(selectedStore);
+        
+        // Load aderente name if store has aderente_id
+        if (selectedStore?.aderente_id) {
+          try {
+            const aderenteUser = await db.getUserById?.(selectedStore.aderente_id) || 
+                                 (await fetch(`/api/users/${selectedStore.aderente_id}`).then(r => r.json()).catch(() => null));
+            setAderenteName(aderenteUser?.fullname || `Aderente ${selectedStore.aderente_id}`);
+          } catch (error) {
+            console.error('Error loading aderente name:', error);
+            setAderenteName(`Aderente ${selectedStore.aderente_id}`);
+          }
+        }
         
         console.log('AuditExecution: Fetching checklist, checklist_id:', aud.checklist_id || (aud as any).checklistId);
         const cl = await db.getChecklist(aud.checklist_id || (aud as any).checklistId);
@@ -456,8 +470,11 @@ export const AuditExecution: React.FC = () => {
         section_id: evalKey as any, // Store compound key for subsections
         rating: autoRating,
         action_plan: sectionActionPlans[evalKey],
-        responsible: sectionResponsible[evalKey],
-        due_date: sectionDueDates[evalKey]
+        responsible: sectionResponsible[evalKey] || aderenteName || `Aderente (ID: ${store?.aderente_id})`,
+        due_date: sectionDueDates[evalKey],
+        aderente_id: store?.aderente_id, // Automatically add aderente_id from store
+        store_id: store?.id, // Add store_id for action_plans
+        created_by: currentUser?.userId // Add created_by for action_plans
       });
       setToastType('success');
       setToastMsg('Plano de ação guardado');
@@ -1189,14 +1206,9 @@ export const AuditExecution: React.FC = () => {
                                   <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Responsável
                                   </label>
-                                  <input
-                                    type="text"
-                                    placeholder="Nome do responsável..."
-                                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none"
-                                    value={sectionResponsible[evalKey] || ''}
-                                    onChange={(e) => handleSectionFieldChange(evalKey as any, 'responsible', e.target.value)}
-                                    onBlur={() => handleSaveSectionEvaluation(currentSection.id, prefix, items)}
-                                  />
+                                  <div className="w-full text-sm border border-gray-200 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 font-medium flex items-center">
+                                    {aderenteName || `Aderente (ID: ${store?.aderente_id})`}
+                                  </div>
                                 </div>
                                 
                                 <div>
@@ -1388,14 +1400,9 @@ export const AuditExecution: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Responsável
                     </label>
-                    <input
-                      type="text"
-                      placeholder="Nome do responsável..."
-                      className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none"
-                      value={sectionResponsible[currentSection.id] || ''}
-                      onChange={(e) => handleSectionFieldChange(currentSection.id, 'responsible', e.target.value)}
-                      onBlur={() => handleSaveSectionEvaluation(currentSection.id)}
-                    />
+                    <div className="w-full text-sm border border-gray-200 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 font-medium flex items-center">
+                      {aderenteName || `Aderente (ID: ${store?.aderente_id})`}
+                    </div>
                   </div>
                   
                   <div>
