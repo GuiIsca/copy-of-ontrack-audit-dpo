@@ -229,6 +229,44 @@ export const isAmont = (): boolean => hasRole(UserRole.AMONT);
 export const isDOT = (): boolean => hasRole(UserRole.DOT);
 export const isAderente = (): boolean => hasRole(UserRole.ADERENTE);
 
+export const canViewAllVisits = (): boolean => {
+  // ADMIN e AMONT podem ver todas as visitas
+  return hasRole(UserRole.ADMIN) || hasRole(UserRole.AMONT);
+};
+
+export const canEditVisit = (visitStatus: number | string, createdBy?: number): boolean => {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return false;
+
+  // Verificar se o status permite edição
+  let isEditable = false;
+  if (typeof visitStatus === 'number') {
+    // Legacy numeric statuses: allow anything below submitted/closed
+    isEditable = visitStatus < 3;
+  } else {
+    // String statuses: allow NEW and SCHEDULED and IN_PROGRESS only
+    // SUBMITTED, ENDED, CLOSED, CANCELLED são read-only
+    const statusStr = String(visitStatus).toUpperCase();
+    isEditable = statusStr === 'NEW' || statusStr === 'SCHEDULED' || statusStr === 'IN_PROGRESS';
+  }
+
+  // ADMIN pode editar apenas visitas em progresso (mesma regra que outros perfis)
+  if (hasRole(UserRole.ADMIN)) return isEditable;
+  
+  // AMONT pode editar enquanto não submetida
+  if (hasRole(UserRole.AMONT)) return isEditable;
+  
+  // DOT pode editar enquanto não submetida
+  if (hasRole(UserRole.DOT)) return isEditable;
+
+  // Aderente pode editar suas próprias visitas enquanto não estão submetidas
+  if (hasRole(UserRole.ADERENTE) && createdBy && createdBy === currentUser.userId) {
+    return isEditable;
+  }
+  
+  return false;
+};
+
 export const getDefaultDashboard = (): string => {
   if (hasRole(UserRole.ADMIN)) return '/admin/dashboard';
   if (hasRole(UserRole.AMONT)) return '/amont/dashboard';

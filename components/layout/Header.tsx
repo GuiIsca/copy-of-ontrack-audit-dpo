@@ -107,6 +107,20 @@ export const Header: React.FC = () => {
               {userIsAdmin && (
                 <>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Administração</div>
+                  <button 
+                    onClick={() => { navigate('/admin/dashboard'); setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <Settings size={18} />
+                    Gestão do Sistema
+                  </button>
+                  <button 
+                    onClick={() => { navigate('/amont/dashboard'); setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <LayoutDashboard size={18} />
+                    Ver Todas as Visitas
+                  </button>
                 </>
               )}
               {userIsAmont && (

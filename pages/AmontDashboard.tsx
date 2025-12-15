@@ -86,23 +86,31 @@ export const AmontDashboard: React.FC = () => {
   const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     if (!currentUser) return;
     
+    // Admin pode ver e editar tudo se em progresso
+    const isAdmin = currentUser.roles.includes(UserRole.ADMIN);
+    
     if (isAudit) {
-      // Check if this audit belongs to the current AMONT user
+      // Check if this audit belongs to the current AMONT/ADMIN user
       const audit = visit as Audit;
       const isMyAudit = audit.user_id === currentUser.userId || audit.dot_user_id === currentUser.userId;
       
-      // If it's my audit and still in execution (NEW or IN_PROGRESS), go to execute; otherwise view
-      if (isMyAudit && (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS)) {
+      // If it's my audit (or admin) and still in execution (NEW or IN_PROGRESS), go to execute; otherwise view
+      if ((isMyAudit || isAdmin) && (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS)) {
         navigate(`/amont/execute/${visit.id}`);
       } else {
         navigate(`/amont/audit/${visit.id}`);
       }
     } else {
-      // For non-audit visits, check if I'm the executor
+      // For non-audit visits, check if I'm the executor or admin
       const visitItem = visit as Visit;
       const isMyVisit = visitItem.user_id === currentUser.userId;
       
-      if (isMyVisit && visitItem.status !== AuditStatus.ENDED && visitItem.status !== AuditStatus.CLOSED) {
+      // Admin ou dono da visita pode editar se em progresso (NEW, SCHEDULED, IN_PROGRESS)
+      const canEdit = (isMyVisit || isAdmin) && 
+                      (visitItem.status === AuditStatus.NEW || 
+                       visitItem.status === AuditStatus.IN_PROGRESS);
+      
+      if (canEdit) {
         navigate(`/amont/execute/${visit.id}`);
       } else {
         navigate(`/amont/visit/${visit.id}`);
