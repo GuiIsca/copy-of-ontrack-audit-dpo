@@ -117,6 +117,8 @@ CREATE TABLE audit_scores (
 CREATE TABLE action_plans (
     id SERIAL PRIMARY KEY,
     audit_id INTEGER NOT NULL REFERENCES audits(id) ON DELETE CASCADE,
+    store_id INTEGER REFERENCES stores(id) ON DELETE CASCADE,
+    section_id VARCHAR(50),
     criteria_id INTEGER,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -125,6 +127,7 @@ CREATE TABLE action_plans (
     status action_status DEFAULT 'PENDING',
     progress INTEGER DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
     completed_date TIMESTAMP,
+    aderente_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_by INTEGER NOT NULL REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -151,6 +154,7 @@ CREATE TABLE section_evaluations (
     action_plan TEXT,
     responsible VARCHAR(255),
     due_date DATE,
+    aderente_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(audit_id, section_id)

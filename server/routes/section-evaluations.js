@@ -19,16 +19,16 @@ router.get('/', async (req, res) => {
 // Save or update section evaluation
 router.post('/', async (req, res) => {
   try {
-    const { auditId, sectionId, rating, actionPlan, responsible, dueDate } = req.body;
-    console.log('POST /api/section-evaluations received:', { auditId, sectionId, rating, actionPlan, responsible, dueDate });
+    const { auditId, sectionId, rating, actionPlan, responsible, dueDate, aderenteId, storeId, createdBy } = req.body;
+    console.log('POST /api/section-evaluations received:', { auditId, sectionId, rating, actionPlan, responsible, dueDate, aderenteId, storeId });
     
     const result = await query(
-      `INSERT INTO section_evaluations (audit_id, section_id, rating, action_plan, responsible, due_date) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
+      `INSERT INTO section_evaluations (audit_id, section_id, rating, action_plan, responsible, due_date, aderente_id) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) 
        ON CONFLICT (audit_id, section_id) 
-       DO UPDATE SET rating = $3, action_plan = $4, responsible = $5, due_date = $6 
+       DO UPDATE SET rating = $3, action_plan = $4, responsible = $5, due_date = $6, aderente_id = $7 
        RETURNING *`,
-      [auditId, sectionId, rating, actionPlan, responsible, dueDate]
+      [auditId, sectionId, rating, actionPlan, responsible, dueDate, aderenteId || null]
     );
     
     console.log('Section evaluation saved successfully:', result.rows[0]);

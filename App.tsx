@@ -12,9 +12,9 @@ import { AuditExecution } from './pages/AuditExecution';
 import { AuditList } from './pages/AuditList';
 import { ActionPlan } from './pages/ActionPlan';
 import { ActionsList } from './pages/ActionsList';
+import { ActionPlans } from './pages/ActionPlans';
 import { AderenteAuditView } from './pages/AderenteAuditView';
 import { AderenteDashboard } from './pages/AderenteDashboard';
-import { AderenteActionList } from './pages/AderenteActionList';
 import { AderenteNewVisit } from './pages/AderenteNewVisit';
 import { AmontDashboard } from './pages/AmontDashboard';
 import { AmontAuditView } from './pages/AmontAuditView';
@@ -141,7 +141,7 @@ const App: React.FC = () => {
         } />
         <Route path="/aderente/actions" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
-                <AderenteActionList />
+                <ActionPlans />
             </ProtectedRoute>
         } />
         <Route path="/aderente/new-visit" element={

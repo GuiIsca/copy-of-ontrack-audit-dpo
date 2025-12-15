@@ -5,29 +5,42 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const { auditId } = req.query;
-    const queryText = auditId 
-      ? 'SELECT * FROM action_plans WHERE audit_id = $1 ORDER BY due_date'
-      : 'SELECT * FROM action_plans ORDER BY due_date';
-    const params = auditId ? [auditId] : [];
+    const { auditId, sectionId } = req.query;
+    let queryText = 'SELECT * FROM action_plans WHERE 1=1';
+    const params = [];
+    
+    if (auditId) {
+      queryText += ' AND audit_id = $' + (params.length + 1);
+      params.push(auditId);
+    }
+    
+    if (sectionId) {
+      queryText += ' AND section_id = $' + (params.length + 1);
+      params.push(sectionId);
+    }
+    
+    queryText += ' ORDER BY section_id, due_date';
     const result = await query(queryText, params);
     res.json(result.rows);
   } catch (error) {
+    console.error('Error fetching actions:', error);
     res.status(500).json({ error: 'Failed to fetch actions' });
   }
 });
 
 router.post('/', async (req, res) => {
   try {
-    const { auditId, criteriaId, title, description, responsible, dueDate, createdBy } = req.body;
+    const { auditId, storeId, sectionId, criteriaId, title, description, responsible, dueDate, aderenteId, createdBy } = req.body;
     const result = await query(
-      `INSERT INTO action_plans (audit_id, criteria_id, title, description, responsible, due_date, created_by) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [auditId, criteriaId, title, description, responsible, dueDate, createdBy]
+      `INSERT INTO action_plans (audit_id, store_id, section_id, criteria_id, title, description, responsible, due_date, aderente_id, created_by) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [auditId, storeId || null, sectionId || null, criteriaId || null, title, description, responsible, dueDate, aderenteId || null, createdBy]
     );
+    console.log('Action created:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create action' });
+    console.error('Error creating action:', error);
+    res.status(500).json({ error: 'Failed to create action', details: error.message });
   }
 });
 
