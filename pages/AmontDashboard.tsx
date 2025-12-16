@@ -17,7 +17,7 @@ import { getCurrentUser } from '../utils/auth';
 // Unified visit item type that can be either an Audit or a Visit
 type VisitItem = (Audit & { store: Store; visitType: VisitType }) | (Visit & { store: Store; visitType: VisitType });
 
-export const AmontDashboard: React.FC<{ title?: string }> = ({ title = 'Dashboard Amont' }) => {
+export const AmontDashboard: React.FC = () => {
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
   const [visits, setVisits] = useState<VisitItem[]>([]);
@@ -543,7 +543,7 @@ export const AmontDashboard: React.FC<{ title?: string }> = ({ title = 'Dashboar
         
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard Amont</h1>
             <p className="text-gray-500">Supervisão e análise de todas as visitas</p>
           </div>
         </div>
