@@ -721,19 +721,7 @@ export const AuditExecution: React.FC = () => {
       </div>
 
       <main className="flex-1 overflow-y-auto p-4 max-w-4xl mx-auto w-full">
-                    {/* Debug banner to verify permissions/state */}
-                    <div className="mb-3 text-xs text-gray-600">
-                        <div className="inline-flex gap-3 bg-yellow-50 border border-yellow-200 rounded px-3 py-2">
-                            <span>user: {currentUser?.email || 'none'}</span>
-                            <span>roles: {currentUser?.roles?.join(', ') || 'none'}</span>
-                            <span>audit.status: {String(audit.status)}</span>
-                            <span>audit.user_id: {String(audit.user_id)}</span>
-                            <span>visit_source_type: {String((audit as any).visit_source_type || 'none')}</span>
-                            <span>isAderenteVisit: {String(isAderenteVisit)}</span>
-                            <span>canEdit: {String(canEdit)}</span>
-                            <span>isReadOnly: {String(isReadOnly)}</span>
-                        </div>
-                    </div>
+
           
           {/* Render all sections for Aderente visits, or single section for DOT audits */}
           {isAderenteVisit ? (
