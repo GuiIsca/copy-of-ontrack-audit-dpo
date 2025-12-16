@@ -37,7 +37,9 @@ export const AderenteAuditView: React.FC = () => {
 
       setAudit(auditData);
       const stores = await db.getStores();
-      setStore(stores.find(s => s.id === auditData.store_id) || null);
+      const storeId = auditData.store_id || (auditData as any).storeId;
+      const foundStore = stores.find(s => s.id === storeId) || null;
+      setStore(foundStore);
       
       // Get the creator of the audit
       const creatorData = await db.getUserById(auditData.createdBy);
@@ -46,6 +48,18 @@ export const AderenteAuditView: React.FC = () => {
       const checklistData = await db.getChecklist(auditData.checklist_id);
       setChecklist(checklistData);
       const scoresData = await db.getScores(Number(id));
+      
+      // Auto-fill "Loja visitada" (criteria 21002) if not already in scores
+      if (foundStore && !scoresData.find(s => s.criteria_id === 21002)) {
+        scoresData.push({
+          audit_id: Number(id),
+          criteria_id: 21002,
+          score: null,
+          comment: `${foundStore.brand} - ${foundStore.city}`,
+          photos: []
+        } as AuditScore);
+      }
+      
       setScores(scoresData);
       const sectionEvalsData = await db.getSectionEvaluations(Number(id));
       setSectionEvaluations(sectionEvalsData || []);
@@ -150,7 +164,7 @@ export const AderenteAuditView: React.FC = () => {
                 </h1>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div>
-                    <span className="font-medium">Loja:</span> {store.brand} - {store.city}
+                    <span className="font-medium">Loja:</span> {store?.brand && store?.city ? `${store.brand} - ${store.city}` : 'N/A'}
                   </div>
                   <div>
                     <span className="font-medium">Data:</span>{' '}
@@ -212,6 +226,26 @@ export const AderenteAuditView: React.FC = () => {
                 <h3 className="text-base font-semibold text-gray-800 mb-4">
                   {section.name}
                 </h3>
+                
+                {/* Show identification fields for section 1 */}
+                {section.name === "1. Identificação" && (
+                  <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+                    <div className="space-y-2 text-sm">
+                      {scores.find(s => s.criteria_id === 21001)?.comment && (
+                        <div>
+                          <span className="font-medium text-gray-700">Microsetor:</span>{' '}
+                          <span className="text-gray-900 font-semibold">{scores.find(s => s.criteria_id === 21001)?.comment}</span>
+                        </div>
+                      )}
+                      {scores.find(s => s.criteria_id === 21002)?.comment && (
+                        <div>
+                          <span className="font-medium text-gray-700">Loja Visitada:</span>{' '}
+                          <span className="text-gray-900 font-semibold">{scores.find(s => s.criteria_id === 21002)?.comment}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Section Evaluation (Rating 1-5) */}
                 {sectionEval && sectionEval.rating && (
@@ -253,6 +287,8 @@ export const AderenteAuditView: React.FC = () => {
                 )}
                 
                 {section.items.map(item => (
+                  // Skip "Dados da Loja" item (id 2101) as it only contains identification fields
+                  item.id === 2101 ? null : (
                   <div key={item.id} className="ml-4 mb-6 last:mb-0">
                     <h4 className="text-sm font-medium text-gray-700 mb-3">
                       {item.name}
@@ -261,6 +297,11 @@ export const AderenteAuditView: React.FC = () => {
                     <div className="space-y-3">
                       {item.criteria.map(criteria => {
                         const scoreData = getScoreForCriteria(criteria.id);
+                        
+                        // Skip identification fields (Microsetor and Loja visitada) from criteria list
+                        if ([21001, 21002].includes(criteria.id)) {
+                          return null;
+                        }
                         
                         return (
                           <div
@@ -274,12 +315,12 @@ export const AderenteAuditView: React.FC = () => {
                                 </p>
                               </div>
                             <div className="ml-4">
-                              {getScoreBadge(scoreData?.score ?? null, criteria)}
+                              {scoreData?.score !== undefined && scoreData?.score !== null ? getScoreBadge(scoreData.score, criteria) : null}
                             </div>
                             </div>
 
                             {/* Comment */}
-                            {scoreData?.comment && (
+                            {scoreData?.comment && (![21001, 21002].includes(criteria.id)) && (
                               <div className="mt-3 pt-3 border-t border-gray-200">
                                 <p className="text-xs font-semibold text-gray-600 mb-1">
                                   💬 Comentário:
@@ -324,6 +365,7 @@ export const AderenteAuditView: React.FC = () => {
                       })}
                     </div>
                   </div>
+                  )
                 ))}
               </div>
             );
