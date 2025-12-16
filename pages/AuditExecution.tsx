@@ -711,13 +711,7 @@ export const AuditExecution: React.FC = () => {
               <h2 className="text-sm font-bold text-gray-900 uppercase">GUIÃO DA VISITA</h2>
               <p className="text-xs text-gray-500">{store.brand} {store.city}</p>
           </div>
-          <button 
-              onClick={() => navigate(`/audit/${id}/actions`)} 
-              className="text-gray-600 hover:text-mousquetaires"
-              title="Plano de Ação"
-          >
-              <ListTodo />
-          </button>
+          <div className="w-6"></div>
       </div>
 
       <main className="flex-1 overflow-y-auto p-4 max-w-4xl mx-auto w-full">
