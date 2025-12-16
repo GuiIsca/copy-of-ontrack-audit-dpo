@@ -203,7 +203,8 @@ export const canAssignDOTsToStores = (): boolean => {
 };
 
 export const canAccessAmontDashboard = (): boolean => {
-  return hasRole(UserRole.AMONT) || hasRole(UserRole.ADMIN);
+  // Admin não acessa áreas AMONT
+  return hasRole(UserRole.AMONT);
 };
 
 export const canAccessAderenteDashboard = (): boolean => {
@@ -211,7 +212,8 @@ export const canAccessAderenteDashboard = (): boolean => {
 };
 
 export const canAccessDOTDashboard = (): boolean => {
-  return hasRole(UserRole.DOT) || hasRole(UserRole.ADMIN);
+  // Admin não acessa áreas DOT
+  return hasRole(UserRole.DOT);
 };
 
 export const canAddInternalComments = (): boolean => {

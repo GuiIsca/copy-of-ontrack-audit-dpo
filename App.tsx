@@ -28,6 +28,7 @@ import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
 import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessAmontDashboard, canViewReports, canAccessAdminDashboard } from './utils/permissions';
 import { AdminDashboard } from './pages/AdminDashboard';
+// import { AmontDashboard } from './pages/AmontDashboard';
 
 // Role-based protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireRole?: () => boolean }> = ({ children, requireRole }) => {
@@ -201,6 +202,11 @@ const App: React.FC = () => {
         <Route path="/admin/dashboard" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
                 <AdminDashboard />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/visitas" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AmontDashboard title="Visitas Admin" />
             </ProtectedRoute>
         } />
                 {/* Fallback for unknown routes */}
