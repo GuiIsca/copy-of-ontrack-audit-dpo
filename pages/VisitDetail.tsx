@@ -140,6 +140,15 @@ export const VisitDetail: React.FC = () => {
                       hour: '2-digit',
                       minute: '2-digit'
                     })}
+                    {visit.dtend && (
+                      <>
+                        {' - '}
+                        {new Date(visit.dtend).toLocaleTimeString('pt-PT', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

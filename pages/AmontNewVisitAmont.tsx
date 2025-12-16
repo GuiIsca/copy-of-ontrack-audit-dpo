@@ -25,6 +25,7 @@ export const AmontNewVisitAmont: React.FC = () => {
   const [text, setText] = useState('');
   const [date, setDate] = useState(initialDate);
   const [time, setTime] = useState('09:00');
+  const [timeEnd, setTimeEnd] = useState('17:00');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -59,6 +60,7 @@ export const AmontNewVisitAmont: React.FC = () => {
     setError('');
     try {
       const datetime = new Date(`${date}T${time}`);
+      const datetimeEnd = new Date(`${date}T${timeEnd}`);
       
       // Se for AUDITORIA, criar um Audit com checklist AMONT (ID=3)
       // Caso contrário, criar uma Visit normal
@@ -81,6 +83,7 @@ export const AmontNewVisitAmont: React.FC = () => {
           user_id: currentUser.userId,
           store_id: selectedStoreId as number,
           dtstart: datetime.toISOString(),
+          dtend: datetimeEnd.toISOString(),
           status: AuditStatus.NEW,
           created_by: currentUser.userId
         });
@@ -192,16 +195,41 @@ export const AmontNewVisitAmont: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Hora</label>
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
-                />
-              </div>
+              {visitType !== VisitType.AUDITORIA ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hora de Início</label>
+                    <input
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hora de Fim</label>
+                    <input
+                      type="time"
+                      value={timeEnd}
+                      onChange={(e) => setTimeEnd(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Hora</label>
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

@@ -24,7 +24,7 @@ export const AmontDashboard: React.FC = () => {
   const [filteredVisits, setFilteredVisits] = useState<VisitItem[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'em_progresso' | 'concluida'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'concluida'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | VisitType>('all');
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
@@ -47,28 +47,30 @@ export const AmontDashboard: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      // Amont sees ALL visits (audits + other visit types) from all users
+      // Amont sees only COMPLETED visits (audits + other visit types) from all users
       const stores = await db.getStores();
       const allUsers = await db.getUsers();
       setUsers(allUsers);
       
-      // Get all audits (Amont sees all)
+      // Get all audits (Amont sees only completed ones)
       const allAuditsData = await db.getAudits();
       const enrichedAudits: VisitItem[] = allAuditsData
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
           return store ? { ...audit, store, visitType: VisitType.AUDITORIA, isAudit: true } as VisitItem & { isAudit: boolean } : null;
         })
-        .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null);
+        .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null)
+        .filter(audit => audit.status === AuditStatus.SUBMITTED || audit.status === AuditStatus.ENDED);
 
-      // Get all visits (Formação, Acompanhamento, Outros)
+      // Get all visits (Formação, Acompanhamento, Outros) - only completed
       const allVisitsData = await db.getVisits();
       const enrichedVisits: VisitItem[] = allVisitsData
         .map(visit => {
           const store = stores.find(s => s.id === visit.store_id);
           return store ? { ...visit, store, visitType: mapVisitType(visit.type), isAudit: false } as VisitItem & { isAudit: boolean } : null;
         })
-        .filter((visit): visit is VisitItem & { isAudit: boolean } => visit !== null);
+        .filter((visit): visit is VisitItem & { isAudit: boolean } => visit !== null)
+        .filter(visit => visit.status === AuditStatus.SUBMITTED || visit.status === AuditStatus.ENDED);
 
       // Combine and sort by date
       const allVisits = [...enrichedAudits, ...enrichedVisits]
@@ -139,9 +141,7 @@ export const AmontDashboard: React.FC = () => {
     }
 
     // Status filter
-    if (statusFilter === 'em_progresso') {
-      filtered = filtered.filter(v => v.status === AuditStatus.NEW || v.status === AuditStatus.IN_PROGRESS);
-    } else if (statusFilter === 'concluida') {
+    if (statusFilter === 'concluida') {
       filtered = filtered.filter(v => v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED);
     }
 
@@ -520,7 +520,6 @@ export const AmontDashboard: React.FC = () => {
 
   const stats = {
     total: visits.length,
-    inProgress: visits.filter(v => v.status === AuditStatus.NEW || v.status === AuditStatus.IN_PROGRESS).length,
     ended: visits.filter(v => v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED).length,
     avgScore: (() => {
       const auditsWithScore = visits.filter(v => v.visitType === VisitType.AUDITORIA && 'score' in v && v.score !== undefined);
@@ -550,7 +549,7 @@ export const AmontDashboard: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -558,16 +557,6 @@ export const AmontDashboard: React.FC = () => {
                 <div className="text-sm text-gray-500">Total Visitas</div>
               </div>
               <FileText className="text-gray-400" size={32} />
-            </div>
-          </div>
-
-          <div className="bg-yellow-50 rounded-lg shadow-sm border border-yellow-100 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
-                <div className="text-sm text-yellow-600">Em Progresso</div>
-              </div>
-              <Clock className="text-yellow-400" size={32} />
             </div>
           </div>
 
@@ -613,11 +602,10 @@ export const AmontDashboard: React.FC = () => {
             <div className="flex gap-2 items-center">
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'em_progresso' | 'concluida')}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'concluida')}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">Todos os Estados</option>
-                <option value="em_progresso">Em Progresso</option>
                 <option value="concluida">Concluída</option>
               </select>
 

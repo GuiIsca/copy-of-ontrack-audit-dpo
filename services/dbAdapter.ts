@@ -338,6 +338,7 @@ class DatabaseAdapter {
       title: visitData.title,
       description: visitData.description || '',
       dtstart: visitData.dtstart,
+      dtend: visitData.dtend,
       status: statusStr,
       createdBy: visitData.created_by
     });
