@@ -91,6 +91,8 @@ export const AderenteDashboard: React.FC = () => {
 
   const getStatusBadge = (status: AuditStatus) => {
     switch(status) {
+      case AuditStatus.IN_PROGRESS:
+        return <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-medium">Em Curso</span>;
       case AuditStatus.SUBMITTED:
         return <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded font-medium">Submetida</span>;
       case AuditStatus.ENDED:
