@@ -31,18 +31,35 @@ import { AdminDashboard } from './pages/AdminDashboard';
 
 // Role-based protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireRole?: () => boolean }> = ({ children, requireRole }) => {
-  const auth = localStorage.getItem('ontrack_auth');
-  if (!auth) {
-    return <Navigate to="/" replace />;
+  console.log('🔐 ProtectedRoute start', { requireRole: !!requireRole });
+
+  try {
+    const auth = localStorage.getItem('ontrack_auth');
+    console.log('🔐 auth raw:', auth);
+
+    if (!auth) {
+      console.log('🔐 No auth -> redirect /');
+      return <Navigate to="/" replace />;
+    }
+    
+    if (requireRole) {
+      const hasPermission = requireRole();
+      console.log('🔐 requireRole result:', hasPermission);
+      if (!hasPermission) {
+        const target = getDefaultDashboard();
+        console.log('🔐 No permission -> redirect', target);
+        return <Navigate to={target} replace />;
+      }
+    }
+
+    console.log('🔐 Access granted, rendering children');
+    return <>{children}</>;
+  } catch (err) {
+    console.error('❌ ProtectedRoute ERROR:', err);
+    return <div style={{ color: 'red' }}>Erro na rota protegida</div>;
   }
-  
-  // Check role permission if specified
-  if (requireRole && !requireRole()) {
-    return <Navigate to={getDefaultDashboard()} replace />;
-  }
-  
-  return <>{children}</>;
 };
+
 
 const App: React.FC = () => {
     return (

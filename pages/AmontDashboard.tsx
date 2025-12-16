@@ -27,6 +27,7 @@ export const AmontDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'concluida'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | VisitType>('all');
   const [brandFilter, setBrandFilter] = useState<string>('all');
+  const [minhasVisitas, setMinhasVisitas] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // View state
@@ -52,25 +53,24 @@ export const AmontDashboard: React.FC = () => {
       const allUsers = await db.getUsers();
       setUsers(allUsers);
       
-      // Get all audits (Amont sees only completed ones)
+      // Get all audits
       const allAuditsData = await db.getAudits();
       const enrichedAudits: VisitItem[] = allAuditsData
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
           return store ? { ...audit, store, visitType: VisitType.AUDITORIA, isAudit: true } as VisitItem & { isAudit: boolean } : null;
         })
-        .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null)
-        .filter(audit => audit.status === AuditStatus.SUBMITTED || audit.status === AuditStatus.ENDED);
+        .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null);
 
-      // Get all visits (Formação, Acompanhamento, Outros) - only completed
+      // Get all visits (Formação, Acompanhamento, Outros) - all visits
       const allVisitsData = await db.getVisits();
       const enrichedVisits: VisitItem[] = allVisitsData
         .map(visit => {
           const store = stores.find(s => s.id === visit.store_id);
           return store ? { ...visit, store, visitType: mapVisitType(visit.type), isAudit: false } as VisitItem & { isAudit: boolean } : null;
         })
-        .filter((visit): visit is VisitItem & { isAudit: boolean } => visit !== null)
-        .filter(visit => visit.status === AuditStatus.SUBMITTED || visit.status === AuditStatus.ENDED);
+        .filter((visit): visit is VisitItem & { isAudit: boolean } => visit !== null);
+        
 
       // Combine and sort by date
       const allVisits = [...enrichedAudits, ...enrichedVisits]
@@ -85,40 +85,40 @@ export const AmontDashboard: React.FC = () => {
   }, []);
 
   // Helper function to navigate to the correct view based on ownership
-  const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
-    if (!currentUser) return;
-    
-    // Admin pode ver e editar tudo se em progresso
-    const isAdmin = currentUser.roles.includes(UserRole.ADMIN);
-    
-    if (isAudit) {
-      // Check if this audit belongs to the current AMONT/ADMIN user
-      const audit = visit as Audit;
-      const isMyAudit = audit.user_id === currentUser.userId || audit.dot_user_id === currentUser.userId;
-      
-      // If it's my audit (or admin) and still in execution (NEW or IN_PROGRESS), go to execute; otherwise view
-      if ((isMyAudit || isAdmin) && (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS)) {
-        navigate(`/amont/execute/${visit.id}`);
-      } else {
-        navigate(`/amont/audit/${visit.id}`);
-      }
+  // Uses same logic as Dashboard.tsx - check checklist_id to differentiate
+// Helper function to navigate to the correct view based on ownership
+const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
+  if (!currentUser) return;
+
+  const isAdmin = currentUser.roles.includes(UserRole.ADMIN);
+
+  if (isAudit) {
+    const audit = visit as Audit;
+    const isMyAudit = audit.user_id === currentUser.userId || audit.dot_user_id === currentUser.userId;
+
+    if ((isMyAudit || isAdmin) && (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS)) {
+      window.location.href = `/amont/execute/${visit.id}`;
     } else {
-      // For non-audit visits, check if I'm the executor or admin
-      const visitItem = visit as Visit;
-      const isMyVisit = visitItem.user_id === currentUser.userId;
-      
-      // Admin ou dono da visita pode editar se em progresso (NEW, SCHEDULED, IN_PROGRESS)
-      const canEdit = (isMyVisit || isAdmin) && 
-                      (visitItem.status === AuditStatus.NEW || 
-                       visitItem.status === AuditStatus.IN_PROGRESS);
-      
-      if (canEdit) {
-        navigate(`/amont/execute/${visit.id}`);
-      } else {
-        navigate(`/amont/visit/${visit.id}`);
-      }
+      window.location.href = `/amont/audit/${visit.id}`;
     }
-  };
+  } else {
+    const visitItem = visit as Visit;
+    const isMyVisit = visitItem.user_id === currentUser.userId;
+
+    const canEdit =
+      (isMyVisit || isAdmin) &&
+      (visitItem.status === AuditStatus.NEW || visitItem.status === AuditStatus.IN_PROGRESS);
+
+    if (canEdit) {
+      window.location.href = `/amont/execute/${visit.id}`;
+    } else {
+      window.location.href = `/amont/visit/${visit.id}`;  // 👈 AQUI
+    }
+  }
+};
+
+
+
 
   useEffect(() => {
     let filtered = [...visits];
@@ -145,6 +145,18 @@ export const AmontDashboard: React.FC = () => {
       filtered = filtered.filter(v => v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED);
     }
 
+    // Apply status filter to audits only (when not in minhasVisitas)
+    if (!minhasVisitas) {
+      filtered = filtered.filter(v => {
+        const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
+        if (isAudit) {
+          // For audits in default view, show only SUBMITTED and ENDED
+          return v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED;
+        }
+        return true;
+      });
+    }
+
     // Type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter(v => v.visitType === typeFilter);
@@ -155,8 +167,23 @@ export const AmontDashboard: React.FC = () => {
       filtered = filtered.filter(v => v.store.brand === brandFilter);
     }
 
+    // Minhas visitas filter - show visits and audits from current amont user
+    if (minhasVisitas && currentUser) {
+      filtered = filtered.filter(v => {
+        const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
+        if (isAudit) {
+          // For audits, check dot_user_id
+          return (v as any).dot_user_id === currentUser.userId;
+        } else {
+          // For visits, check user_id
+          return v.user_id === currentUser.userId;
+        }
+      });
+    }
+    // Note: When minhasVisitas is false, we show everything (no filtering by user)
+
     setFilteredVisits(filtered);
-  }, [searchTerm, statusFilter, typeFilter, brandFilter, visits]);
+  }, [searchTerm, statusFilter, typeFilter, brandFilter, minhasVisitas, visits, currentUser]);
 
   // Distinct stores present in filtered visits
   const storesInFiltered = useMemo(() => {
@@ -383,7 +410,7 @@ export const AmontDashboard: React.FC = () => {
                 return (
                   <div 
                     key={`${v.visitType}-${v.id}`} 
-                    onClick={() => handleVisitClick(v, isAudit)} 
+                    onClick={() => handleVisitClick(v, isAudit)}
                     className={`flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer`}
                   >
                     <div className="flex items-center gap-3">
@@ -631,6 +658,18 @@ export const AmontDashboard: React.FC = () => {
                   <option key={brand} value={brand}>{brand}</option>
                 ))}
               </select>
+
+              <button
+              type="button"
+                onClick={() => setMinhasVisitas(!minhasVisitas)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  minhasVisitas
+                    ? 'bg-mousquetaires text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                Minhas Visitas
+              </button>
             </div>
           </div>
         </div>
@@ -760,14 +799,14 @@ export const AmontDashboard: React.FC = () => {
                 <MonthPlanner
                   audits={plannerAudits}
                   onAuditClick={handleItemClick}
-                  onDateClick={(date) => navigate('/amont/select-new-visit', { state: { selectedDate: date.toISOString() } })}
+                  onDateClick={(date) => window.location.href = `/amont/select-new-visit?date=${date.toISOString()}`}
                   onShowWeek={(date) => { setWeekFocusDate(date); setCalendarScope('week'); }}
                 />
               ) : (
                 <WeekPlanner
                   audits={plannerAudits}
                   onAuditClick={handleItemClick}
-                  onDateClick={(date) => navigate('/amont/select-new-visit', { state: { selectedDate: date.toISOString() } })}
+                  onDateClick={(date) => window.location.href = `/amont/select-new-visit?date=${date.toISOString()}`}
                   initialDate={weekFocusDate}
                 />
               );
@@ -879,5 +918,7 @@ export const AmontDashboard: React.FC = () => {
       </main>
     </div>
   );
+
+  
 };
 

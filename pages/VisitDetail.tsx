@@ -14,27 +14,56 @@ export const VisitDetail: React.FC = () => {
   const [dotUser, setDotUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadVisit = async () => {
-      if (!id) return;
-      const visitId = Number(id);
+useEffect(() => {
+  console.log('🔁 VisitDetail useEffect, id =', id);
+  
+  const loadVisit = async () => {
+    if (!id) {
+      console.log('❌ No id in params');
+      setLoading(false);
+      return;
+    }
+    
+    const visitId = Number(id);
+    console.log('🔎 Loading visit', visitId);
+    
+    try {
+      console.log('📦 Loading all visits...');
       const allVisits = await db.getVisits();
+      console.log('📦 total visits from db:', allVisits.length);
+      
       const foundVisit = allVisits.find(v => v.id === visitId);
+      console.log('✅ foundVisit:', foundVisit ? { id: foundVisit.id, title: foundVisit.title, type: foundVisit.type } : 'NOT FOUND');
       
       if (foundVisit) {
         setVisit(foundVisit);
+        console.log('✅ setVisit called');
+        
+        console.log('🏪 Loading stores...');
         const allStores = await db.getStores();
         const foundStore = allStores.find(s => s.id === foundVisit.store_id);
+        console.log('🏪 foundStore:', foundStore ? { id: foundStore.id, codehex: foundStore.codehex } : 'NOT FOUND');
         setStore(foundStore || null);
+        
+        console.log('👤 Loading users...');
         const allUsers = await db.getUsers();
         const foundUser = allUsers.find(u => u.id === foundVisit.user_id);
+        console.log('👤 foundUser:', foundUser ? { id: foundUser.id, fullname: foundUser.fullname } : 'NOT FOUND');
         setDotUser(foundUser || null);
+      } else {
+        console.log('❌ Visit not found in db');
       }
-      setLoading(false);
-    };
+    } catch (error) {
+      console.error('❌ Error loading visit:', error);
+    }
     
-    loadVisit();
-  }, [id]);
+    console.log('⏹️ setLoading(false)');
+    setLoading(false);
+  };
+  
+  loadVisit();
+}, [id, navigate]);
+
 
   const getStatusLabel = (status: AuditStatus) => {
     switch(status) {

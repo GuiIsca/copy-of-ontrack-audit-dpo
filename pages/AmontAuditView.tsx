@@ -58,7 +58,7 @@ export const AmontAuditView: React.FC = () => {
     };
 
     load();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleCloseAudit = () => {
     if (!audit) return;
