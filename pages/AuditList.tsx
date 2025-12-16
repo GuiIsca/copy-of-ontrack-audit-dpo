@@ -183,7 +183,12 @@ export const AuditList: React.FC = () => {
             ) : (
               <div
                 key={`a-${item.id}`}
-                onClick={() => navigate(`/dot/audit/${item.id}`)}
+                onClick={() => {
+                  const detailPath = currentUser?.roles.includes('ADERENTE' as any)
+                    ? `/aderente/visit/${item.id}`
+                    : `/dot/audit/${item.id}`;
+                  navigate(detailPath);
+                }}
                 className="text-xs bg-mousquetaires text-white px-1 py-0.5 rounded mb-1 cursor-pointer hover:bg-red-900 truncate"
                 title={`${item.store.city} - ${item.store.codehex}`}
               >
@@ -225,10 +230,14 @@ export const AuditList: React.FC = () => {
               {store.brand} • {store.size}
             </div>
             <div className="space-y-2">
-              {audits.slice(0, 5).map(audit => (
+              {audits.slice(0, 5).map(audit => {
+                const detailPath = currentUser?.roles.includes('ADERENTE' as any)
+                  ? `/aderente/visit/${audit.id}`
+                  : `/dot/audit/${audit.id}`;
+                return (
                 <div
                   key={audit.id}
-                  onClick={() => navigate(`/dot/audit/${audit.id}`)}
+                  onClick={() => navigate(detailPath)}
                   className="flex items-center justify-between p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
@@ -243,7 +252,8 @@ export const AuditList: React.FC = () => {
                     {audit.score ? `${audit.score.toFixed(1)}%` : '-'}
                   </span>
                 </div>
-              ))}
+                );
+              })}
               {storeVisits.slice(0, 3).map(visit => (
                 <div
                   key={`v-${visit.id}`}
@@ -288,10 +298,14 @@ export const AuditList: React.FC = () => {
               {dot.email} • {stores.length} {stores.length === 1 ? 'loja' : 'lojas'}
             </div>
             <div className="space-y-2">
-              {audits.slice(0, 5).map(audit => (
+              {audits.slice(0, 5).map(audit => {
+                const detailPath = currentUser?.roles.includes('ADERENTE' as any)
+                  ? `/aderente/visit/${audit.id}`
+                  : `/dot/audit/${audit.id}`;
+                return (
                 <div
                   key={audit.id}
-                  onClick={() => navigate(`/dot/audit/${audit.id}`)}
+                  onClick={() => navigate(detailPath)}
                   className="flex items-center justify-between p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
@@ -307,7 +321,8 @@ export const AuditList: React.FC = () => {
                     {audit.score ? `${audit.score.toFixed(1)}%` : '-'}
                   </span>
                 </div>
-              ))}
+                );
+              })}
               {dotVisits.slice(0, 3).map(visit => (
                 <div
                   key={`v-${visit.id}`}
