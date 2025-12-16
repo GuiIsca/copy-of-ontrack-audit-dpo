@@ -108,9 +108,6 @@ export const VisitDetail: React.FC = () => {
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20">
                 {getVisitTypeLabel(visit.type)}
               </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20">
-                {getStatusLabel(visit.status)}
-              </span>
             </div>
             <h2 className="text-3xl font-bold mb-2">{visit.title}</h2>
           </div>
@@ -181,9 +178,6 @@ export const VisitDetail: React.FC = () => {
           {/* Footer Actions */}
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                Criado por: ID #{visit.createdBy}
-              </div>
               <Button onClick={() => navigate(-1)}>
                 Voltar
               </Button>
