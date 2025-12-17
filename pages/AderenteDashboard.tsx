@@ -43,11 +43,17 @@ export const AderenteDashboard: React.FC = () => {
       // Carregar TODAS as auditorias (sem filtrar por userId)
       const allAudits = await db.getAudits(); // Sem parâmetro = retorna todas
       
-      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT ou AMONT)
+      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT ou AMONT, excluindo Admin)
       const enriched = allAudits
         .filter(a => {
           const isMyStore = myStoreIds.includes(a.store_id);
           const isSubmitted = a.status >= AuditStatus.SUBMITTED;
+          // Exclude admin-created audits
+          const createdBy = (a as any).createdBy ?? (a as any).created_by;
+          if (createdBy) {
+            const creator = allUsers.find(u => u.id === createdBy);
+            if (creator?.roles?.includes('ADMIN' as any)) return false;
+          }
           return isMyStore && isSubmitted;
         })
         .map(a => {

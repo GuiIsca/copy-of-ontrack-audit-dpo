@@ -220,6 +220,48 @@ const App: React.FC = () => {
                 <AdminDashboard />
             </ProtectedRoute>
         } />
+        <Route path="/admin/visitas" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AmontDashboard adminView />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/audit/:id" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AmontAuditView />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/execute/:id" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AuditExecution />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/visit/:id" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <VisitDetail />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/new-visit-admin" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AmontNewVisitAmont />
+            </ProtectedRoute>
+        } />
+        {/* Backward-compat alias -> redirect to new admin path */}
+        <Route path="/admin/new-visit-amont" element={<Navigate to="/admin/new-visit-admin" replace />} />
+        <Route path="/admin/new-visit-dot" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AmontNewVisitDOT />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/import-visitas" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AmontImportTasksCSV />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/reports" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <Reports />
+            </ProtectedRoute>
+        } />
                 {/* Fallback for unknown routes */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

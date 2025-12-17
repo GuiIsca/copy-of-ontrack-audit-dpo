@@ -57,6 +57,7 @@ export const Dashboard: React.FC = () => {
       const rawAudits = user ? await db.getAudits(user.id) : [];
       const visits: Visit[] = user ? await db.getVisitsForDOT(user.id) : [];
       const stores = await db.getStores();
+      const allUsers = await db.getUsers();
       
       // Helper to map visit type from backend
       const mapVisitType = (t: any): VisitType => {
@@ -72,14 +73,24 @@ export const Dashboard: React.FC = () => {
         }
       };
       
-      const enrichedAudits = rawAudits.map(a => ({
+      // Filter out admin-created items
+      const filterAdminItems = <T extends { createdBy?: number; created_by?: number }>(items: T[]): T[] => {
+        return items.filter(item => {
+          const createdBy = (item as any).createdBy ?? (item as any).created_by;
+          if (!createdBy) return true;
+          const creator = allUsers.find(u => u.id === createdBy);
+          return !creator?.roles?.includes('ADMIN' as any);
+        });
+      };
+
+      const enrichedAudits = filterAdminItems(rawAudits).map(a => ({
           ...a,
           store: stores.find(s => s.id === a.store_id) as Store,
           visitType: VisitType.AUDITORIA
       }));
 
       // Convert visits to audit-like shape for calendar display
-      const enrichedVisits = visits.map(v => ({
+      const enrichedVisits = filterAdminItems(visits).map(v => ({
           id: v.id,
           user_id: v.user_id,
           store_id: v.store_id,

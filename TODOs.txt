@@ -1,6 +1,2 @@
------------------------//----------------------------
-Overall da Aplicação
-
--Em "Indicadores" o cálculo do relatório e Analytics não funciona
-
--Plano de Ação ???
+TODO:
+"Visitas DOT" adicionadas pelo admin não estão a aparecer no calendário DOT, apenas no Histórico dele

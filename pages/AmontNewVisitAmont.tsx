@@ -17,6 +17,7 @@ export const AmontNewVisitAmont: React.FC = () => {
     : new Date().toISOString().split('T')[0];
   
   const currentUser = getCurrentUser();
+  const isAdminContext = (currentUser?.roles || []).includes(UserRole.ADMIN) || (location.pathname || '').startsWith('/admin/');
   const [stores, setStores] = useState<Store[]>([]);
   const [dots, setDots] = useState<User[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState<number | ''>('');
@@ -89,7 +90,7 @@ export const AmontNewVisitAmont: React.FC = () => {
         });
       }
       
-      navigate('/amont/dashboard');
+      navigate(isAdminContext ? '/admin/visitas' : '/amont/dashboard');
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');
@@ -113,13 +114,13 @@ export const AmontNewVisitAmont: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8 flex items-center gap-4">
           <button 
-            onClick={() => navigate('/amont/dashboard')} 
+            onClick={() => navigate(isAdminContext ? '/admin/visitas' : '/amont/dashboard')} 
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Nova Visita AMONT</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{isAdminContext ? 'Nova Visita Admin' : 'Nova Visita AMONT'}</h1>
             <p className="text-gray-600 mt-1">Criar uma visita para você mesmo realizar</p>
           </div>
         </div>
@@ -273,7 +274,7 @@ export const AmontNewVisitAmont: React.FC = () => {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => navigate('/amont/dashboard')}
+              onClick={() => navigate(isAdminContext ? '/admin/visitas' : '/amont/dashboard')}
               disabled={saving}
             >
               Cancelar

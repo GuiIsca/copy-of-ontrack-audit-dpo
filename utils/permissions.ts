@@ -203,7 +203,8 @@ export const canAssignDOTsToStores = (): boolean => {
 };
 
 export const canAccessAmontDashboard = (): boolean => {
-  return hasRole(UserRole.AMONT);
+  // Admin reutiliza as rotas do Amont para gestão de visitas
+  return hasRole(UserRole.AMONT) || hasRole(UserRole.ADMIN);
 };
 
 export const canAccessAderenteDashboard = (): boolean => {

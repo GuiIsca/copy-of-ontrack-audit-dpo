@@ -64,6 +64,10 @@ export const AuditExecution: React.FC = () => {
           // Redirecionar para o dashboard correto baseado no role
           if (currentUser?.roles.includes(UserRole.ADERENTE)) {
             navigate('/aderente/dashboard');
+          } else if (currentUser?.roles.includes(UserRole.ADMIN)) {
+            navigate('/admin/visitas');
+          } else if (currentUser?.roles.includes(UserRole.AMONT)) {
+            navigate('/amont/dashboard');
           } else {
             navigate('/dashboard');
           }
@@ -531,7 +535,9 @@ export const AuditExecution: React.FC = () => {
           setTimeout(() => {
               setToastMsg(null);
               // Redirecionar para o dashboard
-              if (currentUser?.roles.includes(UserRole.AMONT)) {
+              if (currentUser?.roles.includes(UserRole.ADMIN)) {
+                  navigate('/admin/visitas');
+              } else if (currentUser?.roles.includes(UserRole.AMONT)) {
                   navigate('/amont/dashboard');
               } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
                   navigate('/aderente/dashboard');
@@ -591,7 +597,11 @@ export const AuditExecution: React.FC = () => {
                 setTimeout(() => setToastMsg(null), 1500);
         
                 // Redirecionar para o dashboard correto
-                if (currentUser?.roles.includes(UserRole.ADERENTE)) {
+                if (currentUser?.roles.includes(UserRole.ADMIN)) {
+                    navigate('/admin/visitas');
+                } else if (currentUser?.roles.includes(UserRole.AMONT)) {
+                    navigate('/amont/dashboard');
+                } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
                     navigate('/aderente/dashboard');
                 } else {
                     navigate('/dashboard');
@@ -699,7 +709,11 @@ export const AuditExecution: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="bg-white border-b border-gray-200 sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm">
           <button onClick={() => {
-            if (currentUser?.roles.includes(UserRole.ADERENTE)) {
+            if (currentUser?.roles.includes(UserRole.ADMIN)) {
+              navigate('/admin/visitas');
+            } else if (currentUser?.roles.includes(UserRole.AMONT)) {
+              navigate('/amont/dashboard');
+            } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
               navigate('/aderente/dashboard');
             } else {
               navigate('/dashboard');

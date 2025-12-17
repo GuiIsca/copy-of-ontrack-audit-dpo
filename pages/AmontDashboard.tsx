@@ -17,9 +17,10 @@ import { getCurrentUser } from '../utils/auth';
 // Unified visit item type that can be either an Audit or a Visit
 type VisitItem = (Audit & { store: Store; visitType: VisitType }) | (Visit & { store: Store; visitType: VisitType });
 
-export const AmontDashboard: React.FC = () => {
+export const AmontDashboard: React.FC<{ adminView?: boolean }> = ({ adminView = false }) => {
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
+  const isAdminView = adminView || (currentUser?.roles || []).includes(UserRole.ADMIN);
   const [visits, setVisits] = useState<VisitItem[]>([]);
   const [filteredVisits, setFilteredVisits] = useState<VisitItem[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -58,7 +59,8 @@ export const AmontDashboard: React.FC = () => {
       const enrichedAudits: VisitItem[] = allAuditsData
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
-          return store ? { ...audit, store, visitType: VisitType.AUDITORIA, isAudit: true } as VisitItem & { isAudit: boolean } : null;
+          const createdBy = (audit as any).createdBy ?? (audit as any).created_by;
+          return store ? { ...audit, createdBy, store, visitType: VisitType.AUDITORIA, isAudit: true } as VisitItem & { isAudit: boolean } : null;
         })
         .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null);
 
@@ -67,13 +69,27 @@ export const AmontDashboard: React.FC = () => {
       const enrichedVisits: VisitItem[] = allVisitsData
         .map(visit => {
           const store = stores.find(s => s.id === visit.store_id);
-          return store ? { ...visit, store, visitType: mapVisitType(visit.type), isAudit: false } as VisitItem & { isAudit: boolean } : null;
+          const createdBy = (visit as any).createdBy ?? (visit as any).created_by;
+          return store ? { ...visit, createdBy, store, visitType: mapVisitType(visit.type), isAudit: false } as VisitItem & { isAudit: boolean } : null;
         })
         .filter((visit): visit is VisitItem & { isAudit: boolean } => visit !== null);
         
 
+      // Filter out admin-created visits if not admin
+      const filterAdminVisits = (items: (VisitItem & { isAudit: boolean })[]) => {
+        if (isAdminView) return items; // Admin sees everything
+        // Filter out visits created by admin users
+        return items.filter(item => {
+          const createdBy = (item as any).createdBy ?? (item as any).created_by;
+          if (!createdBy) return true; // Keep if no creator info
+          // Check if creator is admin
+          const creator = allUsers.find(u => u.id === createdBy);
+          return !creator?.roles?.includes(UserRole.ADMIN);
+        });
+      };
+
       // Combine and sort by date
-      const allVisits = [...enrichedAudits, ...enrichedVisits]
+      const allVisits = filterAdminVisits([...enrichedAudits, ...enrichedVisits])
         .sort((a, b) => new Date(b.dtstart).getTime() - new Date(a.dtstart).getTime());
 
       setVisits(allVisits);
@@ -97,9 +113,9 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     const isMyAudit = audit.user_id === currentUser.userId || audit.dot_user_id === currentUser.userId;
 
     if ((isMyAudit || isAdmin) && (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS)) {
-      window.location.href = `/amont/execute/${visit.id}`;
+      window.location.href = `${isAdmin ? '/admin' : '/amont'}/execute/${visit.id}`;
     } else {
-      window.location.href = `/amont/audit/${visit.id}`;
+      window.location.href = `${isAdmin ? '/admin' : '/amont'}/audit/${visit.id}`;
     }
   } else {
     const visitItem = visit as Visit;
@@ -110,9 +126,9 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
       (visitItem.status === AuditStatus.NEW || visitItem.status === AuditStatus.IN_PROGRESS);
 
     if (canEdit) {
-      window.location.href = `/amont/execute/${visit.id}`;
+      window.location.href = `${isAdmin ? '/admin' : '/amont'}/execute/${visit.id}`;
     } else {
-      window.location.href = `/amont/visit/${visit.id}`;  // 👈 AQUI
+      window.location.href = `${isAdmin ? '/admin' : '/amont'}/visit/${visit.id}`;
     }
   }
 };
@@ -171,19 +187,25 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     if (minhasVisitas && currentUser) {
       filtered = filtered.filter(v => {
         const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
+        const createdBy = Number((v as any).createdBy ?? (v as any).created_by);
+        if (isAdminView) {
+          // Admin: minhas = apenas criadas pelo próprio
+          return createdBy === Number(currentUser.userId) || (!createdBy && ((v as any).dot_user_id === currentUser.userId || v.user_id === currentUser.userId));
+        }
+
         if (isAudit) {
           // For audits, check dot_user_id
           return (v as any).dot_user_id === currentUser.userId;
-        } else {
-          // For visits, check user_id
-          return v.user_id === currentUser.userId;
         }
+
+        // For visits, check user_id
+        return v.user_id === currentUser.userId;
       });
     }
     // Note: When minhasVisitas is false, we show everything (no filtering by user)
 
     setFilteredVisits(filtered);
-  }, [searchTerm, statusFilter, typeFilter, brandFilter, minhasVisitas, visits, currentUser]);
+  }, [searchTerm, statusFilter, typeFilter, brandFilter, minhasVisitas, visits, currentUser, isAdminView]);
 
   // Distinct stores present in filtered visits
   const storesInFiltered = useMemo(() => {
@@ -570,7 +592,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard Amont</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{isAdminView ? 'Administração de Visitas' : 'Dashboard Amont'}</h1>
             <p className="text-gray-500">Supervisão e análise de todas as visitas</p>
           </div>
         </div>

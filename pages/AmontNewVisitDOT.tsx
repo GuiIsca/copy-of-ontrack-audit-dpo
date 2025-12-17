@@ -44,10 +44,11 @@ export const AmontNewVisitDOT: React.FC = () => {
       const stores = await db.getStores();
       const allUsers = await db.getUsers();
       
-      // Filter DOTs that are associated with this Amont
+      // Admin sees all DOTs; Amont sees only their associated DOTs
+      const isAdmin = currentUser.roles?.includes(UserRole.ADMIN);
       const dotUsers = allUsers.filter(u => 
         u.roles?.includes(UserRole.DOT) && 
-        Number(u.amontId) === Number(currentUser.userId)
+        (isAdmin || Number(u.amontId) === Number(currentUser.userId))
       );
       
       setAllStores(stores);
@@ -78,21 +79,25 @@ export const AmontNewVisitDOT: React.FC = () => {
       const datetime = new Date(`${date}T${time}`);
       const datetimeEnd = new Date(`${date}T${timeEnd}`);
       
+      console.log('Creating visit for DOT:', { selectedDotId, selectedStoreId, visitType, created_by: currentUser.userId });
+      
       // Se for AUDITORIA, criar um Audit com checklist AMONT 2025 (ID=3)
       // O DOT e AMONT usam o mesmo guião completo
       if (visitType === VisitType.AUDITORIA) {
-        await db.createAudit({
+        const auditData = {
           store_id: selectedStoreId as number,
           user_id: selectedDotId as number, // DOT é o executor
           dot_user_id: selectedDotId as number,
           checklist_id: 3, // Checklist AMONT 2025 - Guião Completo (usado por DOT e AMONT)
           dtstart: datetime.toISOString(),
           status: AuditStatus.NEW,
-          created_by: currentUser.userId // AMONT criou
-        });
+          created_by: currentUser.userId // AMONT/Admin criou
+        };
+        console.log('Creating audit:', auditData);
+        await db.createAudit(auditData);
       } else {
         // Para outros tipos de visita (Formação, Acompanhamento, Outros)
-        await db.createVisit({
+        const visitData = {
           type: visitType,
           title: title.trim(),
           description: text.trim(),
@@ -101,11 +106,15 @@ export const AmontNewVisitDOT: React.FC = () => {
           dtstart: datetime.toISOString(),
           dtend: datetimeEnd.toISOString(),
           status: AuditStatus.NEW,
-          created_by: currentUser.userId // AMONT criou
-        });
+          created_by: currentUser.userId // AMONT/Admin criou
+        };
+        console.log('Creating visit:', visitData);
+        await db.createVisit(visitData);
       }
 
-      navigate('/amont/dashboard');
+      console.log('Visit/Audit created successfully');
+      const redirectUrl = currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/amont/dashboard';
+      window.location.href = redirectUrl;
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');
@@ -131,7 +140,7 @@ export const AmontNewVisitDOT: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8 flex items-center gap-4">
           <button 
-            onClick={() => navigate('/amont/dashboard')} 
+            onClick={() => window.location.href = (currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/amont/dashboard')} 
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />
@@ -330,7 +339,7 @@ export const AmontNewVisitDOT: React.FC = () => {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => navigate('/amont/dashboard')}
+              onClick={() => window.location.href = (currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/amont/dashboard')}
               disabled={saving}
             >
               Cancelar
