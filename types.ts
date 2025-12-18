@@ -3,7 +3,7 @@ export enum UserRole {
   AUDITOR = 'AUDITOR',
   DOT = 'DOT',
   ADERENTE = 'ADERENTE',
-  AMONT = 'AMONT',
+  DOT_TEAM_LEADER = 'DOT_TEAM_LEADER',
   SUPERVISOR = 'SUPERVISOR',
   LEADER = 'LEADER',
   ADMIN = 'ADMIN'
@@ -31,7 +31,7 @@ export interface User {
   fullname: string;
   roles: UserRole[];
   assignedStores?: number[]; // IDs das lojas atribuídas ao DOT
-  amontId?: number; // ID do Amont supervisor (apenas para DOT)
+  dotTeamLeaderId?: number; // ID do DOT Team Leader (apenas para DOT)
 }
 
 export interface Store {
@@ -108,7 +108,7 @@ export interface Audit {
   status: AuditStatus;
   score?: number;
   final_score?: number; // Final calculated score
-  createdBy?: number; // ID do user que criou (Amont ou DOT) - para controlar permissões
+  createdBy?: number; // ID do user que criou (DOT Team Leader ou DOT) - para controlar permissões
 }
 
 export interface Visit {
@@ -122,7 +122,7 @@ export interface Visit {
   dtstart: string; // ISO Date
   dtend?: string; // ISO Date
   status: AuditStatus; // reutilizamos o status enum
-  createdBy: number; // AMONT ou DOT
+  createdBy: number; // DOT Team Leader ou DOT
   created_by?: number; // Alias for backend compatibility
 }
 

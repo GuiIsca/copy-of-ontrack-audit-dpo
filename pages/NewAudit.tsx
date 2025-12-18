@@ -110,7 +110,7 @@ export const NewAudit: React.FC = () => {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-yellow-800">Sem lojas atribuídas</p>
                   <p className="text-sm text-yellow-700 mt-1">
-                    Não tem lojas atribuídas. Contacte o AMONT ou Administrador.
+                    Não tem lojas atribuídas. Contacte o DOT Team Leader ou Administrador.
                   </p>
                 </div>
               </div>

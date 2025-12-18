@@ -7,7 +7,7 @@ import { ArrowLeft, Image as ImageIcon, FileText, CheckCircle, XCircle, ListTodo
 import { db } from '../services/dbAdapter';
 import { Audit, AuditScore, AuditStatus, Checklist, Store, ActionPlan, SectionEvaluation } from '../types';
 
-export const AmontAuditView: React.FC = () => {
+export const DOTTeamLeaderAuditView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [audit, setAudit] = useState<Audit | null>(null);
@@ -33,7 +33,7 @@ export const AmontAuditView: React.FC = () => {
       const auditData = await db.getAuditById(Number(id));
 
       if (!auditData) {
-        navigate('/amont/dashboard');
+        navigate('/dot-team-leader/dashboard');
         return;
       }
 
@@ -70,7 +70,7 @@ export const AmontAuditView: React.FC = () => {
     });
     
     setShowCloseModal(false);
-    navigate('/amont/dashboard');
+    navigate('/dot-team-leader/dashboard');
   };
 
   const getScoreForCriteria = (criteriaId: number): AuditScore | undefined => {
@@ -162,7 +162,7 @@ export const AmontAuditView: React.FC = () => {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-500">Auditoria não encontrada</div>
           <div className="text-center mt-4">
-            <Button onClick={() => navigate('/amont/dashboard')}>Voltar ao Dashboard</Button>
+            <Button onClick={() => navigate('/dot-team-leader/dashboard')}>Voltar ao Dashboard</Button>
           </div>
         </main>
       </div>
@@ -180,7 +180,7 @@ export const AmontAuditView: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/amont/dashboard')}
+            onClick={() => navigate('/dot-team-leader/dashboard')}
             className="mb-4"
           >
             <ArrowLeft size={16} className="mr-2" />

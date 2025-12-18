@@ -10,8 +10,8 @@ URL: https://handhelds-problems-spell-bearing.trycloudflare.com
 - **Password:** `123456`
 - **Perfil:** Administrador do sistema
 
-### Amont
-- **Email:** `amont@mousquetaires.com`
+### DOT Team Leader
+- **Email:** `leader@mousquetaires.com`
 - **Password:** `123456`
 - **Perfil:** Supervisão e análise de todas as visitas
 

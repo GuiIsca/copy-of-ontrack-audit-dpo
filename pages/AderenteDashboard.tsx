@@ -28,7 +28,7 @@ export const AderenteDashboard: React.FC = () => {
       const allUsers = await db.getUsers();
       
       // Encontrar TODAS as lojas do Aderente (pode ter múltiplas)
-      const myStores = stores.filter(s => s.aderenteId === currentUser.userId);
+      const myStores = stores.filter(s => (s.aderente_id || (s as any).aderenteId) === currentUser.userId);
       setAderenteStores(myStores);
       
       if (myStores.length === 0) {
@@ -43,7 +43,7 @@ export const AderenteDashboard: React.FC = () => {
       // Carregar TODAS as auditorias (sem filtrar por userId)
       const allAudits = await db.getAudits(); // Sem parâmetro = retorna todas
       
-      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT ou AMONT, excluindo Admin)
+      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT ou DOT Team Leader, excluindo Admin)
       const enriched = allAudits
         .filter(a => {
           const isMyStore = myStoreIds.includes(a.store_id);
@@ -270,10 +270,10 @@ export const AderenteDashboard: React.FC = () => {
                           <span className="text-sm text-gray-900">
                             {new Date(audit.dtstart).toLocaleDateString('pt-PT')}
                           </span>
-                          {audit.status === 'SUBMITTED' && (
+                          {audit.status === AuditStatus.SUBMITTED && (
                             <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Submetida</span>
                           )}
-                          {audit.status === 'COMPLETED' && (
+                          {audit.status === AuditStatus.SUBMITTED && (
                             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Concluída</span>
                           )}
                         </div>

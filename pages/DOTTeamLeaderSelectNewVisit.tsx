@@ -3,17 +3,17 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { ArrowLeft, User, Users } from 'lucide-react';
 
-export const AmontSelectNewVisit: React.FC = () => {
+export const DOTTeamLeaderSelectNewVisit: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedDate = location.state?.selectedDate;
 
-  const handleSelectAmont = () => {
-    navigate('/amont/new-visit-amont', { state: { selectedDate } });
+  const handleSelectTeamLeader = () => {
+    navigate('/dot-team-leader/new-visit-leader', { state: { selectedDate } });
   };
 
   const handleSelectDOT = () => {
-    navigate('/amont/new-visit-dot', { state: { selectedDate } });
+    navigate('/dot-team-leader/new-visit-dot', { state: { selectedDate } });
   };
 
   return (
@@ -22,7 +22,7 @@ export const AmontSelectNewVisit: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8 flex items-center gap-4">
           <button 
-            onClick={() => navigate('/amont/dashboard')} 
+            onClick={() => navigate('/dot-team-leader/dashboard')} 
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />
@@ -34,9 +34,9 @@ export const AmontSelectNewVisit: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Opção AMONT */}
+          {/* Opção DOT Team Leader */}
           <button
-            onClick={handleSelectAmont}
+            onClick={handleSelectTeamLeader}
             className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-8 hover:border-mousquetaires hover:shadow-md transition-all text-left group"
           >
             <div className="flex items-center gap-4 mb-4">
@@ -44,12 +44,12 @@ export const AmontSelectNewVisit: React.FC = () => {
                 <User className="text-indigo-600" size={28} />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">Visita AMONT</h3>
+                <h3 className="text-xl font-semibold text-gray-900">Visita DOT Team Leader</h3>
                 <p className="text-sm text-gray-500">Para eu realizar</p>
               </div>
             </div>
             <p className="text-gray-600">
-              Criar uma visita que você (AMONT) irá realizar pessoalmente. 
+              Criar uma visita que você (DOT Team Leader) irá realizar pessoalmente. 
               Pode ser Auditoria, Formação, Acompanhamento ou Outros.
             </p>
             <div className="mt-4 text-indigo-600 font-medium text-sm flex items-center gap-2">

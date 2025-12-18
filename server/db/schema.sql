@@ -7,7 +7,7 @@ SET CLIENT_ENCODING TO 'UTF8';
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- User Roles Enum
-CREATE TYPE user_role AS ENUM ('ADMIN', 'AMONT', 'DOT', 'ADERENTE');
+CREATE TYPE user_role AS ENUM ('ADMIN', 'DOT_TEAM_LEADER', 'DOT', 'ADERENTE');
 
 -- Audit Status Enum
 CREATE TYPE audit_status AS ENUM ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
@@ -31,7 +31,7 @@ CREATE TABLE users (
     fullname VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255),
     roles user_role[] NOT NULL,
-    amont_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    dot_team_leader_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     assigned_stores INTEGER[],
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

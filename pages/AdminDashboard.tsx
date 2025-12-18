@@ -53,7 +53,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
 
   if (!isOpen || !user) return null;
 
-  const isAmont = user.roles.includes(UserRole.AMONT);
+  const isTeamLeader = user.roles.includes(UserRole.DOT_TEAM_LEADER);
   const isDot = user.roles.includes(UserRole.DOT);
   const isAderente = user.roles.includes(UserRole.ADERENTE);
 
@@ -84,7 +84,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
     }
   };
 
-  const amonts = allUsers.filter(u => u.roles.includes(UserRole.AMONT));
+  const teamLeaders = allUsers.filter(u => u.roles.includes(UserRole.DOT_TEAM_LEADER));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
@@ -128,14 +128,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
               <h4 className="font-semibold text-gray-900">Configurações DOT</h4>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Supervisor (AMONT)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Supervisor (DOT Team Leader)</label>
                 <select 
                   className="w-full border rounded-lg px-3 py-2"
-                  value={formData.amontId || ''}
-                  onChange={e => setFormData({...formData, amontId: Number(e.target.value)})}
+                  value={(formData as any).dotTeamLeaderId || ''}
+                  onChange={e => setFormData({...formData, dotTeamLeaderId: Number(e.target.value)})}
                 >
-                  <option value="">Selecione um AMONT</option>
-                  {amonts.map(a => (
+                  <option value="">Selecione DOT Team Leader</option>
+                  {teamLeaders.map(a => (
                     <option key={a.id} value={a.id}>{a.fullname}</option>
                   ))}
                 </select>
@@ -189,8 +189,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
                 <label className="block text-sm font-medium text-gray-700 mb-1">DOT Responsável</label>
                 <select 
                   className="w-full border rounded-lg px-3 py-2"
-                  value={formData.amontId || ''}
-                  onChange={e => setFormData({...formData, amontId: Number(e.target.value)})}
+                  value={(formData as any).dotTeamLeaderId || ''}
+                  onChange={e => setFormData({...formData, dotTeamLeaderId: Number(e.target.value)})}
                 >
                   <option value="">Selecione um DOT</option>
                   {allUsers.filter(u => u.roles.includes(UserRole.DOT)).map(d => (
@@ -246,13 +246,13 @@ export const AdminDashboard: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Hierarchy Expansion State
-  const [expandedAmonts, setExpandedAmonts] = useState<Set<number>>(new Set());
+  const [expandedTeamLeaders, setExpandedTeamLeaders] = useState<Set<number>>(new Set());
   const [expandedDots, setExpandedDots] = useState<Set<number>>(new Set());
 
-  const toggleAmont = (id: number) => {
-    const newSet = new Set(expandedAmonts);
+  const toggleTeamLeader = (id: number) => {
+    const newSet = new Set(expandedTeamLeaders);
     if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
-    setExpandedAmonts(newSet);
+    setExpandedTeamLeaders(newSet);
   };
 
   const toggleDot = (id: number) => {
@@ -269,7 +269,7 @@ export const AdminDashboard: React.FC = () => {
       setStores(storesData);
       
       // Auto-expand all initially
-      setExpandedAmonts(new Set(usersData.filter(u => u.roles.includes(UserRole.AMONT)).map(u => u.id)));
+      setExpandedTeamLeaders(new Set(usersData.filter(u => u.roles.includes(UserRole.DOT_TEAM_LEADER)).map(u => u.id)));
     };
     loadData();
   }, []);
@@ -328,12 +328,12 @@ export const AdminDashboard: React.FC = () => {
 
   // --- Hierarchy Data Preparation ---
   const hierarchy = useMemo(() => {
-    const amonts = users.filter(u => u.roles.includes(UserRole.AMONT));
+    const teamLeaders = users.filter(u => u.roles.includes(UserRole.DOT_TEAM_LEADER));
     const dots = users.filter(u => u.roles.includes(UserRole.DOT));
     const aderentes = users.filter(u => u.roles.includes(UserRole.ADERENTE));
     
-    const tree = amonts.map(amont => {
-      const myDots = dots.filter(d => Number(d.amontId) === Number(amont.id));
+    const tree = teamLeaders.map(teamLeader => {
+      const myDots = dots.filter(d => Number((d as any).dotTeamLeaderId) === Number(teamLeader.id));
       const myDotsWithStores = myDots.map(dot => {
         const myStores = stores.filter(s => Number(s.dot_user_id || s.dotUserId) === Number(dot.id));
         const myStoresWithAderentes = myStores.map(store => {
@@ -356,7 +356,7 @@ export const AdminDashboard: React.FC = () => {
         
         // Aderentes assigned to this DOT but not in the stores list above
         const directAderentes = aderentes.filter(a => {
-            if (Number(a.amontId) !== Number(dot.id)) return false;
+          if (Number((a as any).dotTeamLeaderId) !== Number(dot.id)) return false;
             // Check if this aderente is already shown in any of the stores above
             const isShownInStore = myStoresWithAderentes.some(item => item.aderentes.some(ad => ad.id === a.id));
             return !isShownInStore;
@@ -364,13 +364,13 @@ export const AdminDashboard: React.FC = () => {
         
         return { dot, stores: myStoresWithAderentes, directAderentes };
       });
-      return { amont, dots: myDotsWithStores };
+      return { teamLeader, dots: myDotsWithStores };
     });
 
-    const unassignedDots = dots.filter(d => !d.amontId);
+      const unassignedDots = dots.filter(d => !(d as any).dotTeamLeaderId);
     const unassignedAderentes = aderentes.filter(a => {
         const hasStore = (a.assignedStores && a.assignedStores.length > 0) || stores.some(s => Number(s.aderente_id || s.aderenteId) === Number(a.id));
-        return !hasStore && !a.amontId;
+        return !hasStore && !(a as any).dotTeamLeaderId;
     });
 
     return { tree, unassignedDots, unassignedAderentes };
@@ -379,32 +379,32 @@ export const AdminDashboard: React.FC = () => {
   // --- Create forms state (Simplified for Modal or keep as is? Keeping as is for now but maybe hidden) ---
   // ... (Keeping existing create logic but maybe moving it to a "New" button later if requested, 
   // but for now let's focus on the list view replacement)
-  const [amontForm, setAmontForm] = useState({ email: '', fullname: '' });
-  const [dotForm, setDotForm] = useState({ email: '', fullname: '', amontId: '' as string });
+  const [teamLeaderForm, setTeamLeaderForm] = useState({ email: '', fullname: '' });
+  const [dotForm, setDotForm] = useState({ email: '', fullname: '', dotTeamLeaderId: '' as string });
   const [aderenteForm, setAderenteForm] = useState({ email: '', fullname: '', storeId: '' as string, dotId: '' as string });
   const [storeForm, setStoreForm] = useState({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', dotUserId: '' as string, aderenteId: '' as string });
 
   const clearFeedback = () => { setFeedback(''); setErrorMsg(''); };
 
-  const handleCreateAmont = async () => {
+  const handleCreateTeamLeader = async () => {
     clearFeedback();
     try {
-      await db.createUser({ email: amontForm.email.trim(), fullname: amontForm.fullname.trim(), roles: [UserRole.AMONT] });
-      setAmontForm({ email: '', fullname: '' });
-      setFeedback('AMONT criado com sucesso');
+      await db.createUser({ email: teamLeaderForm.email.trim(), fullname: teamLeaderForm.fullname.trim(), roles: [UserRole.DOT_TEAM_LEADER] });
+      setTeamLeaderForm({ email: '', fullname: '' });
+      setFeedback('DOT Team Leader criado com sucesso');
       await refresh();
     } catch (e: any) {
-      setErrorMsg(e.message || 'Erro ao criar AMONT');
+      setErrorMsg(e.message || 'Erro ao criar DOT Team Leader');
     }
   };
 
   const handleCreateDOT = async () => {
     clearFeedback();
     try {
-      const amontId = Number(dotForm.amontId);
-      if (!amontId) throw new Error('Selecione o supervisor AMONT');
-      await db.createUser({ email: dotForm.email.trim(), fullname: dotForm.fullname.trim(), roles: [UserRole.DOT], amontId, assignedStores: [] });
-      setDotForm({ email: '', fullname: '', amontId: '' });
+      const dotTeamLeaderId = Number((dotForm as any).dotTeamLeaderId);
+      if (!dotTeamLeaderId) throw new Error('Selecione o supervisor DOT Team Leader');
+      await db.createUser({ email: dotForm.email.trim(), fullname: dotForm.fullname.trim(), roles: [UserRole.DOT], dotTeamLeaderId, assignedStores: [] } as any);
+      setDotForm({ email: '', fullname: '', dotTeamLeaderId: '' } as any);
       setFeedback('DOT criado com sucesso');
       await refresh();
     } catch (e: any) {
@@ -422,7 +422,7 @@ export const AdminDashboard: React.FC = () => {
       };
       
       if (aderenteForm.dotId) {
-        payload.amontId = Number(aderenteForm.dotId);
+        payload.dotTeamLeaderId = Number(aderenteForm.dotId);
       }
 
       const storeId = Number(aderenteForm.storeId);
@@ -540,11 +540,11 @@ export const AdminDashboard: React.FC = () => {
   const [importBusy, setImportBusy] = useState(false);
 
   const parseCsvText = (text: string) => text.split('\n').filter(l => l.trim());
-  const downloadDotTemplate = () => { const template = `email;fullname;amont_email\n`+`dot1@mousquetaires.com;João Silva;amont1@mousquetaires.com\n`+`dot2@mousquetaires.com;Pedro Martins;amont1@mousquetaires.com`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_dots.csv'; link.click(); };
+  const downloadDotTemplate = () => { const template = `email;fullname;dot_team_leader_email\n`+`dot1@mousquetaires.com;João Silva;leader1@mousquetaires.com\n`+`dot2@mousquetaires.com;Pedro Martins;leader1@mousquetaires.com`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_dots.csv'; link.click(); };
   const downloadAderenteTemplate = () => { const template = `email;fullname;store_codehex;dot_email\n`+`aderente100@intermarche.pt;Joana Lopes;LOJ018;dot1@mousquetaires.com\n`+`aderente101@intermarche.pt;Paulo Reis;;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_aderentes.csv'; link.click(); };
   const downloadStoreTemplate = () => { const template = `codehex;brand;size;city;gpslat;gpslong;dot_email\n`+`LOJ001;Intermarché;Super;Lisboa;38.716;-9.13;dot1@mousquetaires.com\n`+`LOJ002;Bricomarché;Média;Porto;41.15;-8.62;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_lojas.csv'; link.click(); };
 
-  const importDOTs = async () => { if (!dotCsv) return; clearFeedback(); setImportBusy(true); setImportResult(null); try { const text = await dotCsv.text(); const lines = parseCsvText(text); const rows = lines.slice(1); let created = 0, errors = 0; const usersNow = await db.getUsers(); for (const line of rows) { const cols = line.split(';').map(c => c.trim()); if (cols.length < 3) { errors++; continue; } const [email, fullname, amont_email] = cols; const amont = usersNow.find(u => u.email === amont_email && u.roles.includes(UserRole.AMONT)); if (!amont) { errors++; continue; } try { await db.createUser({ email, fullname, roles: [UserRole.DOT], amontId: amont.id, assignedStores: [] }); created++; } catch { errors++; } } setImportResult({ created, errors }); await refresh(); } finally { setImportBusy(false); } };
+  const importDOTs = async () => { if (!dotCsv) return; clearFeedback(); setImportBusy(true); setImportResult(null); try { const text = await dotCsv.text(); const lines = parseCsvText(text); const rows = lines.slice(1); let created = 0, errors = 0; const usersNow = await db.getUsers(); for (const line of rows) { const cols = line.split(';').map(c => c.trim()); if (cols.length < 3) { errors++; continue; } const [email, fullname, dot_team_leader_email] = cols; const leader = usersNow.find(u => u.email === dot_team_leader_email && u.roles.includes(UserRole.DOT_TEAM_LEADER)); if (!leader) { errors++; continue; } try { await db.createUser({ email, fullname, roles: [UserRole.DOT], dotTeamLeaderId: leader.id, assignedStores: [] } as any); created++; } catch { errors++; } } setImportResult({ created, errors }); await refresh(); } finally { setImportBusy(false); } };
   const importAderentes = async () => { 
     if (!aderenteCsv) return; 
     clearFeedback(); 
@@ -569,7 +569,7 @@ export const AdminDashboard: React.FC = () => {
           // Find DOT if provided
           if (dot_email) {
             const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT));
-            if (dot) payload.amontId = dot.id;
+            if (dot) payload.dotTeamLeaderId = dot.id;
           }
 
           // Find Store if provided
@@ -665,8 +665,8 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded shadow p-4">
-              <SectionHeader title="AMONT" icon={<UsersIcon className="w-4 h-4" />} />
-              <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.AMONT)).length}</div>
+              <SectionHeader title="DOT Team Leader" icon={<UsersIcon className="w-4 h-4" />} />
+              <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.DOT_TEAM_LEADER)).length}</div>
               <div className="text-sm text-gray-500">Supervisores</div>
             </div>
             <div className="bg-white rounded shadow p-4">
@@ -688,13 +688,13 @@ export const AdminDashboard: React.FC = () => {
             <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4">Adicionar Novo Utilizador</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Create AMONT */}
+                {/* Create Team Leader */}
                 <div className="border rounded p-3 bg-gray-50">
-                  <h4 className="text-sm font-bold mb-2">Novo AMONT</h4>
+                  <h4 className="text-sm font-bold mb-2">Novo DOT Team Leader</h4>
                   <div className="space-y-2">
-                    <Input placeholder="Nome" value={amontForm.fullname} onChange={e=>setAmontForm({...amontForm,fullname:e.target.value})} />
-                    <Input placeholder="Email" value={amontForm.email} onChange={e=>setAmontForm({...amontForm,email:e.target.value})} />
-                    <Button size="sm" fullWidth onClick={handleCreateAmont}>Criar</Button>
+                    <Input placeholder="Nome" value={teamLeaderForm.fullname} onChange={e=>setTeamLeaderForm({...teamLeaderForm,fullname:e.target.value})} />
+                    <Input placeholder="Email" value={teamLeaderForm.email} onChange={e=>setTeamLeaderForm({...teamLeaderForm,email:e.target.value})} />
+                    <Button size="sm" fullWidth onClick={handleCreateTeamLeader}>Criar</Button>
                   </div>
                 </div>
                 {/* Create DOT */}
@@ -703,9 +703,9 @@ export const AdminDashboard: React.FC = () => {
                   <div className="space-y-2">
                     <Input placeholder="Nome" value={dotForm.fullname} onChange={e=>setDotForm({...dotForm,fullname:e.target.value})} />
                     <Input placeholder="Email" value={dotForm.email} onChange={e=>setDotForm({...dotForm,email:e.target.value})} />
-                    <select className="w-full border rounded px-2 py-2 text-sm" value={dotForm.amontId} onChange={e=>setDotForm({...dotForm,amontId:e.target.value})}>
-                      <option value="">Selecione AMONT</option>
-                      {users.filter(u=>u.roles.includes(UserRole.AMONT)).map(a=><option key={a.id} value={a.id}>{a.fullname}</option>)}
+                    <select className="w-full border rounded px-2 py-2 text-sm" value={(dotForm as any).dotTeamLeaderId} onChange={e=>setDotForm({...dotForm, dotTeamLeaderId: e.target.value} as any)}>
+                      <option value="">Selecione DOT Team Leader</option>
+                      {users.filter(u=>u.roles.includes(UserRole.DOT_TEAM_LEADER)).map(a=><option key={a.id} value={a.id}>{a.fullname}</option>)}
                     </select>
                     <Button size="sm" fullWidth onClick={handleCreateDOT}>Criar</Button>
                   </div>
@@ -744,32 +744,32 @@ export const AdminDashboard: React.FC = () => {
               </div>
               
               <div className="divide-y divide-gray-100">
-                {hierarchy.tree.map(({ amont, dots }) => (
-                  <div key={amont.id} className="bg-white">
-                    {/* AMONT Row */}
+                {hierarchy.tree.map(({ teamLeader, dots }) => (
+                  <div key={teamLeader.id} className="bg-white">
+                    {/* DOT Team Leader Row */}
                     <div className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-3 flex-1">
-                        <button onClick={() => toggleAmont(amont.id)} className="text-gray-400 hover:text-gray-600">
-                          {expandedAmonts.has(amont.id) ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                        <button onClick={() => toggleTeamLeader(teamLeader.id)} className="text-gray-400 hover:text-gray-600">
+                          {expandedTeamLeaders.has(teamLeader.id) ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                         </button>
                         <div className="flex flex-col">
-                          <span className="font-bold text-gray-900">{amont.fullname}</span>
-                          <span className="text-xs text-gray-500 bg-purple-100 text-purple-800 px-2 py-0.5 rounded w-fit">AMONT</span>
+                          <span className="font-bold text-gray-900">{teamLeader.fullname}</span>
+                          <span className="text-xs text-gray-500 bg-purple-100 text-purple-800 px-2 py-0.5 rounded w-fit">DOT Team Leader</span>
                         </div>
-                        <span className="text-sm text-gray-500 hidden md:inline">{amont.email}</span>
+                        <span className="text-sm text-gray-500 hidden md:inline">{teamLeader.email}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => openEditUser(amont)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-full" title="Editar">
+                        <button onClick={() => openEditUser(teamLeader)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-full" title="Editar">
                           <Edit2 size={16} />
                         </button>
-                        <button onClick={() => handleDeleteUser(amont.id, 'AMONT')} className="p-2 text-red-600 hover:bg-red-50 rounded-full" title="Eliminar">
+                        <button onClick={() => handleDeleteUser(teamLeader.id, 'DOT Team Leader')} className="p-2 text-red-600 hover:bg-red-50 rounded-full" title="Eliminar">
                           <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
 
                     {/* DOTs List */}
-                    {expandedAmonts.has(amont.id) && (
+                    {expandedTeamLeaders.has(teamLeader.id) && (
                       <div className="pl-8 md:pl-12 border-l-2 border-gray-100 ml-6 my-2 space-y-2">
                         {dots.length === 0 && <div className="text-sm text-gray-400 italic p-2">Sem DOTs atribuídos</div>}
                         {dots.map(({ dot, stores: dotStores, directAderentes }) => (
@@ -1004,7 +1004,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded shadow p-4">
               <SectionHeader title="Importar DOTs (CSV)" icon={<Upload className="w-4 h-4" />} />
-              <p className="text-sm text-gray-600 mb-3">Formato: <code>email;fullname;amont_email</code>. AMONT deve existir.</p>
+              <p className="text-sm text-gray-600 mb-3">Formato: <code>email;fullname;dot_team_leader_email</code>. DOT Team Leader deve existir.</p>
               <div className="flex items-center gap-3 mb-3">
                 <input type="file" accept=".csv" onChange={e=>setDotCsv(e.target.files?.[0]||null)} />
                 <Button size="sm" onClick={downloadDotTemplate}><Download className="w-4 h-4 mr-2"/>Template</Button>

@@ -14,7 +14,7 @@ import actionsRoutes from './routes/actions.js';
 import scoresRoutes from './routes/scores.js';
 import commentsRoutes from './routes/comments.js';
 import checklistsRoutes from './routes/checklists.js';
-import amontRoutes from './routes/amont.js';
+import dotTeamLeaderRoutes from './routes/dot-team-leader.js';
 import sectionEvaluationsRoutes from './routes/section-evaluations.js';
 
 dotenv.config();
@@ -41,8 +41,8 @@ app.use('/api/scores', scoresRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/checklists', checklistsRoutes);
 app.use('/api/section-evaluations', sectionEvaluationsRoutes);
-// Non-API legacy route for Amont integrations
-app.use('/amont', amontRoutes);
+// Non-API legacy route migrated to DOT Team Leader integrations
+app.use('/dot-team-leader', dotTeamLeaderRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

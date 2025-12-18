@@ -8,7 +8,7 @@ class DatabaseAdapter {
     const users = await api.getUsers();
     return users.map((u: any) => ({
       ...u,
-      amontId: u.amont_id,
+      dotTeamLeaderId: u.dot_team_leader_id,
       assignedStores: u.assigned_stores
     }));
   }
@@ -24,7 +24,7 @@ class DatabaseAdapter {
       if (!u) return undefined;
       return {
         ...u,
-        amontId: u.amont_id,
+        dotTeamLeaderId: u.dot_team_leader_id,
         assignedStores: u.assigned_stores
       };
     } catch {
@@ -37,7 +37,7 @@ class DatabaseAdapter {
       email: userData.email,
       fullname: userData.fullname,
       roles: userData.roles || ['ADERENTE'],
-      amontId: userData.amontId,
+      dotTeamLeaderId: (userData as any).dotTeamLeaderId,
       assignedStores: userData.assignedStores || []
     });
   }
@@ -325,7 +325,7 @@ class DatabaseAdapter {
 
       const audit = await this.createAudit({
         store_id: visitData.store_id,
-            dot_user_id: visitData.user_id, // user_id is the Amont (executor)
+        dot_user_id: visitData.user_id, // user_id is the DOT Team Leader (executor)
         dtstart: visitData.dtstart,
         status: statusEnum,
         created_by: visitData.created_by
@@ -334,7 +334,7 @@ class DatabaseAdapter {
       return audit as any;
     }
 
-    // userId é sempre o utilizador autenticado (Amont ou DOT)
+    // userId é sempre o utilizador autenticado (DOT Team Leader ou DOT)
     return api.createVisit({
       storeId: visitData.store_id,
       userId: visitData.user_id, // quem está autenticado
@@ -472,9 +472,9 @@ class DatabaseAdapter {
   }
 
   // ============ HELPERS ============
-  async getDOTsForAmont(amontUserId: number): Promise<User[]> {
+  async getDOTsForTeamLeader(teamLeaderId: number): Promise<User[]> {
     const users = await api.getUsers();
-    return users.filter((u: any) => u.amont_id === amontUserId || u.amontId === amontUserId);
+    return users.filter((u: any) => (u.dot_team_leader_id || u.dotTeamLeaderId) === teamLeaderId);
   }
 
   // No-op for compatibility (data now persists in PostgreSQL)

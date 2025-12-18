@@ -40,8 +40,8 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
     // Get the correct role from user's roles array
     // Check against the actual UserRole enum values
     let userRole = 'Aderente';
-    if (user.roles.some(r => r === UserRole.AMONT)) {
-      userRole = 'AMONT';
+    if (user.roles.some(r => r === UserRole.DOT_TEAM_LEADER)) {
+      userRole = 'DOT Team Leader';
     } else if (user.roles.some(r => r === UserRole.DOT)) {
       userRole = 'DOT';
     } else if (user.roles.some(r => r === UserRole.ADMIN)) {
@@ -105,7 +105,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
               className={`p-4 rounded-lg border ${
                 comment.userRole === 'DOT'
                   ? 'bg-blue-50 border-blue-100'
-                  : comment.userRole === 'AMONT'
+                  : comment.userRole === 'DOT Team Leader'
                   ? 'bg-red-50 border-red-100'
                   : comment.userRole === 'ADMIN'
                   ? 'bg-purple-50 border-purple-100'
@@ -118,7 +118,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
                       comment.userRole === 'DOT'
                         ? 'bg-blue-200 text-blue-800'
-                        : comment.userRole === 'AMONT'
+                        : comment.userRole === 'DOT Team Leader'
                         ? 'bg-red-200 text-red-800'
                         : comment.userRole === 'ADMIN'
                         ? 'bg-purple-200 text-purple-800'
@@ -136,7 +136,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
                         className={`text-xs px-2 py-0.5 rounded ${
                           comment.userRole === 'DOT'
                             ? 'bg-blue-100 text-blue-700'
-                            : comment.userRole === 'AMONT'
+                            : comment.userRole === 'DOT Team Leader'
                             ? 'bg-red-100 text-red-700'
                             : comment.userRole === 'ADMIN'
                             ? 'bg-purple-100 text-purple-700'

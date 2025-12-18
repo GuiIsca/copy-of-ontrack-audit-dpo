@@ -3,7 +3,7 @@ import { Menu, X, LogOut, User, Settings, Users, Upload, LayoutDashboard, Plus }
 import { APP_NAME, APP_SUBTITLE } from '../../constants';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../../utils/auth';
-import { isAderente, isAmont, isAdmin } from '../../utils/permissions';
+import { isAderente, isDotTeamLeader, isAdmin } from '../../utils/permissions';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useToast } from '../ui/Toast';
 import { UserRole } from '../../types';
@@ -14,7 +14,7 @@ export const Header: React.FC = () => {
   const currentUser = getCurrentUser();
   const { show } = useToast();
   const userIsAdmin = isAdmin();
-  const userIsAmont = isAmont();
+  const userIsDotTeamLeader = isDotTeamLeader();
   const userIsAderente = isAderente();
 
   const handleLogout = () => {
@@ -29,8 +29,8 @@ export const Header: React.FC = () => {
   const handleDashboardClick = () => {
     if (userIsAdmin) {
       navigate('/admin/dashboard');
-    } else if (userIsAmont) {
-      navigate('/amont/dashboard');
+    } else if (userIsDotTeamLeader) {
+      navigate('/dot-team-leader/dashboard');
     } else if (userIsAderente) {
       navigate('/aderente/dashboard');
     } else {
@@ -41,7 +41,7 @@ export const Header: React.FC = () => {
   // Determinar papel principal para exibição
   const displayRole = currentUser ? (
     currentUser.roles.includes(UserRole.ADMIN) ? 'Administrador' :
-    currentUser.roles.includes(UserRole.AMONT) ? 'Supervisor (AMONT)' :
+    currentUser.roles.includes(UserRole.DOT_TEAM_LEADER) ? 'DOT Team Leader' :
     currentUser.roles.includes(UserRole.DOT) ? 'DOT' :
     currentUser.roles.includes(UserRole.ADERENTE) ? 'Aderente' :
     'Utilizador'
@@ -49,7 +49,7 @@ export const Header: React.FC = () => {
 
   const displayIcon = currentUser ? (
     currentUser.roles.includes(UserRole.ADMIN) ? '⚙️' :
-    currentUser.roles.includes(UserRole.AMONT) ? '👔' :
+    currentUser.roles.includes(UserRole.DOT_TEAM_LEADER) ? '👔' :
     currentUser.roles.includes(UserRole.DOT) ? '👨‍💼' :
     currentUser.roles.includes(UserRole.ADERENTE) ? '🏪' :
     '👤'
@@ -153,11 +153,11 @@ export const Header: React.FC = () => {
                   </button>
                 </>
               )}
-              {userIsAmont && (
+              {userIsDotTeamLeader && (
                 <>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Supervisão</div>
                   <button 
-                    onClick={() => { window.location.href = '/amont/dashboard'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <LayoutDashboard size={18} />
@@ -165,14 +165,14 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
                   <button 
-                    onClick={() => { window.location.href = '/amont/new-visit-amont'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/new-visit-leader'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    Visita Amont
+                    <Plus size={18} />
+                    Nova visita
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/amont/new-visit-dot'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/new-visit-dot'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <Users size={18} />
@@ -180,14 +180,14 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
                   <button 
-                    onClick={() => { window.location.href = '/amont/import-visitas'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/import-visitas'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <Upload size={18} />
                     Importar CSV
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/amont/reports'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -228,7 +228,7 @@ export const Header: React.FC = () => {
                   </button>
                 </>
               )}
-              {!userIsAdmin && !userIsAmont && !userIsAderente && (
+              {!userIsAdmin && !userIsDotTeamLeader && !userIsAderente && (
                 <>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Auditorias DOT</div>
                   <button 
@@ -254,7 +254,7 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
-                    onClick={() => { window.location.href = '/amont/reports'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>

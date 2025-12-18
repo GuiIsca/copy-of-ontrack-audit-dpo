@@ -190,7 +190,7 @@ export const Reports: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/amont/dashboard')}
+              onClick={() => navigate('/dot-team-leader/dashboard')}
               className="mb-4"
             >
               <ArrowLeft size={16} className="mr-2" />
@@ -394,7 +394,7 @@ export const Reports: React.FC = () => {
                   <div
                     key={audit.id}
                     className="bg-white rounded-lg p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(`/amont/audit/${audit.id}`)}
+                    onClick={() => navigate(`/dot-team-leader/audit/${audit.id}`)}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
@@ -439,7 +439,7 @@ export const Reports: React.FC = () => {
                   <div
                     key={audit.id}
                     className="bg-white rounded-lg p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(`/amont/audit/${audit.id}`)}
+                    onClick={() => navigate(`/dot-team-leader/audit/${audit.id}`)}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white bg-red-500">

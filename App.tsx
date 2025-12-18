@@ -15,18 +15,18 @@ import { ActionPlans } from './pages/ActionPlans';
 import { AderenteAuditView } from './pages/AderenteAuditView';
 import { AderenteDashboard } from './pages/AderenteDashboard';
 import { AderenteNewVisit } from './pages/AderenteNewVisit';
-import { AmontDashboard } from './pages/AmontDashboard';
-import { AmontAuditView } from './pages/AmontAuditView';
-import { AmontImportCSV } from './pages/AmontImportCSV';
-import { AmontImportTasksCSV } from './pages/AmontImportTasksCSV';
-import { AmontNewVisitAmont } from './pages/AmontNewVisitAmont';
-import { AmontNewVisitDOT } from './pages/AmontNewVisitDOT';
-import { AmontSelectNewVisit } from './pages/AmontSelectNewVisit';
+import { DOTTeamLeaderDashboard } from './pages/DOTTeamLeaderDashboard';
+import { DOTTeamLeaderAuditView } from './pages/DOTTeamLeaderAuditView';
+import { DOTTeamLeaderImportCSV } from './pages/DOTTeamLeaderImportCSV';
+import { DOTTeamLeaderImportTasksCSV } from './pages/DOTTeamLeaderImportTasksCSV';
+import { DOTTeamLeaderNewVisit } from './pages/DOTTeamLeaderNewVisit';
+import { DOTTeamLeaderNewVisitDOT } from './pages/DOTTeamLeaderNewVisitDOT';
+import { DOTTeamLeaderSelectNewVisit } from './pages/DOTTeamLeaderSelectNewVisit';
 import { DotAuditPage } from './pages/DotAuditPage';
 import { AderenteVisitPage } from './pages/AderenteVisitPage';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
-import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessAmontDashboard, canViewReports, canAccessAdminDashboard } from './utils/permissions';
+import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard } from './utils/permissions';
 import { AdminDashboard } from './pages/AdminDashboard';
 
 // Role-based protected route wrapper
@@ -81,62 +81,62 @@ const App: React.FC = () => {
             </ProtectedRoute>
         } />
         <Route path="/dot/new-audit" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessAmontDashboard()}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <NewAudit />
             </ProtectedRoute>
         } />
         <Route path="/new-audit" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessAmontDashboard()}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <NewAudit />
             </ProtectedRoute>
         } />
         <Route path="/dot/select-visit-type" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessAmontDashboard()}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <SelectVisitType />
             </ProtectedRoute>
         } />
-        <Route path="/amont/select-visit-type" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessAmontDashboard()}>
+        <Route path="/dot-team-leader/select-visit-type" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <SelectVisitType />
             </ProtectedRoute>
         } />
         <Route path="/select-visit-type" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessAmontDashboard()}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <SelectVisitType />
             </ProtectedRoute>
         } />
         <Route path="/dot/new-visit" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessAmontDashboard()}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <NewVisit />
             </ProtectedRoute>
         } />
-        <Route path="/amont/new-visit" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessAmontDashboard()}>
+        <Route path="/dot-team-leader/new-visit" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <NewVisit />
             </ProtectedRoute>
         } />
         <Route path="/new-visit" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessAmontDashboard()}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <NewVisit />
             </ProtectedRoute>
         } />
-        <Route path="/dot/audit/:id" element={
-            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+        <Route path="/dot/new-audit" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <DotAuditPage />
             </ProtectedRoute>
         } />
         <Route path="/visit/:id" element={
-            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <VisitDetail />
             </ProtectedRoute>
         } />
          <Route path="/actions" element={
-            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <ActionsList />
             </ProtectedRoute>
         } />
          <Route path="/history" element={
-            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <AuditList />
             </ProtectedRoute>
         } />
@@ -170,49 +170,49 @@ const App: React.FC = () => {
                 <AderenteVisitPage />
             </ProtectedRoute>
         } />
-        <Route path="/amont/dashboard" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
-                <AmontDashboard />
+        <Route path="/dot-team-leader/dashboard" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DOTTeamLeaderDashboard />
             </ProtectedRoute>
         } />
-        <Route path="/amont/import-visitas" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
-                <AmontImportTasksCSV />
+        <Route path="/dot-team-leader/import-visitas" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DOTTeamLeaderImportTasksCSV />
             </ProtectedRoute>
         } />
-        <Route path="/amont/audit/:id" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
-                <AmontAuditView />
+        <Route path="/dot-team-leader/audit/:id" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DOTTeamLeaderAuditView />
             </ProtectedRoute>
         } />
-        <Route path="/amont/execute/:id" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+        <Route path="/dot-team-leader/execute/:id" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
                 <AuditExecution />
             </ProtectedRoute>
         } />
-        <Route path="/amont/visit/:id" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+        <Route path="/dot-team-leader/visit/:id" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
                 <VisitDetail />
             </ProtectedRoute>
         } />
-        <Route path="/amont/reports" element={
+        <Route path="/dot-team-leader/reports" element={
             <ProtectedRoute requireRole={canViewReports}>
                 <Reports />
             </ProtectedRoute>
         } />
-        <Route path="/amont/new-visit-amont" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
-                <AmontNewVisitAmont />
+        <Route path="/dot-team-leader/new-visit-leader" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DOTTeamLeaderNewVisit />
             </ProtectedRoute>
         } />
-        <Route path="/amont/new-visit-dot" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
-                <AmontNewVisitDOT />
+        <Route path="/dot-team-leader/new-visit-dot" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DOTTeamLeaderNewVisitDOT />
             </ProtectedRoute>
         } />
-        <Route path="/amont/select-new-visit" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
-                <AmontSelectNewVisit />
+        <Route path="/dot-team-leader/select-new-visit" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DOTTeamLeaderSelectNewVisit />
             </ProtectedRoute>
         } />
         <Route path="/admin/dashboard" element={
@@ -222,12 +222,12 @@ const App: React.FC = () => {
         } />
         <Route path="/admin/visitas" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AmontDashboard adminView />
+                <DOTTeamLeaderDashboard adminView />
             </ProtectedRoute>
         } />
         <Route path="/admin/audit/:id" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AmontAuditView />
+                <DOTTeamLeaderAuditView />
             </ProtectedRoute>
         } />
         <Route path="/admin/execute/:id" element={
@@ -242,19 +242,19 @@ const App: React.FC = () => {
         } />
         <Route path="/admin/new-visit-admin" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AmontNewVisitAmont />
+                <DOTTeamLeaderNewVisit />
             </ProtectedRoute>
         } />
         {/* Backward-compat alias -> redirect to new admin path */}
-        <Route path="/admin/new-visit-amont" element={<Navigate to="/admin/new-visit-admin" replace />} />
+        <Route path="/admin/new-visit-leader" element={<Navigate to="/admin/new-visit-admin" replace />} />
         <Route path="/admin/new-visit-dot" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AmontNewVisitDOT />
+                <DOTTeamLeaderNewVisitDOT />
             </ProtectedRoute>
         } />
         <Route path="/admin/import-visitas" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AmontImportTasksCSV />
+                <DOTTeamLeaderImportTasksCSV />
             </ProtectedRoute>
         } />
         <Route path="/admin/reports" element={

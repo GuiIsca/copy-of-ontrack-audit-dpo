@@ -20,7 +20,7 @@ interface ValidationError {
   message: string;
 }
 
-export const AmontImportCSV: React.FC = () => {
+export const DOTTeamLeaderImportCSV: React.FC = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
@@ -108,7 +108,7 @@ export const AmontImportCSV: React.FC = () => {
   const handleImport = async () => {
     setImporting(true);
 
-    // Get current user (Amont)
+    // Get current user (DOT Team Leader)
     const currentUser = getCurrentUser();
     if (!currentUser) {
       alert('Erro: Utilizador não autenticado');
@@ -163,7 +163,7 @@ export const AmontImportCSV: React.FC = () => {
               continue;
             }
 
-            // Create audit for this store (createdBy = Amont user ID)
+            // Create audit for this store (createdBy = DOT Team Leader user ID)
             await db.createAudit({
               store_id: store.id,
               user_id: dotUser.id,
@@ -171,7 +171,7 @@ export const AmontImportCSV: React.FC = () => {
               dtstart: auditDate.toISOString(),
               status: AuditStatus.NEW,
               score: undefined,
-              createdBy: currentUser.userId, // Marca como criado pelo Amont
+              createdBy: currentUser.userId, // Marca como criado pelo DOT Team Leader
             });
 
             created++;
@@ -187,7 +187,7 @@ export const AmontImportCSV: React.FC = () => {
       
       // Clear form after 3 seconds and redirect
       setTimeout(() => {
-        navigate('/amont/dashboard');
+        navigate('/dot-team-leader/dashboard');
       }, 3000);
     } catch (err) {
       console.error('Import failed:', err);
@@ -216,7 +216,7 @@ Auditoria Q2 2024;10/04/2024;dot1@example.com;LOJ001,LOJ006`;
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center">
-            <button onClick={() => navigate('/amont/dashboard')} className="mr-4 text-gray-600 hover:text-black">
+            <button onClick={() => navigate('/dot-team-leader/dashboard')} className="mr-4 text-gray-600 hover:text-black">
               <ArrowLeft />
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Importar Auditorias (CSV)</h1>
@@ -340,7 +340,7 @@ Auditoria Q2 2024;10/04/2024;dot1@example.com;LOJ001,LOJ006`;
             {importing ? 'A importar...' : 'Importar Auditorias'}
           </Button>
           <Button
-            onClick={() => navigate('/amont/dashboard')}
+            onClick={() => navigate('/dot-team-leader/dashboard')}
             disabled={importing}
           >
             Cancelar

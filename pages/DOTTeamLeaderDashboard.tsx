@@ -17,7 +17,7 @@ import { getCurrentUser } from '../utils/auth';
 // Unified visit item type that can be either an Audit or a Visit
 type VisitItem = (Audit & { store: Store; visitType: VisitType }) | (Visit & { store: Store; visitType: VisitType });
 
-export const AmontDashboard: React.FC<{ adminView?: boolean }> = ({ adminView = false }) => {
+export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ adminView = false }) => {
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
   const isAdminView = adminView || (currentUser?.roles || []).includes(UserRole.ADMIN);
@@ -42,14 +42,14 @@ export const AmontDashboard: React.FC<{ adminView?: boolean }> = ({ adminView = 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStore, setSelectedStore] = useState<number | ''>('');
   const [selectedDOT, setSelectedDOT] = useState<number | ''>('');
-  type ProfileFilter = 'all' | UserRole.DOT | UserRole.ADERENTE | UserRole.AMONT;
+  type ProfileFilter = 'all' | UserRole.DOT | UserRole.ADERENTE | UserRole.DOT_TEAM_LEADER;
   const [profileFilter, setProfileFilter] = useState<ProfileFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     const loadData = async () => {
-      // Amont sees only COMPLETED visits (audits + other visit types) from all users
+      // Team Leader sees only COMPLETED visits (audits + other visit types) from all users
       const stores = await db.getStores();
       const allUsers = await db.getUsers();
       setUsers(allUsers);
@@ -113,9 +113,9 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     const isMyAudit = audit.user_id === currentUser.userId || audit.dot_user_id === currentUser.userId;
 
     if ((isMyAudit || isAdmin) && (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS)) {
-      window.location.href = `${isAdmin ? '/admin' : '/amont'}/execute/${visit.id}`;
+      window.location.href = `${isAdmin ? '/admin' : '/dot-team-leader'}/execute/${visit.id}`;
     } else {
-      window.location.href = `${isAdmin ? '/admin' : '/amont'}/audit/${visit.id}`;
+      window.location.href = `${isAdmin ? '/admin' : '/dot-team-leader'}/audit/${visit.id}`;
     }
   } else {
     const visitItem = visit as Visit;
@@ -126,9 +126,9 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
       (visitItem.status === AuditStatus.NEW || visitItem.status === AuditStatus.IN_PROGRESS);
 
     if (canEdit) {
-      window.location.href = `${isAdmin ? '/admin' : '/amont'}/execute/${visit.id}`;
+      window.location.href = `${isAdmin ? '/admin' : '/dot-team-leader'}/execute/${visit.id}`;
     } else {
-      window.location.href = `${isAdmin ? '/admin' : '/amont'}/visit/${visit.id}`;
+      window.location.href = `${isAdmin ? '/admin' : '/dot-team-leader'}/visit/${visit.id}`;
     }
   }
 };
@@ -183,7 +183,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
       filtered = filtered.filter(v => v.store.nome === brandFilter);
     }
 
-    // Minhas visitas filter - show visits and audits from current amont user
+    // Minhas visitas filter - show visits and audits from current Team leader user
     if (minhasVisitas && currentUser) {
       filtered = filtered.filter(v => {
         const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
@@ -508,7 +508,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         } else if (userRoles.includes(UserRole.ADERENTE)) {
           return (s.aderenteId === dot.id || s.aderente_id === dot.id);
         }
-        // For AMONT and others, return all stores from visits
+        // For Team Leader and others, return all stores from visits
         return true;
       })
     })).filter(g => g.visits.length > 0);
@@ -592,7 +592,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{isAdminView ? 'Administração de Visitas' : 'Dashboard Amont'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{isAdminView ? 'Administração de Visitas' : 'Dashboard DOT Team Leader'}</h1>
             <p className="text-gray-500">Supervisão e análise de todas as visitas</p>
           </div>
         </div>
@@ -752,7 +752,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                   <option value="all">Todos</option>
                   <option value={UserRole.DOT}>DOT</option>
                   <option value={UserRole.ADERENTE}>Aderente</option>
-                  <option value={UserRole.AMONT}>Amont</option>
+                  <option value={UserRole.DOT_TEAM_LEADER}>DOT Team Leader</option>
                 </select>
               </div>
               <div>
@@ -821,14 +821,14 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                 <MonthPlanner
                   audits={plannerAudits}
                   onAuditClick={handleItemClick}
-                  onDateClick={(date) => window.location.href = `/amont/select-new-visit?date=${date.toISOString()}`}
+                  onDateClick={(date) => window.location.href = `/dot-team-leader/select-new-visit?date=${date.toISOString()}`}
                   onShowWeek={(date) => { setWeekFocusDate(date); setCalendarScope('week'); }}
                 />
               ) : (
                 <WeekPlanner
                   audits={plannerAudits}
                   onAuditClick={handleItemClick}
-                  onDateClick={(date) => window.location.href = `/amont/select-new-visit?date=${date.toISOString()}`}
+                  onDateClick={(date) => window.location.href = `/dot-team-leader/select-new-visit?date=${date.toISOString()}`}
                   initialDate={weekFocusDate}
                 />
               );

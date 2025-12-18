@@ -32,11 +32,11 @@ export const Login: React.FC = () => {
       };
       localStorage.setItem('ontrack_auth', JSON.stringify(authData));
       
-      // Redirect based on role (prioridade: ADMIN > AMONT > ADERENTE > DOT)
+      // Redirect based on role (prioridade: ADMIN > DOT TEAM LEADER > ADERENTE > DOT)
       if (userRoles.includes(UserRole.ADMIN)) {
         navigate('/admin/dashboard');
-      } else if (userRoles.includes(UserRole.AMONT)) {
-        navigate('/amont/dashboard');
+      } else if (userRoles.includes(UserRole.DOT_TEAM_LEADER)) {
+        navigate('/dot-team-leader/dashboard');
       } else if (userRoles.includes(UserRole.ADERENTE)) {
         navigate('/aderente/dashboard');
       } else {
@@ -91,12 +91,12 @@ export const Login: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail('amont@mousquetaires.com');
+                  setEmail('leader@mousquetaires.com');
                   setPassword('123456');
                 }}
                 className="w-full justify-start"
               >
-                👔 Amont
+                👔 DOT Team Leader
               </Button>
               <Button 
                 type="button"

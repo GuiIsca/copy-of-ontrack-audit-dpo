@@ -65,7 +65,7 @@ Backend API: http://localhost:3001
 | Email | Role |
 |-------|------|
 | admin@mousquetaires.com | ADMIN |
-| amont@mousquetaires.com | AMONT |
+| leader@mousquetaires.com | DOT TEAM LEADER |
 | dot1@mousquetaires.com | DOT |
 | aderente1@intermarche.pt | ADERENTE |
 

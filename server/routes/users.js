@@ -28,7 +28,7 @@ const formatUser = (user) => ({
 router.get('/', async (req, res) => {
   try {
     const result = await query(
-      'SELECT id, email, fullname, roles, amont_id, assigned_stores FROM users ORDER BY id'
+      'SELECT id, email, fullname, roles, dot_team_leader_id, assigned_stores FROM users ORDER BY id'
     );
     res.json(result.rows.map(formatUser));
   } catch (error) {
@@ -41,7 +41,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const result = await query(
-      'SELECT id, email, fullname, roles, amont_id, assigned_stores FROM users WHERE id = $1',
+      'SELECT id, email, fullname, roles, dot_team_leader_id, assigned_stores FROM users WHERE id = $1',
       [req.params.id]
     );
     
@@ -59,7 +59,7 @@ router.get('/:id', async (req, res) => {
 // Create user
 router.post('/', async (req, res) => {
   try {
-    const { email, fullname, roles, amontId, assignedStores, password } = req.body;
+    const { email, fullname, roles, dotTeamLeaderId, assignedStores, password } = req.body;
     
     // Se password fornecida, fazer hash
     let passwordHash = null;
@@ -68,10 +68,10 @@ router.post('/', async (req, res) => {
     }
     
     const result = await query(
-      `INSERT INTO users (email, fullname, roles, amont_id, assigned_stores, password_hash) 
+      `INSERT INTO users (email, fullname, roles, dot_team_leader_id, assigned_stores, password_hash) 
        VALUES ($1, $2, $3, $4, $5, $6) 
-       RETURNING id, email, fullname, roles, amont_id, assigned_stores`,
-      [email, fullname, roles || ['ADERENTE'], amontId || null, assignedStores || [], passwordHash]
+       RETURNING id, email, fullname, roles, dot_team_leader_id, assigned_stores`,
+      [email, fullname, roles || ['ADERENTE'], dotTeamLeaderId || null, assignedStores || [], passwordHash]
     );
     
     res.status(201).json(formatUser(result.rows[0]));
@@ -87,7 +87,7 @@ router.post('/', async (req, res) => {
 // Update user
 router.put('/:id', async (req, res) => {
   try {
-    const { email, fullname, roles, amontId, assignedStores, password } = req.body;
+    const { email, fullname, roles, dotTeamLeaderId, assignedStores, password } = req.body;
     
     // Se password fornecida, fazer hash
     let passwordHash = undefined;
@@ -100,12 +100,12 @@ router.put('/:id', async (req, res) => {
        SET email = COALESCE($1, email), 
            fullname = COALESCE($2, fullname),
            roles = COALESCE($3, roles),
-           amont_id = $4,
+           dot_team_leader_id = $4,
            assigned_stores = COALESCE($5, assigned_stores),
            password_hash = COALESCE($6, password_hash)
        WHERE id = $7
-       RETURNING id, email, fullname, roles, amont_id, assigned_stores`,
-      [email, fullname, roles, amontId, assignedStores, passwordHash, req.params.id]
+      RETURNING id, email, fullname, roles, dot_team_leader_id, assigned_stores`,
+          [email, fullname, roles, dotTeamLeaderId, assignedStores, passwordHash, req.params.id]
     );
     
     if (result.rows.length === 0) {

@@ -66,8 +66,8 @@ export const AuditExecution: React.FC = () => {
             navigate('/aderente/dashboard');
           } else if (currentUser?.roles.includes(UserRole.ADMIN)) {
             navigate('/admin/visitas');
-          } else if (currentUser?.roles.includes(UserRole.AMONT)) {
-            navigate('/amont/dashboard');
+          } else if (currentUser?.roles.includes(UserRole.DOT_TEAM_LEADER)) {
+            navigate('/dot-team-leader/dashboard');
           } else {
             navigate('/dashboard');
           }
@@ -537,10 +537,10 @@ export const AuditExecution: React.FC = () => {
           setTimeout(() => {
               setToastMsg(null);
               // Redirecionar para o dashboard
-              if (currentUser?.roles.includes(UserRole.ADMIN)) {
+                if (currentUser?.roles.includes(UserRole.ADMIN)) {
                   navigate('/admin/visitas');
-              } else if (currentUser?.roles.includes(UserRole.AMONT)) {
-                  navigate('/amont/dashboard');
+                } else if (currentUser?.roles.includes(UserRole.DOT_TEAM_LEADER)) {
+                  navigate('/dot-team-leader/dashboard');
               } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
                   navigate('/aderente/dashboard');
               } else {
@@ -600,9 +600,9 @@ export const AuditExecution: React.FC = () => {
         
                 // Redirecionar para o dashboard correto
                 if (currentUser?.roles.includes(UserRole.ADMIN)) {
-                    navigate('/admin/visitas');
-                } else if (currentUser?.roles.includes(UserRole.AMONT)) {
-                    navigate('/amont/dashboard');
+                  navigate('/admin/visitas');
+                } else if (currentUser?.roles.includes(UserRole.DOT_TEAM_LEADER)) {
+                  navigate('/dot-team-leader/dashboard');
                 } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
                     navigate('/aderente/dashboard');
                 } else {
@@ -726,8 +726,8 @@ export const AuditExecution: React.FC = () => {
           <button onClick={() => {
             if (currentUser?.roles.includes(UserRole.ADMIN)) {
               navigate('/admin/visitas');
-            } else if (currentUser?.roles.includes(UserRole.AMONT)) {
-              navigate('/amont/dashboard');
+            } else if (currentUser?.roles.includes(UserRole.DOT_TEAM_LEADER)) {
+              navigate('/dot-team-leader/dashboard');
             } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
               navigate('/aderente/dashboard');
             } else {
@@ -789,7 +789,7 @@ export const AuditExecution: React.FC = () => {
                                         const evalType = getEvaluationType(crit);
                                         
                                         if (evalType === 'OK_KO') {
-                                          // OK/KO for Amont/DOT
+                                          // OK/KO for DOTs
                                           return (
                                             <>
                                               <div className="flex items-center space-x-3">
@@ -1028,7 +1028,7 @@ export const AuditExecution: React.FC = () => {
                                                   const evalType = getEvaluationType(crit);
                                                   
                                                   if (evalType === 'OK_KO') {
-                                                      // OK/KO for Amont/DOT
+                                                      // OK/KO for DOTs
                                                       return (
                                                           <>
                                                               <div className="flex items-center space-x-3">
@@ -1266,7 +1266,7 @@ export const AuditExecution: React.FC = () => {
                                     const evalType = getEvaluationType(crit);
                                     
                                     if (evalType === 'OK_KO') {
-                                      // OK/KO for Amont/DOT
+                                      // OK/KO for DOTs
                                       return (
                                         <>
                                           <div className="flex items-center space-x-3">
@@ -1559,7 +1559,7 @@ export const AuditExecution: React.FC = () => {
                     <span className="hidden sm:inline">Próximo</span> <ChevronRight className="ml-1" size={18} />
                    </Button>
               ) : (
-                  // Show Save/Submit buttons for Aderente visits, or Save/Finalize for DOT/AMONT audits
+                  // Show Save/Submit buttons for Aderente visits, or Save/Finalize for DOTs audits
                   (audit as any).visit_source_type === 'ADERENTE_VISIT' ? (
                     <div className="flex gap-2 flex-1 sm:flex-none">
                       <Button 

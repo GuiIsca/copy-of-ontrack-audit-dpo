@@ -8,7 +8,7 @@ import { db } from '../services/dbAdapter';
 import { Store, VisitType, AuditStatus, User, UserRole } from '../types';
 import { getCurrentUser } from '../utils/auth';
 
-export const AmontNewVisitAmont: React.FC = () => {
+export const DOTTeamLeaderNewVisit: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const preSelectedDate = location.state?.selectedDate;
@@ -36,7 +36,7 @@ export const AmontNewVisitAmont: React.FC = () => {
         navigate('/');
         return;
       }
-      // Amont can see all stores and DOTs
+      // DOT Team Leader can see all stores and DOTs
       const allStores = await db.getStores();
       const allUsers = await db.getUsers();
       const dotUsers = allUsers.filter(u => u.roles?.includes(UserRole.DOT));
@@ -63,14 +63,14 @@ export const AmontNewVisitAmont: React.FC = () => {
       const datetime = new Date(`${date}T${time}`);
       const datetimeEnd = new Date(`${date}T${timeEnd}`);
       
-      // Se for AUDITORIA, criar um Audit com checklist AMONT (ID=3)
+      // Se for AUDITORIA, criar um Audit com checklist 2025 (ID=3)
       // Caso contrário, criar uma Visit normal
       if (visitType === VisitType.AUDITORIA) {
         await db.createAudit({
           store_id: selectedStoreId as number,
-          user_id: currentUser.userId, // AMONT é o executor
+          user_id: currentUser.userId, // DOT Team Leader é o executor
           dot_user_id: currentUser.userId,
-          checklist_id: 3, // Checklist AMONT 2025 - Guião Completo
+          checklist_id: 3, // Checklist 2025 - Guião Completo
           dtstart: datetime.toISOString(),
           status: AuditStatus.NEW,
           created_by: currentUser.userId
@@ -90,7 +90,7 @@ export const AmontNewVisitAmont: React.FC = () => {
         });
       }
       
-      navigate(isAdminContext ? '/admin/visitas' : '/amont/dashboard');
+      navigate(isAdminContext ? '/admin/visitas' : '/dot-team-leader/dashboard');
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');
@@ -114,13 +114,13 @@ export const AmontNewVisitAmont: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8 flex items-center gap-4">
           <button 
-            onClick={() => navigate(isAdminContext ? '/admin/visitas' : '/amont/dashboard')} 
+            onClick={() => navigate(isAdminContext ? '/admin/visitas' : '/dot-team-leader/dashboard')} 
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{isAdminContext ? 'Nova Visita Admin' : 'Nova Visita AMONT'}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{isAdminContext ? 'Nova Visita Admin' : 'Nova Visita DOT Team Leader'}</h1>
             <p className="text-gray-600 mt-1">Criar uma visita para você mesmo realizar</p>
           </div>
         </div>
@@ -274,7 +274,7 @@ export const AmontNewVisitAmont: React.FC = () => {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => navigate(isAdminContext ? '/admin/visitas' : '/amont/dashboard')}
+              onClick={() => navigate(isAdminContext ? '/admin/visitas' : '/dot-team-leader/dashboard')}
               disabled={saving}
             >
               Cancelar

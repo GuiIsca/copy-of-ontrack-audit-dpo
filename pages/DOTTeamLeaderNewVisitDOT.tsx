@@ -7,7 +7,7 @@ import { db } from '../services/dbAdapter';
 import { Store, VisitType, AuditStatus, User, UserRole } from '../types';
 import { getCurrentUser } from '../utils/auth';
 
-export const AmontNewVisitDOT: React.FC = () => {
+export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const preSelectedDate = location.state?.selectedDate;
@@ -40,15 +40,15 @@ export const AmontNewVisitDOT: React.FC = () => {
         navigate('/');
         return;
       }
-      // Amont can see all stores and DOTs
+      // Team Leader can see all stores and DOTs
       const stores = await db.getStores();
       const allUsers = await db.getUsers();
       
-      // Admin sees all DOTs; Amont sees only their associated DOTs
+      // Admin sees all DOTs; DOT Team Leader sees only their associated DOTs
       const isAdmin = currentUser.roles?.includes(UserRole.ADMIN);
       const dotUsers = allUsers.filter(u => 
         u.roles?.includes(UserRole.DOT) && 
-        (isAdmin || Number(u.amontId) === Number(currentUser.userId))
+        (isAdmin || Number((u as any).dotTeamLeaderId) === Number(currentUser.userId))
       );
       
       setAllStores(stores);
@@ -81,17 +81,17 @@ export const AmontNewVisitDOT: React.FC = () => {
       
       console.log('Creating visit for DOT:', { selectedDotId, selectedStoreId, visitType, created_by: currentUser.userId });
       
-      // Se for AUDITORIA, criar um Audit com checklist AMONT 2025 (ID=3)
-      // O DOT e AMONT usam o mesmo guião completo
+      // Se for AUDITORIA, criar um Audit com checklist 2025 (ID=3)
+      // O DOT e o DOT Team Leader usam o mesmo guião completo
       if (visitType === VisitType.AUDITORIA) {
         const auditData = {
           store_id: selectedStoreId as number,
           user_id: selectedDotId as number, // DOT é o executor
           dot_user_id: selectedDotId as number,
-          checklist_id: 3, // Checklist AMONT 2025 - Guião Completo (usado por DOT e AMONT)
+          checklist_id: 3, // Checklist 2025 - Guião Completo (usado por DOT e DOT Team Leader)
           dtstart: datetime.toISOString(),
           status: AuditStatus.NEW,
-          created_by: currentUser.userId // AMONT/Admin criou
+          created_by: currentUser.userId // DOT Team Leader/Admin criou
         };
         console.log('Creating audit:', auditData);
         await db.createAudit(auditData);
@@ -106,14 +106,14 @@ export const AmontNewVisitDOT: React.FC = () => {
           dtstart: datetime.toISOString(),
           dtend: datetimeEnd.toISOString(),
           status: AuditStatus.NEW,
-          created_by: currentUser.userId // AMONT/Admin criou
+          created_by: currentUser.userId // DOT Team Leader/Admin criou
         };
         console.log('Creating visit:', visitData);
         await db.createVisit(visitData);
       }
 
       console.log('Visit/Audit created successfully');
-      const redirectUrl = currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/amont/dashboard';
+      const redirectUrl = currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/dot-team-leader/dashboard';
       window.location.href = redirectUrl;
     } catch (error) {
       console.error('Erro ao criar visita:', error);
@@ -140,7 +140,7 @@ export const AmontNewVisitDOT: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8 flex items-center gap-4">
           <button 
-            onClick={() => window.location.href = (currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/amont/dashboard')} 
+            onClick={() => window.location.href = (currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/dot-team-leader/dashboard')} 
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />
@@ -339,7 +339,7 @@ export const AmontNewVisitDOT: React.FC = () => {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => window.location.href = (currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/amont/dashboard')}
+              onClick={() => window.location.href = (currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/dot-team-leader/dashboard')}
               disabled={saving}
             >
               Cancelar

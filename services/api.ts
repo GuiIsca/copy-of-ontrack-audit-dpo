@@ -254,9 +254,9 @@ class ApiClient {
     });
   }
 
-  // Amont legacy: import visitas from CSV string
+  // DOT Team Leader legacy: import visitas from CSV string
   async importVisitasFromCsv(csv: string) {
-    const response = await fetch(`${SERVER_URL}/amont/import-visitas`, {
+    const response = await fetch(`${SERVER_URL}/dot-team-leader/import-visitas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ csv }),
@@ -271,7 +271,7 @@ class ApiClient {
   async importVisitasFromFile(file: File) {
     const form = new FormData();
     form.append('file', file);
-    const response = await fetch(`${SERVER_URL}/amont/import-visitas`, {
+    const response = await fetch(`${SERVER_URL}/dot-team-leader/import-visitas`, {
       method: 'POST',
       body: form,
     });

@@ -11,12 +11,12 @@ SET CLIENT_ENCODING TO 'UTF8';
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
 (1, 'admin@mousquetaires.com', 'Carlos Oliveira', ARRAY['ADMIN']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
--- Insert AMONT User
+-- Insert DOT Team Leader User
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
-(2, 'amont@mousquetaires.com', 'Ana Costa', ARRAY['AMONT']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
+(2, 'leader@mousquetaires.com', 'Ana Costa', ARRAY['DOT_TEAM_LEADER']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
 -- Insert DOT Users
-INSERT INTO users (id, email, fullname, roles, amont_id, assigned_stores, password_hash) VALUES
+INSERT INTO users (id, email, fullname, roles, dot_team_leader_id, assigned_stores, password_hash) VALUES
 (3, 'dot1@mousquetaires.com', 'João Silva', ARRAY['DOT']::user_role[], 2, ARRAY[1,2,3], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
 (4, 'dot2@mousquetaires.com', 'Pedro Martins', ARRAY['DOT']::user_role[], 2, ARRAY[4,5,6], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
 (5, 'dot3@mousquetaires.com', 'Sofia Almeida', ARRAY['DOT']::user_role[], 2, ARRAY[7,8], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
@@ -159,7 +159,7 @@ INSERT INTO checklists (id, name, target_role, sections) VALUES
     ]
   }
 ]'::jsonb),
-(3, 'Auditoria AMONT 2025 - Guião Completo', 'AMONT', 
+(3, 'Auditoria DOT Team Leader 2025 - Guião Completo', 'DOT_TEAM_LEADER', 
 '[
   {
     "id": 1,

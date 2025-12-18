@@ -21,7 +21,7 @@ interface ValidationError {
   message: string;
 }
 
-export const AmontImportTasksCSV: React.FC = () => {
+export const DOTTeamLeaderImportTasksCSV: React.FC = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
@@ -104,7 +104,7 @@ export const AmontImportTasksCSV: React.FC = () => {
       setImportSuccess(true);
       // Só redireciona automaticamente se não houver erros
       if (errors.length === 0) {
-        setTimeout(() => navigate('/amont/dashboard'), 2500);
+        setTimeout(() => navigate('/dot-team-leader/dashboard'), 2500);
       }
     } catch (e: any) {
       console.error('Import error:', e);
@@ -133,7 +133,7 @@ export const AmontImportTasksCSV: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center">
-            <button onClick={() => navigate('/amont/dashboard')} className="mr-4 text-gray-600 hover:text-black">
+            <button onClick={() => navigate('/dot-team-leader/dashboard')} className="mr-4 text-gray-600 hover:text-black">
               <ArrowLeft />
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Importar Visitas (CSV)</h1>
@@ -222,7 +222,7 @@ export const AmontImportTasksCSV: React.FC = () => {
             <FileText className="w-4 h-4 mr-2" />
             {importing ? 'A importar...' : 'Importar Visitas'}
           </Button>
-          <Button onClick={() => navigate('/amont/dashboard')} disabled={importing}>
+          <Button onClick={() => navigate('/dot-team-leader/dashboard')} disabled={importing}>
             {importSuccess && serverErrors.length === 0 ? 'Voltar' : (importSuccess && serverErrors.length > 0 ? 'Concluir' : 'Cancelar')}
           </Button>
         </div>
