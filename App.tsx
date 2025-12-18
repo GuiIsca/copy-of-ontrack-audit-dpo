@@ -23,6 +23,7 @@ import { DOTTeamLeaderNewVisit } from './pages/DOTTeamLeaderNewVisit';
 import { DOTTeamLeaderNewVisitDOT } from './pages/DOTTeamLeaderNewVisitDOT';
 import { DOTTeamLeaderSelectNewVisit } from './pages/DOTTeamLeaderSelectNewVisit';
 import { DotAuditPage } from './pages/DotAuditPage';
+import { DotAuditView } from './pages/DotAuditView';
 import { AderenteVisitPage } from './pages/AderenteVisitPage';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
@@ -123,6 +124,16 @@ const App: React.FC = () => {
         <Route path="/dot/new-audit" element={
             <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <DotAuditPage />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot/audit/:id" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
+                <DotAuditView />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot/execute/:id" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
+                <AuditExecution />
             </ProtectedRoute>
         } />
         <Route path="/visit/:id" element={

@@ -32,7 +32,13 @@ export const Dashboard: React.FC = () => {
       navigate(`/visit/${id}`);
     } else {
       // Se tem checklist_id, é uma Audit
-      navigate(`/dot/audit/${id}`);
+      // Se está em progresso (NEW ou IN_PROGRESS), vai para execute (editar)
+      // Se está finalizada (COMPLETED), vai para audit (visualizar)
+      if (item.status === 0 || item.status === 1) { // NEW ou IN_PROGRESS
+        navigate(`/dot/execute/${id}`);
+      } else {
+        navigate(`/dot/audit/${id}`);
+      }
     }
   };
 
