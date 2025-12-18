@@ -5,6 +5,7 @@ import { db } from '../services/dbAdapter';
 import { Audit, AuditStatus, Store, Visit, VisitType } from '../types';
 import { getCurrentUser } from '../utils/auth';
 import { getDefaultDashboard } from '../utils/permissions';
+import { exportAuditToPDF } from '../utils/pdfExport';
 import { ArrowLeft, Calendar as CalendarIcon, List, Building2, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 
 type ViewMode = 'list' | 'calendar' | 'store';
@@ -86,6 +87,39 @@ export const AuditList: React.FC = () => {
     const dotIds = Array.from(new Set(stores.map(s => s.dotUserId).filter(Boolean)));
     return allUsers.filter(u => dotIds.includes(u.id));
   }, [stores, allUsers]);
+
+  const handleAuditClick = async (audit: Audit & { store: Store }) => {
+    console.log('🔍 handleAuditClick chamado para auditoria:', audit.id, 'Status:', audit.status);
+    // Se auditoria foi submetida, gera PDF em vez de abrir para edição
+    if (audit.status >= AuditStatus.SUBMITTED) {
+      console.log('✅ Status SUBMITTED - Gerando PDF...');
+      try {
+        const fullAudit = await db.getAuditById(audit.id);
+        const store = audit.store;
+        const checklist = fullAudit.checklistId ? await db.getChecklistById(fullAudit.checklistId) : null;
+        const scores = await db.getScores(audit.id);
+        const sectionEvals = await db.getSectionEvaluations(audit.id);
+        const actions = await db.getActions(audit.id);
+        const comments = await db.getComments(audit.id);
+        
+        // Adicionar scores ao audit pra passar pro PDF
+        const auditWithScores = { ...fullAudit, scores };
+        
+        await exportAuditToPDF(auditWithScores, store, checklist, allUsers, actions, comments, sectionEvals);
+        console.log('✅ PDF gerado com sucesso!');
+      } catch (error) {
+        console.error('❌ Erro ao gerar PDF:', error);
+        alert('Erro ao gerar PDF. Por favor, tente novamente.');
+      }
+    } else {
+      console.log('📝 Status NÃO SUBMETIDA - Abrindo página de edição...');
+      // Se não foi submetida, abre página de edição
+      const detailPath = currentUser?.roles.includes('ADERENTE' as any)
+        ? `/aderente/visit/${audit.id}`
+        : `/dot/audit/${audit.id}`;
+      navigate(detailPath);
+    }
+  };
 
   // Filter audits based on view mode
   const filteredAudits = useMemo(() => {
@@ -186,12 +220,7 @@ export const AuditList: React.FC = () => {
             ) : (
               <div
                 key={`a-${item.id}`}
-                onClick={() => {
-                  const detailPath = currentUser?.roles.includes('ADERENTE' as any)
-                    ? `/aderente/visit/${item.id}`
-                    : `/dot/audit/${item.id}`;
-                  navigate(detailPath);
-                }}
+                onClick={() => handleAuditClick(item)}
                 className="text-xs bg-mousquetaires text-white px-1 py-0.5 rounded mb-1 cursor-pointer hover:bg-red-900 truncate"
                 title={`${item.store.city} - ${item.store.numero}`}
               >
@@ -234,13 +263,10 @@ export const AuditList: React.FC = () => {
             </div>
             <div className="space-y-2">
               {audits.slice(0, 5).map(audit => {
-                const detailPath = currentUser?.roles.includes('ADERENTE' as any)
-                  ? `/aderente/visit/${audit.id}`
-                  : `/dot/audit/${audit.id}`;
                 return (
                 <div
                   key={audit.id}
-                  onClick={() => navigate(detailPath)}
+                  onClick={() => handleAuditClick(audit)}
                   className="flex items-center justify-between p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
@@ -490,14 +516,11 @@ export const AuditList: React.FC = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {paginatedAudits.map(audit => {
-                          const detailPath = currentUser?.roles.includes('ADERENTE' as any)
-                            ? `/aderente/visit/${audit.id}`
-                            : `/dot/audit/${audit.id}`;
                           return (
                             <tr
                               key={audit.id}
                               className="hover:bg-gray-50 cursor-pointer"
-                              onClick={() => navigate(detailPath)}
+                              onClick={() => handleAuditClick(audit)}
                             >
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {new Date(audit.dtstart).toLocaleDateString()}
