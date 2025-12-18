@@ -37,11 +37,23 @@ export interface User {
 export interface Store {
   id: number;
   codehex: string;
-  brand: string;
+  numero?: string;
+  nome?: string;
+  formato?: string;
+  area?: number;
+  telefone?: string;
+  situacao_pdv?: string;
+  data_abertura?: string;
+  ultima_retoma?: string;
+  distrito?: string;
+  amplitude_horaria?: string;
+  morada?: string;
+  codigo_postal?: string;
+  conjugue_adh?: string;
   size: string;
   city: string;
-  gpslat: number;
-  gpslong: number;
+  gpslat?: number;
+  gpslong?: number;
   dotUserId?: number; // Frontend camelCase
   dot_user_id?: number; // Backend snake_case
   aderenteId?: number; // Frontend camelCase

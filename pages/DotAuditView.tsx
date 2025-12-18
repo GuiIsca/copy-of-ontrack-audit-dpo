@@ -124,8 +124,8 @@ export const DotAuditView: React.FC = () => {
                   <h1 className="text-2xl font-bold text-gray-900">Visita de Auditoria</h1>
                 </div>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                  <div><span className="font-medium">Código:</span> {store.codehex}</div>
-                  <div><span className="font-medium">Loja:</span> {store.brand} - {store.city}</div>
+                  <div><span className="font-medium">Número:</span> {store.numero}</div>
+                  <div><span className="font-medium">Loja:</span> {store.nome} - {store.distrito}</div>
                   <div><span className="font-medium">Data:</span> {new Date(audit.dtstart).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                   {audit.score !== undefined && audit.score !== null && (
                     <div>

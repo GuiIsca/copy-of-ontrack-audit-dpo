@@ -188,7 +188,7 @@ export const ActionPlans: React.FC = () => {
                       <div className="text-sm text-gray-600 mb-3">
                         {Array.from(new Set(sectionPlans.map(p => {
                           const audit = audits.find(a => a.id === p.audit_id);
-                          return audit?.store.brand;
+                          return audit?.store.nome;
                         }))).join(', ')}
                       </div>
                       <div className="space-y-2">

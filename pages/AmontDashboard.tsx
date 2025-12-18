@@ -147,7 +147,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         const dotUser = v.store.dotUserId ? users.find(u => u.id === v.store.dotUserId) : null;
         const dotNameMatch = dotUser && dotUser.fullname?.toLowerCase().includes(searchTerm.toLowerCase());
         return (
-          v.store.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (v.store.nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
           v.store.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
           v.store.codehex.toLowerCase().includes(searchTerm.toLowerCase()) ||
           titleMatch ||
@@ -180,7 +180,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
 
     // Brand filter
     if (brandFilter !== 'all') {
-      filtered = filtered.filter(v => v.store.brand === brandFilter);
+      filtered = filtered.filter(v => v.store.nome === brandFilter);
     }
 
     // Minhas visitas filter - show visits and audits from current amont user
@@ -341,9 +341,9 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                 key={`${v.visitType}-${v.id}`}
                 onClick={() => handleVisitClick(v, isAudit)}
                 className={`text-xs ${bgColor} text-white px-1 py-0.5 rounded mb-1 cursor-pointer truncate`}
-                title={`${v.store.codehex} - ${v.visitType}`}
+                title={`${v.store.numero} - ${v.visitType}`}
               >
-                {v.store.codehex}
+                {v.store.numero}
               </div>
             );
           })}
@@ -424,7 +424,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {store.city} <span className="text-sm text-gray-500">({store.codehex})</span>
             </h3>
-            <div className="text-sm text-gray-600 mb-3">{store.brand} • {store.size}</div>
+            <div className="text-sm text-gray-600 mb-3">{store.nome} • {store.size}</div>
             <div className="space-y-2">
               {(expandedStores.includes(store.id) ? visits : visits.slice(0,5)).map(v => {
                 const isAudit = v.visitType === VisitType.AUDITORIA;
@@ -530,7 +530,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-gray-900">{new Date(v.dtstart).toLocaleDateString('pt-PT')}</span>
-                      <span className="text-sm text-gray-600">{v.store.codehex}</span>
+                      <span className="text-sm text-gray-600">{v.store.numero}</span>
                       {getVisitTypeBadge(v.visitType)}
                       {getStatusBadge(v.status)}
                     </div>
@@ -565,7 +565,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     );
   };
 
-  const brands = Array.from(new Set(visits.map(v => v.store.brand)));
+  const brands = Array.from(new Set(visits.map(v => v.store.nome)));
 
   const stats = {
     total: visits.length,
@@ -734,7 +734,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
             <select value={selectedStore} onChange={e=>setSelectedStore(e.target.value ? Number(e.target.value) : '')} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mousquetaires">
               <option value="">Todas as lojas</option>
               {storesInFiltered.map(s => (
-                <option key={s.id} value={s.id}>{s.city} - {s.codehex} ({s.brand})</option>
+                <option key={s.id} value={s.id}>{s.city} - {s.codehex} ({s.nome})</option>
               ))}
             </select>
           </div>
@@ -878,9 +878,9 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                         className="hover:bg-gray-50 cursor-pointer" 
                         onClick={() => handleVisitClick(visit, isAudit)}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{visit.store.codehex}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{visit.store.numero}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{visit.store.brand}</div>
+                          <div className="text-sm font-medium text-gray-900">{visit.store.nome}</div>
                           <div className="text-sm text-gray-500">{visit.store.city}</div>
                           {title && <div className="text-xs text-gray-400 italic">{title}</div>}
                         </td>

@@ -164,7 +164,7 @@ export const AderenteNewVisit: React.FC = () => {
                   <option value="">-- Escolha uma loja --</option>
                   {stores.map(store => (
                     <option key={store.id} value={store.id}>
-                      {store.brand} - {store.city} ({store.codehex})
+                      {store.nome} - {store.numero}
                     </option>
                   ))}
                 </select>
@@ -178,7 +178,7 @@ export const AderenteNewVisit: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">Marca:</span>
-                      <span className="ml-2 font-medium">{selectedStore.brand}</span>
+                      <span className="ml-2 font-medium">{selectedStore.nome}</span>
                     </div>
                     <div>
                       <span className="text-gray-500">Tamanho:</span>

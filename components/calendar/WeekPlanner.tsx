@@ -166,7 +166,7 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
                         />
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires">
-                            {audit.store.brand}
+                            {audit.store.nome}
                           </div>
                           <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
                             <MapPin size={10} className="flex-shrink-0" />

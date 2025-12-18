@@ -213,7 +213,7 @@ export const AderenteActionList: React.FC = () => {
                           <p className="text-sm text-gray-600 mb-2">{action.description}</p>
                           <div className="flex items-center gap-4 text-xs text-gray-500">
                             <span>
-                              📍 {action.store.brand} - {action.store.city}
+                              📍 {action.store.nome} - {action.store.city}
                             </span>
                             <span>
                               📅 Prazo: {new Date(action.dueDate).toLocaleDateString('pt-PT')}

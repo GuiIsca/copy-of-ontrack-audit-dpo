@@ -228,7 +228,7 @@ export const AmontNewVisitDOT: React.FC = () => {
               </option>
               {availableStores.map(store => (
                 <option key={store.id} value={store.id}>
-                  {store.codehex} - {store.city} ({store.brand})
+                  {store.nome} - {store.numero}
                 </option>
               ))}
             </select>

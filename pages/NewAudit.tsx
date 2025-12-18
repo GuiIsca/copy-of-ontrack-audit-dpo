@@ -142,7 +142,7 @@ export const NewAudit: React.FC = () => {
                   <option value="">Selecione uma loja</option>
                   {availableStores.map(s => (
                       <option key={s.id} value={s.id}>
-                        {s.codehex} - {s.city} ({s.brand})
+                        {s.numero} - {s.nome}
                       </option>
                   ))}
               </select>

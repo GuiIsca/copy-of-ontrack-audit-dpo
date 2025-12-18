@@ -198,10 +198,10 @@ export const AmontAuditView: React.FC = () => {
                 </div>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div>
-                    <span className="font-medium">Código:</span> {store.codehex}
+                    <span className="font-medium">Número:</span> {store.numero}
                   </div>
                   <div>
-                    <span className="font-medium">Loja:</span> {store.brand} - {store.city}
+                    <span className="font-medium">Loja:</span> {store.nome} - {store.distrito}
                   </div>
                   <div>
                     <span className="font-medium">Data:</span>{' '}

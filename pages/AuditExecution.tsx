@@ -118,7 +118,7 @@ export const AuditExecution: React.FC = () => {
         // Auto-fill "Loja visitada" (criteria 21002) if not already filled
         const visitedStore = allStores.find(s => s.id === aud.store_id);
         if (visitedStore && !comments[21002]) {
-          comments[21002] = `${visitedStore.brand} - ${visitedStore.city}`;
+          comments[21002] = `${visitedStore.nome} - ${visitedStore.city}`;
         }
         
         setCriteriaComments(comments);
@@ -738,7 +738,7 @@ export const AuditExecution: React.FC = () => {
           </button>
           <div className="text-center">
               <h2 className="text-sm font-bold text-gray-900 uppercase">GUIÃO DA VISITA</h2>
-              <p className="text-xs text-gray-500">{store.brand} {store.city}</p>
+              <p className="text-xs text-gray-500">{store.nome} {store.city}</p>
           </div>
           <div className="w-6"></div>
       </div>
@@ -916,8 +916,8 @@ export const AuditExecution: React.FC = () => {
                                       {crit.id === 21002 && stores.length > 0 && (
                                         <>
                                           {stores.map(s => (
-                                            <option key={s.id} value={`${s.brand} - ${s.city}`}>
-                                              {s.brand} - {s.city}
+                                            <option key={s.id} value={`${s.nome} - ${s.city}`}>
+                                              {s.nome} - {s.city}
                                             </option>
                                           ))}
                                         </>

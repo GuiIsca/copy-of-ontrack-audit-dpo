@@ -36,17 +36,17 @@ INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
 (20, 'aderente10@intermarche.pt', 'Vasco Ribeiro', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
 -- Insert Stores
-INSERT INTO stores (id, codehex, brand, size, city, gpslat, gpslong, dot_user_id, aderente_id) VALUES
-(1, 'LOJ001', 'Intermarché', 'Categoria 1', 'Odivelas', 38.79, -9.17, 3, 11),
-(2, 'LOJ002', 'Intermarché', 'Categoria 2', 'Alfragide', 38.73, -9.21, 3, 12),
-(3, 'LOJ003', 'Intermarché', 'Categoria 2', 'Torres Vedras', 39.09, -9.26, 3, 13),
-(4, 'LOJ004', 'Intermarché', 'Categoria 4', 'Braga', 41.54, -8.42, 4, 14),
-(5, 'LOJ005', 'Intermarché', 'Categoria 1', 'Lisboa', 38.71, -9.14, 4, 15),
-(6, 'LOJ006', 'Intermarché', 'Categoria 2', 'Porto', 41.15, -8.61, 4, 16),
-(7, 'LOJ007', 'Intermarché', 'Categoria 3', 'Coimbra', 40.21, -8.43, 5, 17),
-(8, 'LOJ008', 'Intermarché', 'Categoria 1', 'Faro', 37.01, -7.93, 5, 18),
-(9, 'LOJ009', 'Intermarché', 'Categoria 4', 'Setúbal', 38.52, -8.89, 6, 19),
-(10, 'LOJ010', 'Intermarché', 'Categoria 1', 'Guarda', 40.54, -7.27, 6, 20);
+INSERT INTO stores (numero, nome, formato, area, telefone, dot_user_id, aderente_id, situacao_pdv, data_abertura, ultima_retoma, distrito, amplitude_horaria, morada, codigo_postal, conjugue_adh) VALUES
+('06347', 'A DOS CUNHADOS', 'Super 1500', 1489.92, '241980190', 3, 11, 'Exploração', '2009-05-19', '2024-11-20', 'Lisboa', '09:00-21:00', 'Vale da Saúda', '2560-562', 'CECÍLIA ROBALO'),
+('03622', 'ABRANTÉS', 'Super 2500', 3335.00, '241340810', 3, 12, 'Exploração', '1998-11-11', '2024-11-20', 'Santarém', '09:00-21:00', 'Rua das Escolas', '2200-061', 'ALDINA HENRIQUES'),
+('03012', 'ABRIGADA', 'Super 1900', 976.00, '241736096', 3, 13, 'Exploração', '1999-01-25', '2024-11-20', 'Lisboa', '09:00-21:00', 'Lugar do Pinheiral', '2580-631', 'RICARDO DOMINGUES'),
+('07502', 'ALUSTREL', 'Contact 600', 726.60, '284602030', 4, 14, 'Exploração', '1998-04-07', '2024-11-20', 'Beja', '09:00-21:00', 'Painel de Beja', '7600-073', NULL),
+('06571', 'AREOSA', 'Super 2000', 1990.00, '258898090', 4, 15, 'Exploração', '2010-08-02', '2024-11-20', 'Viana Do Castelo', '09:00-21:00', 'BOUÇA DO ESPAÇO', '4800-580', NULL),
+('07283', 'Loja Porto', 'Categoria 2', 2100.50, '223456789', 4, 16, 'Exploração', '2012-03-15', '2024-11-20', 'Porto', '08:30-21:30', 'Avenida da República, 1250', '4000-064', NULL),
+('00119', 'Loja Coimbra', 'Categoria 3', 1650.00, '239876543', 5, 17, 'Exploração', '2014-07-22', '2024-11-20', 'Coimbra', '09:00-21:00', 'Rua Ferreira Borges, 890', '3000-180', NULL),
+('01123', 'Loja Faro', 'Categoria 1', 1200.75, '289765432', 5, 18, 'Exploração', '2011-11-05', '2024-11-20', 'Faro', '08:00-22:00', 'Rua de Santo António, 456', '8000-271', NULL),
+('00654', 'Loja Setúbal', 'Categoria 4', 2500.00, '265432198', 6, 19, 'Exploração', '2008-09-30', '2024-11-20', 'Setúbal', '09:00-21:00', 'Avenida Luísa Todi, 789', '2900-321', NULL),
+('01100', 'Loja Guarda', 'Categoria 1', 950.50, '271234567', 6, 20, 'Exploração', '2013-01-10', '2024-11-20', 'Guarda', '08:30-20:30', 'Rua João de Deus, 320', '6300-751', NULL);
 
 -- Insert Checklists
 INSERT INTO checklists (id, name, target_role, sections) VALUES

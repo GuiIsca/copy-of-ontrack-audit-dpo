@@ -212,7 +212,7 @@ export const ActionsList: React.FC = () => {
                   <div className="bg-gray-50 border-b border-gray-200 p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-bold text-gray-900">{data.audit.store.brand}</h3>
+                        <h3 className="font-bold text-gray-900">{data.audit.store.nome}</h3>
                         <p className="text-sm text-gray-600">{data.audit.store.city}</p>
                         <p className="text-xs text-gray-500 mt-1">
                           Auditoria: {new Date(data.audit.dtstart).toLocaleDateString('pt-PT')}

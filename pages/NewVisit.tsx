@@ -159,7 +159,7 @@ export const NewVisit: React.FC = () => {
               <option value="">Selecione uma loja</option>
               {stores.map(store => (
                 <option key={store.id} value={store.id}>
-                  {store.codehex} - {store.city} ({store.brand})
+                  {store.numero} - {store.nome}
                 </option>
               ))}
             </select>

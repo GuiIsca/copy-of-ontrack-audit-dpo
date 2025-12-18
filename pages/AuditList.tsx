@@ -179,9 +179,9 @@ export const AuditList: React.FC = () => {
               <div
                 key={`v-${item.id}`}
                 className="text-xs bg-gray-500 text-white px-1 py-0.5 rounded mb-1 truncate"
-                title={`${item.store.city} - ${item.store.codehex}`}
+                title={`${item.store.city} - ${item.store.numero}`}
               >
-                {item.store.codehex} ({item.visitType})
+                {item.store.numero} ({item.visitType})
               </div>
             ) : (
               <div
@@ -193,9 +193,9 @@ export const AuditList: React.FC = () => {
                   navigate(detailPath);
                 }}
                 className="text-xs bg-mousquetaires text-white px-1 py-0.5 rounded mb-1 cursor-pointer hover:bg-red-900 truncate"
-                title={`${item.store.city} - ${item.store.codehex}`}
+                title={`${item.store.city} - ${item.store.numero}`}
               >
-                {item.store.codehex}
+                {item.store.numero}
               </div>
             )
           ))}
@@ -230,7 +230,7 @@ export const AuditList: React.FC = () => {
               {store.city} <span className="text-sm text-gray-500">({store.codehex})</span>
             </h3>
             <div className="text-sm text-gray-600 mb-3">
-              {store.brand} • {store.size}
+              {store.nome} • {store.size}
             </div>
             <div className="space-y-2">
               {audits.slice(0, 5).map(audit => {
@@ -315,7 +315,7 @@ export const AuditList: React.FC = () => {
                     <span className="text-sm text-gray-900">
                       {new Date(audit.dtstart).toLocaleDateString()}
                     </span>
-                    <span className="text-sm text-gray-600">{audit.store.codehex}</span>
+                    <span className="text-sm text-gray-600">{audit.store.numero}</span>
                     <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(audit.status)}`}>
                       {getStatusLabel(audit.status)}
                     </span>
@@ -335,7 +335,7 @@ export const AuditList: React.FC = () => {
                     <span className="text-sm text-gray-900">
                       {new Date(visit.dtstart).toLocaleDateString()}
                     </span>
-                    <span className="text-sm text-gray-600">{visit.store.codehex}</span>
+                    <span className="text-sm text-gray-600">{visit.store.numero}</span>
                     <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">{visit.type}</span>
                   </div>
                   <span className="text-sm text-gray-500">-</span>
@@ -463,7 +463,7 @@ export const AuditList: React.FC = () => {
                   <option value="">Todas as lojas</option>
                   {stores.map(store => (
                     <option key={store.id} value={store.id}>
-                      {store.city} - {store.codehex} ({store.brand})
+                      {store.city} - {store.codehex} ({store.nome})
                     </option>
                   ))}
                 </select>

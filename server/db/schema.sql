@@ -40,16 +40,23 @@ CREATE TABLE users (
 -- Stores Table
 CREATE TABLE stores (
     id SERIAL PRIMARY KEY,
-    codehex VARCHAR(50) UNIQUE NOT NULL,
-    brand VARCHAR(100) NOT NULL,
-    size VARCHAR(50) NOT NULL,
-    city VARCHAR(100) NOT NULL,
-    gpslat DECIMAL(10, 7),
-    gpslong DECIMAL(10, 7),
+    numero VARCHAR(50),
+    nome VARCHAR(255),
+    formato VARCHAR(100),
+    area DECIMAL(10, 2),
+    telefone VARCHAR(20),
     dot_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     aderente_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    situacao_pdv VARCHAR(50),
+    data_abertura DATE,
+    ultima_retoma DATE,
+    distrito VARCHAR(100),
+    amplitude_horaria VARCHAR(50),
+    morada VARCHAR(255),
+    codigo_postal VARCHAR(10),
+    conjugue_adh VARCHAR(255)
+
+
 );
 
 -- Checklists Table

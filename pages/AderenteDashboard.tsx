@@ -157,7 +157,7 @@ export const AderenteDashboard: React.FC = () => {
                 <option value="all">Todas as Lojas ({aderenteStores.length})</option>
                 {aderenteStores.map(store => (
                   <option key={store.id} value={store.id}>
-                    {store.city} - {store.codehex} ({store.brand})
+                    {store.city} - {store.codehex} ({store.nome})
                   </option>
                 ))}
               </select>
@@ -190,7 +190,7 @@ export const AderenteDashboard: React.FC = () => {
                     >
                       <div className="flex items-center gap-3 mb-1">
                         <h4 className="font-semibold text-gray-900">
-                          {audit.store.brand} - {audit.store.city}
+                          {audit.store.nome} - {audit.store.city}
                         </h4>
                         {getStatusBadge(audit.status)}
                       </div>
@@ -258,7 +258,7 @@ export const AderenteDashboard: React.FC = () => {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {store.city} <span className="text-sm text-gray-500">({store.codehex})</span>
                   </h3>
-                  <div className="text-sm text-gray-600 mb-4">{store.brand} • {store.size}</div>
+                  <div className="text-sm text-gray-600 mb-4">{store.nome} • {store.size}</div>
                   <div className="space-y-2">
                     {storeAudits.map(audit => (
                       <div
@@ -309,7 +309,7 @@ export const AderenteDashboard: React.FC = () => {
                     >
                       <div className="flex items-center gap-3 mb-1">
                         <h4 className="font-semibold text-gray-900">
-                          {visit.store.brand} - {visit.store.city}
+                          {visit.store.nome} - {visit.store.city}
                         </h4>
                         {getStatusBadge(visit.status)}
                       </div>

@@ -166,7 +166,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
                           className="mt-1"
                         />
                         <div className="text-sm">
-                          <div className="font-medium">{store.codehex} - {store.brand}</div>
+                          <div className="font-medium">{store.codehex} - {store.nome}</div>
                           <div className="text-xs text-gray-500">{store.city}</div>
                           {assignedToOther && (
                             <div className="text-xs text-orange-600 mt-1">
@@ -446,7 +446,7 @@ export const AdminDashboard: React.FC = () => {
     try {
       const payload: any = {
         codehex: storeForm.codehex.trim(),
-        brand: storeForm.brand,
+        nome: storeForm.nome,
         size: storeForm.size,
         city: storeForm.city.trim(),
         gpslat: Number(storeForm.gpslat) || 0,
@@ -902,7 +902,7 @@ export const AdminDashboard: React.FC = () => {
               <SectionHeader title="Criar Loja" icon={<PlusCircle className="w-4 h-4" />} />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Input label="Código (codehex)" value={storeForm.codehex} onChange={e=>setStoreForm({...storeForm,codehex:e.target.value})} />
-                <Input label="Marca" value={storeForm.brand} onChange={e=>setStoreForm({...storeForm,brand:e.target.value})} />
+                <Input label="Nome" value={storeForm.nome} onChange={e=>setStoreForm({...storeForm,nome:e.target.value})} />
                 <Input label="Tamanho" value={storeForm.size} onChange={e=>setStoreForm({...storeForm,size:e.target.value})} />
                 <Input label="Cidade" value={storeForm.city} onChange={e=>setStoreForm({...storeForm,city:e.target.value})} />
                 <Input label="GPS Lat" value={storeForm.gpslat} onChange={e=>setStoreForm({...storeForm,gpslat:e.target.value})} />
@@ -954,8 +954,8 @@ export const AdminDashboard: React.FC = () => {
                       const ad = users.find(a=>a.id===adId);
                       return (
                         <tr key={s.id}>
-                          <td className="px-3 py-2 whitespace-nowrap">{s.codehex}</td>
-                          <td className="px-3 py-2 whitespace-nowrap">{s.brand}</td>
+                          <td className="px-3 py-2 whitespace-nowrap">{s.numero}</td>
+                          <td className="px-3 py-2 whitespace-nowrap">{s.nome}</td>
                           <td className="px-3 py-2 whitespace-nowrap">{s.city}</td>
                           <td className="px-3 py-2 whitespace-nowrap">
                             <select className="border rounded px-2 py-1 text-sm" value={dotId || ''} onChange={e=>handleChangeStoreDot(s.id, Number(e.target.value))}>

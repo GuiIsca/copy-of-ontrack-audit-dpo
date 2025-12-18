@@ -173,7 +173,7 @@ export const AmontNewVisitAmont: React.FC = () => {
               <option value="">Selecione uma loja</option>
               {stores.map(store => (
                 <option key={store.id} value={store.id}>
-                  {store.codehex} - {store.city} ({store.brand})
+                  {store.nome} - {store.numero}
                 </option>
               ))}
             </select>

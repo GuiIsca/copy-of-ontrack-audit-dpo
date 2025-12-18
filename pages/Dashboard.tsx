@@ -137,9 +137,9 @@ export const Dashboard: React.FC = () => {
     
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setSelectedStore(null)}>
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
-          <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-            <h3 className="text-2xl font-bold text-gray-900">{selectedStore.brand || 'Loja'}</h3>
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
+            <h3 className="text-2xl font-bold text-gray-900">{selectedStore.nome || 'Loja'}</h3>
             <button 
               onClick={() => setSelectedStore(null)}
               className="text-gray-400 hover:text-gray-600 text-xl"
@@ -148,43 +148,105 @@ export const Dashboard: React.FC = () => {
             </button>
           </div>
           
-          <div className="p-6 space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-500 block">Código</label>
-              <p className="text-lg font-semibold text-gray-900">{selectedStore.codehex || '-'}</p>
+          <div className="p-6 space-y-6">
+            {/* Informações Básicas */}
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Informações Básicas</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Número</label>
+                  <p className="text-base text-gray-900">{selectedStore.numero || '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Nome</label>
+                  <p className="text-base text-gray-900">{selectedStore.nome || '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Formato</label>
+                  <p className="text-base text-gray-900">{selectedStore.formato || '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Situação PdV</label>
+                  <p className="text-base text-gray-900">{selectedStore.situacao_pdv || '-'}</p>
+                </div>
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-500 block">Tamanho</label>
-              <p className="text-lg font-semibold text-gray-900">{selectedStore.size || '-'}</p>
+
+            {/* Dados Operacionais */}
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados Operacionais</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Área (m²)</label>
+                  <p className="text-base text-gray-900">{selectedStore.area ? `${selectedStore.area} m²` : '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Telefone</label>
+                  <p className="text-base text-gray-900">{selectedStore.telefone || '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Amplitude Horária</label>
+                  <p className="text-base text-gray-900">{selectedStore.amplitude_horaria || '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Distrito</label>
+                  <p className="text-base text-gray-900">{selectedStore.distrito || '-'}</p>
+                </div>
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-500 block">Cidade</label>
-              <p className="text-lg font-semibold text-gray-900">{selectedStore.city || '-'}</p>
+
+            {/* Localização */}
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Localização</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Morada</label>
+                  <p className="text-base text-gray-900">{selectedStore.morada || '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Código Postal</label>
+                  <p className="text-base text-gray-900">{selectedStore.codigo_postal || '-'}</p>
+                </div>
+              </div>
             </div>
-            
+
+            {/* Datas */}
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Histórico</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Data de Abertura</label>
+                  <p className="text-base text-gray-900">{selectedStore.data_abertura ? new Date(selectedStore.data_abertura).toLocaleDateString('pt-PT') : '-'}</p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Última Retoma</label>
+                  <p className="text-base text-gray-900">{selectedStore.ultima_retoma ? new Date(selectedStore.ultima_retoma).toLocaleDateString('pt-PT') : '-'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Contacto Responsável */}
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Contacto Responsável</h4>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-500 block">Cônjuge/Sócio</label>
+                <p className="text-base text-gray-900">{selectedStore.conjugue_adh || '-'}</p>
+              </div>
+            </div>
+
+            {/* Aderente */}
             {aderente && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-500 block">Aderente Responsável</label>
-                <div className="bg-gray-50 rounded-lg p-3">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Aderente Responsável</h4>
+                <div className="bg-gray-50 rounded-lg p-4">
                   <p className="font-semibold text-gray-900">{aderente.fullname || 'N/A'}</p>
                   <p className="text-sm text-gray-600">{aderente.email || 'N/A'}</p>
                 </div>
               </div>
             )}
-            
-            {(selectedStore.gpslat || selectedStore.gpslong) && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-500 block">Localização GPS</label>
-                <p className="text-sm text-gray-600">
-                  {selectedStore.gpslat ? Number(selectedStore.gpslat).toFixed(4) : '?'}, {selectedStore.gpslong ? Number(selectedStore.gpslong).toFixed(4) : '?'}
-                </p>
-              </div>
-            )}
           </div>
           
-          <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+          <div className="px-6 py-4 border-t border-gray-200 flex justify-end sticky bottom-0 bg-white">
             <button 
               onClick={() => setSelectedStore(null)}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
@@ -242,9 +304,9 @@ export const Dashboard: React.FC = () => {
                       onClick={() => setSelectedStore(store)}
                       className="border border-gray-200 rounded-lg p-4 hover:border-mousquetaires hover:shadow-md transition-all text-left cursor-pointer hover:bg-gray-50"
                     >
-                      <div className="font-semibold text-gray-900">{store.brand}</div>
+                      <div className="font-semibold text-gray-900">{store.nome}</div>
                       <div className="text-sm text-gray-600">{store.city}</div>
-                      <div className="text-xs text-gray-500 mt-1">{store.codehex}</div>
+                      <div className="text-xs text-gray-500 mt-1">{store.numero}</div>
                     </button>
                   ))}
                 </div>

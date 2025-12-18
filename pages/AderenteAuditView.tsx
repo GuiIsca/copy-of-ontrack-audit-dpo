@@ -55,7 +55,7 @@ export const AderenteAuditView: React.FC = () => {
           audit_id: Number(id),
           criteria_id: 21002,
           score: null,
-          comment: `${foundStore.brand} - ${foundStore.city}`,
+          comment: `${foundStore.nome} - ${foundStore.city}`,
           photos: []
         } as AuditScore);
       }
@@ -164,7 +164,7 @@ export const AderenteAuditView: React.FC = () => {
                 </h1>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div>
-                    <span className="font-medium">Loja:</span> {store?.brand && store?.city ? `${store.brand} - ${store.city}` : 'N/A'}
+                    <span className="font-medium">Loja:</span> {store?.nome && store?.city ? `${store.nome} - ${store.city}` : 'N/A'}
                   </div>
                   <div>
                     <span className="font-medium">Data:</span>{' '}

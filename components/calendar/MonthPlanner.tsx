@@ -237,7 +237,7 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
                       key={audit.id}
                       onClick={() => onAuditClick(audit.id, (audit as any).isAudit)}
                       className="w-full text-left p-1 rounded bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-mousquetaires transition-all group"
-                      title={`${audit.store.brand} - ${audit.store.city} às ${new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`}
+                      title={`${audit.store.nome} - ${audit.store.city} às ${new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`}
                     >
                       <div className="flex items-center gap-1">
                         <div
@@ -245,7 +245,7 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
                         />
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires">
-                              {audit.store.brand}
+                              {audit.store.nome}
                             </div>
                           <div className="flex items-center gap-1 text-xs text-gray-500">
                             <span className="truncate">{new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}</span>
