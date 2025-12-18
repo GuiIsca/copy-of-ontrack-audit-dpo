@@ -1,2 +1,0 @@
-TODO:
-"Visitas DOT" adicionadas pelo admin não estão a aparecer no calendário DOT, apenas no Histórico dele

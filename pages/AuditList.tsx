@@ -91,6 +91,9 @@ export const AuditList: React.FC = () => {
   const filteredAudits = useMemo(() => {
     let filtered = [...audits];
 
+    // Show only submitted audits in history (status >= SUBMITTED)
+    filtered = filtered.filter(a => a.status >= AuditStatus.SUBMITTED);
+
     if (viewMode === 'store' && selectedStore) {
       filtered = filtered.filter(a => a.store_id === selectedStore);
     }
@@ -482,7 +485,7 @@ export const AuditList: React.FC = () => {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loja</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Nota</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -507,13 +510,8 @@ export const AuditList: React.FC = () => {
                                         {getStatusLabel(audit.status)}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); navigate(detailPath); }}
-                                      className="text-mousquetaires hover:text-red-900"
-                                    >
-                                      Ver
-                                    </button>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
+                                    {audit.score ? `${audit.score.toFixed(1)}%` : '-'}
                                 </td>
                             </tr>
                           );

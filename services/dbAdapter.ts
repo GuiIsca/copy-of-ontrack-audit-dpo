@@ -113,6 +113,7 @@ class DatabaseAdapter {
         statusNum = d.status;
       }
       
+      const finalScore = d.finalScore || d.final_score;
       return {
         ...d,
         status: statusNum,
@@ -123,7 +124,8 @@ class DatabaseAdapter {
         createdBy: d.createdBy || d.created_by,
         store_id: d.storeId || d.store_id,
         checklist_id: d.checklistId || d.checklist_id,
-        final_score: d.finalScore || d.final_score,
+        final_score: finalScore ? parseFloat(finalScore as any) : null,
+        score: finalScore ? parseFloat(finalScore as any) : null,  // Map final_score to score for frontend
         visit_source_type: d.visitSourceType || d.visit_source_type
       };
     });
@@ -149,6 +151,7 @@ class DatabaseAdapter {
       
       // Normalize: For Aderente visits, use createdBy as user_id; for DOT, use dotUserId
       // Also map camelCase fields back to snake_case for type compatibility
+      const finalScore = data.finalScore || data.final_score;
       return {
         ...data,
         status: statusNum,
@@ -157,7 +160,8 @@ class DatabaseAdapter {
         createdBy: data.createdBy || data.created_by,
         store_id: data.storeId || data.store_id,
         checklist_id: data.checklistId || data.checklist_id,
-        final_score: data.finalScore || data.final_score,
+        final_score: finalScore ? parseFloat(finalScore as any) : null,
+        score: finalScore ? parseFloat(finalScore as any) : null,  // Map final_score to score for frontend
         visit_source_type: data.visitSourceType || data.visit_source_type
       };
     } catch (error) {

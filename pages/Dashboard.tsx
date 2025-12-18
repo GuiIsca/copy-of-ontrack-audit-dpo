@@ -15,8 +15,10 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [audits, setAudits] = useState<(Audit & { store: Store; visitType?: VisitType })[]>([]);
   const [assignedStores, setAssignedStores] = useState<Store[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showStores, setShowStores] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   type CalendarScope = 'month' | 'week';
   const [calendarScope, setCalendarScope] = useState<CalendarScope>('month');
   const [weekFocusDate, setWeekFocusDate] = useState<Date | undefined>(undefined);
@@ -73,13 +75,25 @@ export const Dashboard: React.FC = () => {
         }
       };
       
-      // Filter out admin-created items
-      const filterAdminItems = <T extends { createdBy?: number; created_by?: number }>(items: T[]): T[] => {
+      // Filter out admin-created items (but DOT/Aderente can see items assigned to them)
+      const filterAdminItems = <T extends { createdBy?: number; created_by?: number; user_id?: number; dot_user_id?: number }>(items: T[]): T[] => {
+        // If current user is admin, show everything
+        if (user?.roles?.includes('ADMIN' as any)) {
+          return items;
+        }
+        
         return items.filter(item => {
           const createdBy = (item as any).createdBy ?? (item as any).created_by;
           if (!createdBy) return true;
           const creator = allUsers.find(u => u.id === createdBy);
-          return !creator?.roles?.includes('ADMIN' as any);
+          
+          // If created by admin, only show if it's assigned to this user
+          if (creator?.roles?.includes('ADMIN' as any)) {
+            const isAssignedToMe = (item as any).dot_user_id === user?.id || (item as any).user_id === user?.id;
+            return isAssignedToMe;
+          }
+          
+          return true;
         });
       };
 
@@ -103,10 +117,85 @@ export const Dashboard: React.FC = () => {
 
       // Merge audits and visits for calendar display
       setAudits([...enrichedAudits, ...enrichedVisits]);
+      setAllUsers(allUsers);
       setLoading(false);
     };
     loadData();
   }, [navigate]);
+
+  // Modal de Detalhes da Loja
+  if (selectedStore) {
+    // Renderizar modal
+  }
+  
+  const StoreModal = () => {
+    if (!selectedStore) return null;
+    
+    // Buscar aderente responsável
+    const aderenteId = (selectedStore as any).aderente_id || (selectedStore as any).aderenteId;
+    const aderente = aderenteId ? allUsers.find(u => u.id === aderenteId) : null;
+    
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setSelectedStore(null)}>
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-2xl font-bold text-gray-900">{selectedStore.brand || 'Loja'}</h3>
+            <button 
+              onClick={() => setSelectedStore(null)}
+              className="text-gray-400 hover:text-gray-600 text-xl"
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-500 block">Código</label>
+              <p className="text-lg font-semibold text-gray-900">{selectedStore.codehex || '-'}</p>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-500 block">Tamanho</label>
+              <p className="text-lg font-semibold text-gray-900">{selectedStore.size || '-'}</p>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-500 block">Cidade</label>
+              <p className="text-lg font-semibold text-gray-900">{selectedStore.city || '-'}</p>
+            </div>
+            
+            {aderente && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-500 block">Aderente Responsável</label>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="font-semibold text-gray-900">{aderente.fullname || 'N/A'}</p>
+                  <p className="text-sm text-gray-600">{aderente.email || 'N/A'}</p>
+                </div>
+              </div>
+            )}
+            
+            {(selectedStore.gpslat || selectedStore.gpslong) && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-500 block">Localização GPS</label>
+                <p className="text-sm text-gray-600">
+                  {selectedStore.gpslat ? Number(selectedStore.gpslat).toFixed(4) : '?'}, {selectedStore.gpslong ? Number(selectedStore.gpslong).toFixed(4) : '?'}
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+            <button 
+              onClick={() => setSelectedStore(null)}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -147,14 +236,23 @@ export const Dashboard: React.FC = () => {
             {showStores && (
               <div className="px-6 pb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {assignedStores.map(store => (
-                    <div key={store.id} className="border border-gray-200 rounded-lg p-4 hover:border-mousquetaires transition-colors">
+                  {assignedStores.slice(0, 20).map(store => (
+                    <button
+                      key={store.id}
+                      onClick={() => setSelectedStore(store)}
+                      className="border border-gray-200 rounded-lg p-4 hover:border-mousquetaires hover:shadow-md transition-all text-left cursor-pointer hover:bg-gray-50"
+                    >
                       <div className="font-semibold text-gray-900">{store.brand}</div>
                       <div className="text-sm text-gray-600">{store.city}</div>
                       <div className="text-xs text-gray-500 mt-1">{store.codehex}</div>
-                    </div>
+                    </button>
                   ))}
                 </div>
+                {assignedStores.length > 20 && (
+                  <p className="text-sm text-gray-500 text-center mt-4">
+                    +{assignedStores.length - 20} lojas adicionais (máximo 20 mostradas)
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -172,19 +270,7 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Actions */}
-        <div className="mb-8 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-           <div>
-               <h2 className="text-lg font-bold text-gray-900">PLANO DE VISITAS</h2>
-               <p className="text-sm text-gray-500">Organize as suas auditorias</p>
-           </div>
-           {canCreateAudit() && assignedStores.length > 0 && (
-             <Button onClick={() => navigate('/select-visit-type')}>
-               <PlusCircle className="mr-2 h-5 w-5" />
-               Nova Visita
-             </Button>
-           )}
-        </div>
+
 
         {/* Month Planner Calendar */}
         {loading ? (
@@ -232,6 +318,9 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Modal de Detalhes da Loja */}
+        <StoreModal />
 
       </main>
     </div>

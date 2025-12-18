@@ -141,16 +141,7 @@ export const AderenteDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Nova Visita Button */}
-        <div className="mb-6">
-          <Button
-            onClick={() => navigate('/aderente/new-visit')}
-            className="w-full sm:w-auto"
-          >
-            <MapPin className="mr-2" size={16} />
-            Nova Visita de Auditoria
-          </Button>
-        </div>
+
 
         {/* Filtro por Loja (apenas se tiver mais de uma loja) - mostrado em ambas abas */}
         {aderenteStores.length > 1 && (

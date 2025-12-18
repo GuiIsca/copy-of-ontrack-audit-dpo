@@ -494,12 +494,14 @@ export const AuditExecution: React.FC = () => {
   const handleSave = async () => {
       if (audit) {
           const finalScore = calculateTotalScore();
+          console.log('handleSave: finalScore =', finalScore);
           const updated = { 
               ...audit, 
               auditorcomments: generalComments,
               final_score: finalScore,
               score: finalScore
           };
+          console.log('handleSave: saving audit with score =', finalScore);
           await db.updateAudit(updated);
           setAudit(updated);
       }
@@ -640,6 +642,24 @@ export const AuditExecution: React.FC = () => {
       return calculateItemsScore(section.items);
   };
 
+  // Calculate average score from all sections
+  const calculateSectionsAverageScore = () => {
+      if (!checklist || checklist.sections.length === 0) return 0;
+      
+      let totalScore = 0;
+      let count = 0;
+      
+      checklist.sections.forEach(section => {
+          const sectionScore = calculateSectionScore(section);
+          if (sectionScore !== null && sectionScore !== undefined) {
+              totalScore += sectionScore;
+              count++;
+          }
+      });
+      
+      return count === 0 ? 0 : totalScore / count;
+  };
+
   // Calculate automatic section/subsection rating (1-5) based on OK/KO percentage
   const calculateRatingFromItems = (items: typeof currentSection.items): number => {
       const percentage = calculateItemsScore(items);
@@ -656,15 +676,10 @@ export const AuditExecution: React.FC = () => {
   };
 
   const calculateTotalScore = () => {
-      let okCount = 0;
-      let totalCount = 0;
-      scores.forEach(s => {
-          if (s.score !== null) {
-              totalCount++;
-              if (s.score === 1) okCount++; // 1 = OK, 0 = KO
-          }
-      });
-      return totalCount === 0 ? 0 : (okCount / totalCount) * 100; // Percentage based on OK/KO
+      // Return the average of all sections' scores
+      const score = calculateSectionsAverageScore();
+      console.log('calculateTotalScore called, returning:', score);
+      return score;
   };
 
   // Calculate final score for Aderente visits based on Section 2 (criteria 22001-22006)

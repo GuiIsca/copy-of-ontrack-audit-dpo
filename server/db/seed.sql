@@ -37,16 +37,16 @@ INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
 
 -- Insert Stores
 INSERT INTO stores (id, codehex, brand, size, city, gpslat, gpslong, dot_user_id, aderente_id) VALUES
-(1, 'LOJ001', 'Intermarché', 'Super', 'Odivelas', 38.79, -9.17, 3, 11),
-(2, 'LOJ002', 'Intermarché', 'Contact', 'Alfragide', 38.73, -9.21, 3, 12),
-(3, 'LOJ003', 'Bricomarché', 'Média', 'Torres Vedras', 39.09, -9.26, 3, 13),
-(4, 'LOJ004', 'Intermarché', 'Hyper', 'Braga', 41.54, -8.42, 4, 14),
-(5, 'LOJ005', 'Intermarché', 'Super', 'Lisboa', 38.71, -9.14, 4, 15),
-(6, 'LOJ006', 'Intermarché', 'Contact', 'Porto', 41.15, -8.61, 4, 16),
-(7, 'LOJ007', 'Bricomarché', 'Grande', 'Coimbra', 40.21, -8.43, 5, 17),
-(8, 'LOJ008', 'Intermarché', 'Super', 'Faro', 37.01, -7.93, 5, 18),
-(9, 'LOJ009', 'Intermarché', 'Hyper', 'Setúbal', 38.52, -8.89, 6, 19),
-(10, 'LOJ010', 'Intermarché', 'Super', 'Guarda', 40.54, -7.27, 6, 20);
+(1, 'LOJ001', 'Intermarché', 'Categoria 1', 'Odivelas', 38.79, -9.17, 3, 11),
+(2, 'LOJ002', 'Intermarché', 'Categoria 2', 'Alfragide', 38.73, -9.21, 3, 12),
+(3, 'LOJ003', 'Intermarché', 'Categoria 2', 'Torres Vedras', 39.09, -9.26, 3, 13),
+(4, 'LOJ004', 'Intermarché', 'Categoria 4', 'Braga', 41.54, -8.42, 4, 14),
+(5, 'LOJ005', 'Intermarché', 'Categoria 1', 'Lisboa', 38.71, -9.14, 4, 15),
+(6, 'LOJ006', 'Intermarché', 'Categoria 2', 'Porto', 41.15, -8.61, 4, 16),
+(7, 'LOJ007', 'Intermarché', 'Categoria 3', 'Coimbra', 40.21, -8.43, 5, 17),
+(8, 'LOJ008', 'Intermarché', 'Categoria 1', 'Faro', 37.01, -7.93, 5, 18),
+(9, 'LOJ009', 'Intermarché', 'Categoria 4', 'Setúbal', 38.52, -8.89, 6, 19),
+(10, 'LOJ010', 'Intermarché', 'Categoria 1', 'Guarda', 40.54, -7.27, 6, 20);
 
 -- Insert Checklists
 INSERT INTO checklists (id, name, target_role, sections) VALUES
