@@ -24,7 +24,11 @@ export const DotOperacionalAuditPage: React.FC = () => {
   if (loading) return null;
   if (!audit) return null;
 
-  const isEditable = audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS || (typeof audit.status === 'string' && ['NEW','SCHEDULED','IN_PROGRESS'].includes(String(audit.status).toUpperCase()));
+  const isEditable = audit.status === AuditStatus.NEW || 
+                    audit.status === AuditStatus.IN_PROGRESS ||
+                    audit.status === 1 || 
+                    audit.status === 2 ||
+                    (typeof audit.status === 'string' && ['NEW','SCHEDULED','IN_PROGRESS'].includes(String(audit.status).toUpperCase()));
 
   return isEditable ? <AuditExecution /> : <DotOperacionalAuditView />;
 };

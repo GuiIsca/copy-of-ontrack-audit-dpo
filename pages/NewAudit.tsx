@@ -20,6 +20,7 @@ export const NewAudit: React.FC = () => {
   
   const [selectedStore, setSelectedStore] = useState('');
   const [date, setDate] = useState(initialDate);
+  const [time, setTime] = useState('09:00');
   const [attendees, setAttendees] = useState('');
   const [availableStores, setAvailableStores] = useState<Store[]>([]);
   const [error, setError] = useState('');
@@ -64,17 +65,18 @@ export const NewAudit: React.FC = () => {
 
 
       
-        const newAudit = await db.createAudit({
+      const dateTime = new Date(`${date}T${time}`);
+      const newAudit = await db.createAudit({
           dot_operacional_id: user?.id || 0,
           user_id: user?.id || 0,
           store_id: parseInt(selectedStore),
           checklist_id: 1,
-          dtstart: new Date(date).toISOString(),
+          dtstart: dateTime.toISOString(),
           status: AuditStatus.NEW,
           createdBy: user?.id || 0,
       });
 
-      navigate(`/dot-operacional/audit/${newAudit.id}`);
+      navigate('/dashboard');
   };
 
   return (
@@ -152,19 +154,34 @@ export const NewAudit: React.FC = () => {
               )}
             </div>
 
-            {/* Date */}
+            {/* Date and Time */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-gray-400" size={20} />
-                <h3 className="text-lg font-semibold text-gray-900">Data da Visita</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Data e Hora da Visita</h3>
               </div>
-              <input 
-                  type="date"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Data</label>
+                  <input 
+                      type="date"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Hora</label>
+                  <input 
+                      type="time"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      required
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Attendees */}

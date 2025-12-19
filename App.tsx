@@ -101,7 +101,7 @@ const App: React.FC = () => {
         } />
         <Route path="/dot-operacional/audit/:id" element={
             <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
-                <DotOperacionalAuditView />
+                <DotOperacionalAuditPage />
             </ProtectedRoute>
         } />
         <Route path="/dot-operacional/new-visit" element={

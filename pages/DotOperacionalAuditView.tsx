@@ -122,6 +122,27 @@ export const DotOperacionalAuditView: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-2xl font-bold text-gray-900">Visita de Auditoria</h1>
+                  {/* Status Badge */}
+                  {audit.status === AuditStatus.IN_PROGRESS && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200">
+                      Em Curso
+                    </span>
+                  )}
+                  {audit.status === AuditStatus.NEW && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                      Nova
+                    </span>
+                  )}
+                  {audit.status === AuditStatus.SUBMITTED && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+                      Submetida
+                    </span>
+                  )}
+                  {audit.status === AuditStatus.ENDED && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 border border-green-200">
+                      Concluída
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div><span className="font-medium">Número:</span> {store.numero}</div>

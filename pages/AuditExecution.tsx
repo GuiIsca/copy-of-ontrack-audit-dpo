@@ -1523,21 +1523,22 @@ export const AuditExecution: React.FC = () => {
                   <ChevronLeft className="mr-1" size={18} /> <span className="hidden sm:inline">Anterior</span>
               </Button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="text-sm font-medium text-gray-500 whitespace-nowrap">
                     {currentSectionIndex + 1} / {checklist.sections.length}
                 </div>
                 
                 {/* Save Button - only show if not readonly */}
                 {!isReadOnly && (
-                  <button 
+                  <Button 
+                    variant="outline"
                     onClick={handleSaveVisit}
                     disabled={submitting}
-                    className="p-2 text-gray-500 hover:text-mousquetaires hover:bg-red-50 rounded-full transition-colors relative disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 sm:flex-none"
                     title="Guardar Progresso"
                   >
-                    <Save size={20} />
-                  </button>
+                    <Save size={18} className="mr-1" /> Guardar
+                  </Button>
                 )}
 
                 {/* Comments Toggle Button */}
