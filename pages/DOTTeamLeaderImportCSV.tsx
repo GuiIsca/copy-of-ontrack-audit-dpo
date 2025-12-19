@@ -73,7 +73,7 @@ export const DOTTeamLeaderImportCSV: React.FC = () => {
 
         // Validate DOT email
         if (!dot_email || !dot_email.includes('@')) {
-          errors.push({ row, field: 'dot_email', message: 'Email do DOT inválido' });
+          errors.push({ row, field: 'dot_email', message: 'Email do DOT Operacional inválido' });
         }
 
         // Validate stores
@@ -96,7 +96,7 @@ export const DOTTeamLeaderImportCSV: React.FC = () => {
     const missingDOTs: string[] = [];
 
     dotEmails.forEach(email => {
-      const user = users.find(u => u.email === email && u.roles.includes(UserRole.DOT));
+      const user = users.find(u => u.email === email && u.roles.includes(UserRole.DOT_OPERACIONAL));
       if (!user) {
         missingDOTs.push(email);
       }
@@ -134,7 +134,7 @@ export const DOTTeamLeaderImportCSV: React.FC = () => {
       for (const row of csvData) {
         try {
           // Find DOT user
-          const dotUser = users.find(u => u.email === row.dot_email && u.roles.includes(UserRole.DOT));
+          const dotUser = users.find(u => u.email === row.dot_email && u.roles.includes(UserRole.DOT_OPERACIONAL));
           if (!dotUser) {
             errors++;
             continue;
@@ -157,7 +157,7 @@ export const DOTTeamLeaderImportCSV: React.FC = () => {
             }
 
             // Validate DOT permission for this store (store must be assigned to this DOT)
-            if (store.dotUserId !== dotUser.id) {
+            if (Number(store.dot_operacional_id || store.dotUserId) !== dotUser.id) {
               console.warn(`DOT ${dotUser.email} não é responsável pela loja ${store.codehex}, a ignorar...`);
               errors++;
               continue;
@@ -167,7 +167,9 @@ export const DOTTeamLeaderImportCSV: React.FC = () => {
             await db.createAudit({
               store_id: store.id,
               user_id: dotUser.id,
-              checklist_id: (await db.getChecklist()).id,
+              dot_user_id: dotUser.id,
+              dot_operacional_id: dotUser.id,
+              checklist_id: 1,
               dtstart: auditDate.toISOString(),
               status: AuditStatus.NEW,
               score: undefined,

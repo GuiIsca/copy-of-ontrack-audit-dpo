@@ -58,7 +58,7 @@ export const DOTTeamLeaderSelectNewVisit: React.FC = () => {
             </div>
           </button>
 
-          {/* Opção DOT */}
+          {/* Opção DOT Operacional */}
           <button
             onClick={handleSelectDOT}
             className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-8 hover:border-mousquetaires hover:shadow-md transition-all text-left group"
@@ -68,16 +68,16 @@ export const DOTTeamLeaderSelectNewVisit: React.FC = () => {
                 <Users className="text-green-600" size={28} />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">Atribuir a DOT</h3>
-                <p className="text-sm text-gray-500">Para um DOT realizar</p>
+                <h3 className="text-xl font-semibold text-gray-900">Atribuir a DOT Operacional</h3>
+                <p className="text-sm text-gray-500">Para um DOT Operacional realizar</p>
               </div>
             </div>
             <p className="text-gray-600">
-              Criar uma visita e atribuir a um DOT específico. 
+              Criar uma visita e atribuir a um DOT Operacional específico. 
               Pode ser Auditoria, Formação, Acompanhamento ou Outros.
             </p>
             <div className="mt-4 text-green-600 font-medium text-sm flex items-center gap-2">
-              Atribuir a um DOT
+              Atribuir a um DOT Operacional
               <ArrowLeft className="rotate-180" size={16} />
             </div>
           </button>

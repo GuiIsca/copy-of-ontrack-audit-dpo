@@ -122,7 +122,7 @@ export const ActionPlans: React.FC = () => {
         
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Planos de Ação</h1>
-          <p className="text-gray-500">Tarefas atribuídas pelo DOT/DOT Team Leader durante as auditorias</p>
+          <p className="text-gray-500">Tarefas atribuídas pelos DOTs durante as auditorias</p>
         </div>
 
         {/* Stats Cards */}

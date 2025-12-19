@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditStatus, Store, Visit } from '../types';
+import { Audit, AuditStatus, Store, Visit, UserRole } from '../types';
 import { getCurrentUser } from '../utils/auth';
 import { getDefaultDashboard } from '../utils/permissions';
 import { exportAuditToPDF } from '../utils/pdfExport';
@@ -59,8 +59,8 @@ export const AuditList: React.FC = () => {
         rawVisits = allVisits.filter(
           v => v.createdBy === user.id || v.user_id === user.id
         );
-      } else if (user.roles.includes('DOT' as any)) {
-        // DOT vê apenas as suas auditorias
+      } else if (user.roles.includes(UserRole.DOT_OPERACIONAL as any)) {
+        // DOT Operacional vê apenas as suas auditorias
         rawAudits = await db.getAudits(user.id);
         rawVisits = await db.getVisitsForDOT(user.id);
       } else {
@@ -95,7 +95,7 @@ export const AuditList: React.FC = () => {
 
   const dots = useMemo(() => {
     const dotIds = Array.from(
-      new Set(stores.map(s => s.dotUserId).filter(Boolean))
+      new Set(stores.map(s => s.dot_operacional_id || s.dotUserId).filter(Boolean))
     );
     return allUsers.filter(u => dotIds.includes(u.id));
   }, [stores, allUsers]);
@@ -146,7 +146,7 @@ export const AuditList: React.FC = () => {
       );
       const detailPath = currentUser?.roles.includes('ADERENTE' as any)
         ? `/aderente/visit/${audit.id}`
-        : `/dot/audit/${audit.id}`;
+        : `/dot-operacional/audit/${audit.id}`;
       navigate(detailPath);
     }
   };
@@ -413,10 +413,10 @@ export const AuditList: React.FC = () => {
     const dotGroups = dots
       .map(dot => {
         const dotAudits = filteredAudits.filter(
-          a => a.store.dotUserId === dot.id
+          a => (a.store as any).dot_operacional_id === dot.id || a.store.dotUserId === dot.id
         );
         const dotStores = stores.filter(
-          s => s.dotUserId === dot.id
+          s => (s as any).dot_operacional_id === dot.id || s.dotUserId === dot.id
         );
         const dotVisits = visits.filter(v =>
           dotStores.some(s => s.id === v.store_id)

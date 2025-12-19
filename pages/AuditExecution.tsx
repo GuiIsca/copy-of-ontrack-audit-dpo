@@ -4,7 +4,7 @@ import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { CommentThread } from '../components/audit/CommentThread';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditScore, AuditStatus, Store, Section, Criteria, Checklist } from '../types';
+import { Audit, AuditScore, AuditStatus, Store, Section, Criteria, Checklist, EvaluationType } from '../types';
 import { ArrowLeft, ChevronLeft, ChevronRight, Camera, Save, CheckCircle, AlertTriangle, Send, X, ListTodo, MessageSquare } from 'lucide-react';
 import { ScoreGauge } from '../components/charts/ScoreGauge';
 import { canEditAudit, canDeleteAudit, canSubmitAudit } from '../utils/permissions';
@@ -181,7 +181,7 @@ export const AuditExecution: React.FC = () => {
                     score: value,
                     comment: criteriaComments[criteriaId] || '',
                     photo_url: (criteriaPhotos[criteriaId] || [])[0], // store first photo for now
-                    evaluation_type: evalType,
+                    evaluation_type: evalType as EvaluationType,
                     requires_photo: value === 0
                 });
                 
@@ -232,7 +232,7 @@ export const AuditExecution: React.FC = () => {
                     score: currentScore,
                     comment,
                     photo_url: (criteriaPhotos[criteriaId] || [])[0],
-                    evaluation_type: evalType,
+                    evaluation_type: evalType as EvaluationType,
                     requires_photo: currentScore === 0
                 });
                 setToastType('success');
@@ -347,7 +347,7 @@ export const AuditExecution: React.FC = () => {
                       score: currentScore,
                       comment: criteriaComments[criteriaId] || '',
                       photo_url: base64,
-                      evaluation_type: evalType,
+                      evaluation_type: evalType as EvaluationType,
                       requires_photo: currentScore === 0
                   });
                   setToastType('success');
@@ -393,7 +393,7 @@ export const AuditExecution: React.FC = () => {
               score: currentScore,
               comment: criteriaComments[criteriaId] || '',
               allPhotos: newPhotos, // Send all remaining photos
-              evaluation_type: evalType,
+              evaluation_type: evalType as EvaluationType,
               requires_photo: currentScore === 0
           });
           setToastType('success');
@@ -1154,8 +1154,8 @@ export const AuditExecution: React.FC = () => {
                                               {crit.id === 21002 && stores.length > 0 && (
                                                   <>
                                                       {stores.map(s => (
-                                                          <option key={s.id} value={`${s.brand} - ${s.city}`}>
-                                                              {s.brand} - {s.city}
+                                                          <option key={s.id} value={`${s.nome} - ${s.city}`}>
+                                                              {s.nome} - {s.city}
                                                           </option>
                                                       ))}
                                                   </>

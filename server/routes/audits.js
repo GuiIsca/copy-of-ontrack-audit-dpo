@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
     const params = [];
     
     if (userId) {
-      queryText += ' WHERE dot_user_id = $1';
+      queryText += ' WHERE dot_operacional_id = $1';
       params.push(userId);
     } else if (storeId) {
       queryText += ' WHERE store_id = $1';
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
     const { storeId, dotUserId, checklistId, dtstart, status, createdBy, visitSourceType } = req.body;
     // Insert with visit_source_type if provided
     const result = await query(
-      `INSERT INTO audits (store_id, dot_user_id, checklist_id, dtstart, status, created_by, visit_source_type) 
+      `INSERT INTO audits (store_id, dot_operacional_id, checklist_id, dtstart, status, created_by, visit_source_type) 
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [storeId, dotUserId || null, checklistId || 1, dtstart, status || 'SCHEDULED', createdBy, visitSourceType || null]
     );

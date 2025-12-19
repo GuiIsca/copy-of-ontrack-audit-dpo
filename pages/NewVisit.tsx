@@ -37,7 +37,7 @@ export const NewVisit: React.FC = () => {
         navigate('/');
         return;
       }
-      // DOT only sees their assigned stores
+      // DOT Operacional only sees their assigned stores
       const userStores = await db.getStoresForDOT(currentUser.userId);
       setStores(userStores);
     };
@@ -75,7 +75,7 @@ export const NewVisit: React.FC = () => {
     try {
       const datetime = new Date(`${date}T${time}`);
       
-      await db.createVisit({
+      const createdVisit = await db.createVisit({
         type: getVisitTypeEnum(visitType),
         title: title.trim(),
         description: text.trim(),
@@ -86,7 +86,12 @@ export const NewVisit: React.FC = () => {
         created_by: currentUser.userId
       });
 
-      navigate(getDefaultDashboard());
+      // Redirecionar para os detalhes da visita criada
+      if (createdVisit?.id) {
+        navigate(`/visit/${createdVisit.id}`);
+      } else {
+        navigate(getDefaultDashboard());
+      }
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');
@@ -233,7 +238,7 @@ export const NewVisit: React.FC = () => {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => navigate('/dot/select-visit-type')}
+              onClick={() => navigate('/dot-operacional/select-visit-type')}
               disabled={saving}
             >
               Cancelar

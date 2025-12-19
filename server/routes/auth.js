@@ -10,7 +10,7 @@ const SALT_ROUNDS = 10;
 const parseRoles = (pgRoles) => {
   if (!pgRoles) return [];
   if (Array.isArray(pgRoles)) return pgRoles;
-  // Convert {ADMIN,DOT} format to ["ADMIN","DOT"]
+  // Convert {ADMIN,DOT_OPERACIONAL} format to ["ADMIN","DOT_OPERACIONAL"]
   return pgRoles.replace(/[{}]/g, '').split(',').filter(r => r);
 };
 

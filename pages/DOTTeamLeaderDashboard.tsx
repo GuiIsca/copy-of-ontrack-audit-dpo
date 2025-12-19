@@ -42,7 +42,7 @@ export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ admi
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStore, setSelectedStore] = useState<number | ''>('');
   const [selectedDOT, setSelectedDOT] = useState<number | ''>('');
-  type ProfileFilter = 'all' | UserRole.DOT | UserRole.ADERENTE | UserRole.DOT_TEAM_LEADER;
+  type ProfileFilter = 'all' | UserRole.DOT_OPERACIONAL | UserRole.ADERENTE | UserRole.DOT_TEAM_LEADER;
   const [profileFilter, setProfileFilter] = useState<ProfileFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -110,7 +110,8 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
 
   if (isAudit) {
     const audit = visit as Audit;
-    const isMyAudit = audit.user_id === currentUser.userId || audit.dot_user_id === currentUser.userId;
+    const dotId = (audit as any).dot_operacional_id || audit.dot_user_id;
+    const isMyAudit = audit.user_id === currentUser.userId || dotId === currentUser.userId;
 
     if ((isMyAudit || isAdmin) && (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS)) {
       window.location.href = `${isAdmin ? '/admin' : '/dot-team-leader'}/execute/${visit.id}`;
@@ -144,7 +145,8 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
       filtered = filtered.filter(v => {
         const titleMatch = 'title' in v && v.title?.toLowerCase().includes(searchTerm.toLowerCase());
         // Find the DOT user for this store
-        const dotUser = v.store.dotUserId ? users.find(u => u.id === v.store.dotUserId) : null;
+        const dotUserId = (v.store as any).dot_operacional_id || v.store.dotUserId;
+        const dotUser = dotUserId ? users.find(u => u.id === dotUserId) : null;
         const dotNameMatch = dotUser && dotUser.fullname?.toLowerCase().includes(searchTerm.toLowerCase());
         return (
           (v.store.nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -194,8 +196,9 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         }
 
         if (isAudit) {
-          // For audits, check dot_user_id
-          return (v as any).dot_user_id === currentUser.userId;
+          // For audits, check DOT executor
+          const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
+          return dotId === currentUser.userId;
         }
 
         // For visits, check user_id
@@ -221,7 +224,8 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
       filteredVisits.map(v => {
         // For audits, extract dot_user_id; for visits, extract user_id
         const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
-        return isAudit ? (v as any).dot_user_id : v.user_id;
+        const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
+        return isAudit ? dotId : v.user_id;
       }).filter(Boolean)
     ));
     let candidates = users.filter(u => dotIds.includes(u.id));
@@ -241,7 +245,8 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
       list = list.filter(v => {
         // For audits, check dot_user_id; for visits, check user_id
         const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
-        return isAudit ? (v as any).dot_user_id === selectedDOT : v.user_id === selectedDOT;
+        const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
+        return isAudit ? dotId === selectedDOT : v.user_id === selectedDOT;
       });
     }
     if (viewMode === 'calendar') {
@@ -496,15 +501,16 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     const groups = dots.map(dot => ({
       dot,
       visits: viewVisits.filter(v => {
-        // For audits, check dot_user_id; for visits, check user_id
+        // For audits, check DOT executor; for visits, check user_id
         const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
-        return isAudit ? (v as any).dot_user_id === dot.id : v.user_id === dot.id;
+        const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
+        return isAudit ? dotId === dot.id : v.user_id === dot.id;
       }),
       stores: storesInFiltered.filter(s => {
         // Check the role of the user to determine which field to use
         const userRoles = dot.roles || [];
-        if (userRoles.includes(UserRole.DOT)) {
-          return (s.dotUserId === dot.id || s.dot_user_id === dot.id);
+        if (userRoles.includes(UserRole.DOT_OPERACIONAL)) {
+          return (s as any).dot_operacional_id === dot.id || s.dotUserId === dot.id || (s as any).dot_user_id === dot.id;
         } else if (userRoles.includes(UserRole.ADERENTE)) {
           return (s.aderenteId === dot.id || s.aderente_id === dot.id);
         }
@@ -640,7 +646,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
-                  placeholder="Pesquisar loja, cidade, código, DOT..."
+                  placeholder="Pesquisar loja, cidade, código, DOT Operacional..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -750,7 +756,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mousquetaires"
                 >
                   <option value="all">Todos</option>
-                  <option value={UserRole.DOT}>DOT</option>
+                  <option value={UserRole.DOT_OPERACIONAL}>DOT Operacional</option>
                   <option value={UserRole.ADERENTE}>Aderente</option>
                   <option value={UserRole.DOT_TEAM_LEADER}>DOT Team Leader</option>
                 </select>
@@ -853,7 +859,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loja</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DOT</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DOT Operacional</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
@@ -869,8 +875,10 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                     const title = isAudit 
                       ? (visit as any).auditorcomments 
                       : ('title' in visit ? visit.title : null);
-                    // For audits, use dot_user_id; for visits, use user_id
-                    const responsibleUserId = isAudit ? (visit as any).dot_user_id : visit.user_id;
+                    // For audits, use DOT executor; for visits, use user_id
+                    const responsibleUserId = isAudit 
+                      ? ((visit as any).dot_operacional_id || (visit as any).dot_user_id)
+                      : visit.user_id;
                     const dotUser = responsibleUserId ? users.find(u => u.id === responsibleUserId) : null;
                     return (
                       <tr 

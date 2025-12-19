@@ -1,7 +1,7 @@
 export enum UserRole {
   USER = 'USER',
   AUDITOR = 'AUDITOR',
-  DOT = 'DOT',
+  DOT_OPERACIONAL = 'DOT_OPERACIONAL',
   ADERENTE = 'ADERENTE',
   DOT_TEAM_LEADER = 'DOT_TEAM_LEADER',
   SUPERVISOR = 'SUPERVISOR',
@@ -54,8 +54,9 @@ export interface Store {
   city: string;
   gpslat?: number;
   gpslong?: number;
-  dotUserId?: number; // Frontend camelCase
-  dot_user_id?: number; // Backend snake_case
+  dotUserId?: number; // Frontend camelCase (deprecated, use dot_operacional_id)
+  dot_user_id?: number; // Backend snake_case (deprecated, use dot_operacional_id)
+  dot_operacional_id?: number; // NEW: Correct identifier for DOT Operacional
   aderenteId?: number; // Frontend camelCase
   aderente_id?: number; // Backend snake_case
 }
@@ -97,7 +98,8 @@ export interface Criteria {
 export interface Audit {
   id: number;
   user_id: number;
-  dot_user_id?: number; // Same as user_id, for backward compatibility with DB
+  dot_user_id?: number; // Deprecated: use dot_operacional_id
+  dot_operacional_id?: number; // NEW: DOT Operacional executor ID
   store_id: number;
   checklist_id: number;
   dtstart: string; // ISO Date

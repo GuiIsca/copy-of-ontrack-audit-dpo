@@ -79,10 +79,10 @@ router.post('/import-visitas', upload.single('file'), async (req, res) => {
           continue;
         }
 
-        // Lookup DOT user by email
+        // Lookup DOT Operacional user by email
         const userRes = await query('SELECT id FROM users WHERE email = $1', [dotEmail]);
         if (userRes.rows.length === 0) {
-          results.errors.push({ line: r.__line, message: `DOT user not found: ${dotEmail}` });
+          results.errors.push({ line: r.__line, message: `DOT Operacional user not found: ${dotEmail}` });
           continue;
         }
         const userId = userRes.rows[0].id;
@@ -108,19 +108,19 @@ router.post('/import-visitas', upload.single('file'), async (req, res) => {
 
           if (tipo === 'AUDITORIA') {
             const dupAudit = await query(
-              `SELECT id FROM audits WHERE store_id = $1 AND dot_user_id = $2 AND dtstart >= $3 AND dtstart < $4`,
+              `SELECT id FROM audits WHERE store_id = $1 AND dot_operacional_id = $2 AND dtstart >= $3 AND dtstart < $4`,
               [storeId, userId, startOfDay, endOfDay]
             );
             if (dupAudit.rows.length > 0) {
               results.errors.push({
                 line: r.__line,
-                message: `Duplicado: já existe Auditoria para DOT ${dotEmail} na loja ${code} em ${dataStr}`
+                message: `Duplicado: já existe Auditoria para DOT Operacional ${dotEmail} na loja ${code} em ${dataStr}`
               });
               continue;
             }
 
             const insAudit = await query(
-              `INSERT INTO audits (store_id, dot_user_id, checklist_id, dtstart, status, created_by)
+              `INSERT INTO audits (store_id, dot_operacional_id, checklist_id, dtstart, status, created_by)
                VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
               [storeId, userId, 1, dtstart, 'SCHEDULED', userId]
             );
@@ -136,7 +136,7 @@ router.post('/import-visitas', upload.single('file'), async (req, res) => {
             if (duplicateCheck.rows.length > 0) {
               results.errors.push({
                 line: r.__line,
-                message: `Duplicado: já existe ${tipoRaw} para DOT ${dotEmail} na loja ${code} em ${dataStr}`
+                message: `Duplicado: já existe ${tipoRaw} para DOT Operacional ${dotEmail} na loja ${code} em ${dataStr}`
               });
               continue;
             }

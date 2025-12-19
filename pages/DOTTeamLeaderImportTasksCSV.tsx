@@ -79,7 +79,7 @@ export const DOTTeamLeaderImportTasksCSV: React.FC = () => {
           errors.push({ row, field: 'data', message: 'Data inválida (use DD/MM/YYYY)' });
         }
         if (!dot_email || !dot_email.includes('@')) {
-          errors.push({ row, field: 'dot_email', message: 'Email do DOT inválido' });
+          errors.push({ row, field: 'dot_email', message: 'Email do DOT Operacional inválido' });
         }
         if (!lojas) {
           errors.push({ row, field: 'lojas', message: 'Lista de lojas é obrigatória' });

@@ -3,9 +3,9 @@ import { useParams } from 'react-router-dom';
 import { db } from '../services/dbAdapter';
 import { Audit, AuditStatus } from '../types';
 import { AuditExecution } from './AuditExecution';
-import { DotAuditView } from './DotAuditView';
+import { DotOperacionalAuditView } from './DotOperacionalAuditView';
 
-export const DotAuditPage: React.FC = () => {
+export const DotOperacionalAuditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [audit, setAudit] = useState<Audit | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ export const DotAuditPage: React.FC = () => {
 
   const isEditable = audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS || (typeof audit.status === 'string' && ['NEW','SCHEDULED','IN_PROGRESS'].includes(String(audit.status).toUpperCase()));
 
-  return isEditable ? <AuditExecution /> : <DotAuditView />;
+  return isEditable ? <AuditExecution /> : <DotOperacionalAuditView />;
 };
 
-export default DotAuditPage;
+export default DotOperacionalAuditPage;

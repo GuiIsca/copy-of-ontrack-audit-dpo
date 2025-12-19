@@ -4,7 +4,7 @@ import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { PlusCircle, Store as StoreIcon, AlertCircle } from 'lucide-react';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditStatus, Store, Visit, VisitType } from '../types';
+import { Audit, AuditStatus, Store, Visit, VisitType, UserRole } from '../types';
 import { getCurrentUser } from '../utils/auth';
 import { canCreateAudit } from '../utils/permissions';
 import { ScoreGauge } from '../components/charts/ScoreGauge';
@@ -35,9 +35,9 @@ export const Dashboard: React.FC = () => {
       // Se está em progresso (NEW ou IN_PROGRESS), vai para execute (editar)
       // Se está finalizada (COMPLETED), vai para audit (visualizar)
       if (item.status === 0 || item.status === 1) { // NEW ou IN_PROGRESS
-        navigate(`/dot/execute/${id}`);
+        navigate(`/dot-operacional/execute/${id}`);
       } else {
-        navigate(`/dot/audit/${id}`);
+        navigate(`/dot-operacional/audit/${id}`);
       }
     }
   };
@@ -51,9 +51,9 @@ export const Dashboard: React.FC = () => {
         return;
       }
 
-      // Carregar lojas atribuídas ao DOT
+      // Carregar lojas atribuídas ao DOT Operacional
       const user = await db.getUserByEmail(currentUser.email);
-      if (user?.roles.includes('DOT' as any)) {
+      if (user?.roles.includes(UserRole.DOT_OPERACIONAL as any)) {
         const stores = await db.getStoresForDOT(user.id);
         setAssignedStores(stores);
       } else {
@@ -273,7 +273,7 @@ export const Dashboard: React.FC = () => {
         
         {/* Header com info de lojas atribuídas */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard DOT</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard DOT Operacional</h1>
           <p className="text-gray-500 mt-1">
             {assignedStores.length > 0 
               ? `${assignedStores.length} loja(s) atribuída(s)`

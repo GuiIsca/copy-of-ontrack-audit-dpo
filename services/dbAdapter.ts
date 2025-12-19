@@ -50,8 +50,13 @@ class DatabaseAdapter {
     await api.deleteUser(userId);
   }
 
+  async assignDOTOperacionalToStore(storeId: number, dotOperacionalId: number): Promise<void> {
+    await api.updateStore(storeId, { dotUserId: dotOperacionalId });
+  }
+
+  // Legacy alias for backward compatibility
   async assignDOTToStore(storeId: number, dotUserId: number): Promise<void> {
-    await api.updateStore(storeId, { dotUserId });
+    return this.assignDOTOperacionalToStore(storeId, dotUserId);
   }
 
   async assignAderenteToStore(storeId: number, aderenteId: number): Promise<void> {
@@ -61,10 +66,11 @@ class DatabaseAdapter {
   // ============ STORES ============
   async getStores(): Promise<Store[]> {
     const stores = await api.getStores();
-    // Normalize snake_case to camelCase
+    // Normalize snake_case to camelCase; keep both legacy and new DOT fields
     return stores.map((s: any) => ({
       ...s,
-      dotUserId: s.dot_user_id,
+      dotUserId: s.dot_user_id ?? s.dot_operacional_id, // legacy camelCase
+      dot_operacional_id: s.dot_operacional_id,          // preferred field
       aderenteId: s.aderente_id
     }));
   }
@@ -74,13 +80,18 @@ class DatabaseAdapter {
     return stores.find((s: Store) => s.id === id);
   }
 
-  async getStoresForDOT(dotUserId: number): Promise<Store[]> {
+  async getStoresForDOTOperacional(dotOperacionalId: number): Promise<Store[]> {
     const stores = await this.getStores();
     // Convert to number for comparison to handle string IDs from localStorage
-    const userId = Number(dotUserId);
+    const userId = Number(dotOperacionalId);
     return stores.filter((s: Store) => 
-      Number(s.dotUserId) === userId || Number(s.dot_user_id) === userId
+      Number(s.dotUserId) === userId || Number(s.dot_operacional_id) === userId
     );
+  }
+
+  // Legacy alias for backward compatibility
+  async getStoresForDOT(dotUserId: number): Promise<Store[]> {
+    return this.getStoresForDOTOperacional(dotUserId);
   }
 
   async createStore(storeData: Partial<Store>): Promise<Store> {
@@ -120,7 +131,7 @@ class DatabaseAdapter {
         // For Aderente visits (visit_source_type = ADERENTE_VISIT), use createdBy as user_id
         // For DOT audits, use dotUserId
         user_id: d.dotUserId || d.createdBy || d.user_id,
-        dot_user_id: d.dotUserId,
+        dot_operacional_id: d.dotOperacionalId || d.dotUserId,
         createdBy: d.createdBy || d.created_by,
         store_id: d.storeId || d.store_id,
         checklist_id: d.checklistId || d.checklist_id,
@@ -156,7 +167,7 @@ class DatabaseAdapter {
         ...data,
         status: statusNum,
         user_id: data.dotUserId || data.createdBy || data.user_id,
-        dot_user_id: data.dotUserId,
+        dot_operacional_id: data.dotOperacionalId || data.dotUserId,
         createdBy: data.createdBy || data.created_by,
         store_id: data.storeId || data.store_id,
         checklist_id: data.checklistId || data.checklist_id,
@@ -184,10 +195,28 @@ class DatabaseAdapter {
       }
     }
 
+    // Resolve checklistId dynamically to avoid FK errors when DB seed differs
+    let checklistIdToUse = auditData.checklist_id;
+    if (!checklistIdToUse) {
+      try {
+        const cls = await api.getChecklists();
+        if (Array.isArray(cls) && cls.length > 0) {
+          // Prefer a DOT-oriented checklist when available
+          const preferred = cls.find((c: any) => ['DOT','DOT_TEAM_LEADER','DOT_OPERACIONAL'].includes((c.target_role || c.targetRole || '').toString().toUpperCase()));
+          checklistIdToUse = (preferred?.id as number) || (cls[0]?.id as number) || 1;
+        } else {
+          checklistIdToUse = 1;
+        }
+      } catch {
+        checklistIdToUse = 1;
+      }
+    }
+
     const result = await api.createAudit({
       storeId: auditData.store_id,
-      dotUserId: auditData.dot_user_id || auditData.user_id, // Suporta tanto dot_user_id (DOT) como user_id (Aderente)
-      checklistId: auditData.checklist_id || 1,
+      // Accept any of the known DOT identifier fields
+      dotUserId: (auditData as any).dot_operacional_id || (auditData as any).dot_user_id || auditData.user_id,
+      checklistId: checklistIdToUse,
       dtstart: auditData.dtstart,
       status: statusStr,
       createdBy: auditData.created_by || auditData.createdBy,
@@ -198,7 +227,7 @@ class DatabaseAdapter {
     return {
       ...result,
       user_id: result.dotUserId || result.createdBy || result.user_id,
-      dot_user_id: result.dotUserId,
+      dot_operacional_id: result.dotOperacionalId || result.dotUserId,
       store_id: result.storeId || result.store_id,
       checklist_id: result.checklistId || result.checklist_id,
       final_score: result.finalScore || result.final_score
@@ -253,8 +282,13 @@ class DatabaseAdapter {
     return api.getVisits(params);
   }
 
+  async getVisitsForDOTOperacional(dotOperacionalId: number): Promise<Visit[]> {
+    return api.getVisits({ userId: dotOperacionalId });
+  }
+
+  // Legacy alias for backward compatibility
   async getVisitsForDOT(dotUserId: number): Promise<Visit[]> {
-    return api.getVisits({ userId: dotUserId });
+    return this.getVisitsForDOTOperacional(dotUserId);
   }
 
   async getVisitById(id: number): Promise<Visit | undefined> {
@@ -325,7 +359,7 @@ class DatabaseAdapter {
 
       const audit = await this.createAudit({
         store_id: visitData.store_id,
-        dot_user_id: visitData.user_id, // user_id is the DOT Team Leader (executor)
+        dot_operacional_id: visitData.user_id, // user_id is the DOT Team Leader (executor)
         dtstart: visitData.dtstart,
         status: statusEnum,
         created_by: visitData.created_by

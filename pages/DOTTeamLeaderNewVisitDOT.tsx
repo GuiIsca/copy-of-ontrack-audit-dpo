@@ -31,7 +31,7 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
 
   // Filtered stores based on selected DOT
   const availableStores = selectedDotId 
-    ? allStores.filter(s => Number(s.dot_user_id || s.dotUserId) === Number(selectedDotId))
+    ? allStores.filter(s => Number(s.dot_operacional_id || s.dot_user_id || s.dotUserId) === Number(selectedDotId))
     : allStores;
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
       // Admin sees all DOTs; DOT Team Leader sees only their associated DOTs
       const isAdmin = currentUser.roles?.includes(UserRole.ADMIN);
       const dotUsers = allUsers.filter(u => 
-        u.roles?.includes(UserRole.DOT) && 
+        u.roles?.includes(UserRole.DOT_OPERACIONAL) && 
         (isAdmin || Number((u as any).dotTeamLeaderId) === Number(currentUser.userId))
       );
       
@@ -81,6 +81,8 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
       
       console.log('Creating visit for DOT:', { selectedDotId, selectedStoreId, visitType, created_by: currentUser.userId });
       
+      let createdItem: any = null;
+
       // Se for AUDITORIA, criar um Audit com checklist 2025 (ID=3)
       // O DOT e o DOT Team Leader usam o mesmo guião completo
       if (visitType === VisitType.AUDITORIA) {
@@ -88,13 +90,14 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
           store_id: selectedStoreId as number,
           user_id: selectedDotId as number, // DOT é o executor
           dot_user_id: selectedDotId as number,
-          checklist_id: 3, // Checklist 2025 - Guião Completo (usado por DOT e DOT Team Leader)
+          dot_operacional_id: selectedDotId as number,
+          checklist_id: 1,
           dtstart: datetime.toISOString(),
           status: AuditStatus.NEW,
           created_by: currentUser.userId // DOT Team Leader/Admin criou
         };
         console.log('Creating audit:', auditData);
-        await db.createAudit(auditData);
+        createdItem = await db.createAudit(auditData);
       } else {
         // Para outros tipos de visita (Formação, Acompanhamento, Outros)
         const visitData = {
@@ -109,12 +112,22 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
           created_by: currentUser.userId // DOT Team Leader/Admin criou
         };
         console.log('Creating visit:', visitData);
-        await db.createVisit(visitData);
+        createdItem = await db.createVisit(visitData);
       }
 
       console.log('Visit/Audit created successfully');
-      const redirectUrl = currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/dot-team-leader/dashboard';
-      window.location.href = redirectUrl;
+      
+      // Redirecionar para os detalhes
+      if (createdItem?.id) {
+        if (visitType === VisitType.AUDITORIA) {
+          navigate(`/dot-operacional/audit/${createdItem.id}`);
+        } else {
+          navigate(`/visit/${createdItem.id}`);
+        }
+      } else {
+        const redirectUrl = currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/dot-team-leader/dashboard';
+        navigate(redirectUrl);
+      }
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');
@@ -146,8 +159,8 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
             <ArrowLeft size={24} />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Nova Visita para DOT</h1>
-            <p className="text-gray-600 mt-1">Agendar uma visita para um DOT específico</p>
+            <h1 className="text-3xl font-bold text-gray-900">Nova Visita para DOT Operacional</h1>
+            <p className="text-gray-600 mt-1">Agendar uma visita para um DOT Operacional específico</p>
           </div>
         </div>
 
@@ -158,11 +171,11 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
             </div>
           )}
 
-          {/* DOT Selection */}
+          {/* DOT Operacional Selection */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center gap-2 mb-4">
               <Users className="text-gray-400" size={20} />
-              <h3 className="text-lg font-semibold text-gray-900">DOT Responsável</h3>
+              <h3 className="text-lg font-semibold text-gray-900">DOT Operacional Responsável</h3>
             </div>
             <select
               value={selectedDotId}
@@ -170,7 +183,7 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
             >
-              <option value="">Selecione um DOT</option>
+              <option value="">Selecione um DOT Operacional</option>
               {dots.map(dot => (
                 <option key={dot.id} value={dot.id}>
                   {dot.fullname} ({dot.email})
@@ -179,7 +192,7 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
             </select>
             {dots.length === 0 && (
               <p className="text-sm text-orange-600 mt-2">
-                Não existem DOTs associados a si. Verifique com o administrador.
+                Não existem DOTs Operacionais associados a si. Verifique com o administrador.
               </p>
             )}
           </div>
@@ -224,7 +237,7 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">
-                {!selectedDotId ? 'Selecione primeiro um DOT' : 'Selecione uma loja'}
+                {!selectedDotId ? 'Selecione primeiro um DOT Operacional' : 'Selecione uma loja'}
               </option>
               {availableStores.map(store => (
                 <option key={store.id} value={store.id}>
@@ -234,7 +247,7 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
             </select>
             {selectedDotId && availableStores.length === 0 && (
               <p className="text-sm text-orange-600 mt-2">
-                Este DOT não tem lojas atribuídas. Atribua lojas primeiro no painel de administração.
+                Este DOT Operacional não tem lojas atribuídas. Atribua lojas primeiro no painel de administração.
               </p>
             )}
             {selectedDot && availableStores.length > 0 && (

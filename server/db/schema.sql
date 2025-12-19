@@ -7,7 +7,7 @@ SET CLIENT_ENCODING TO 'UTF8';
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- User Roles Enum
-CREATE TYPE user_role AS ENUM ('ADMIN', 'DOT_TEAM_LEADER', 'DOT', 'ADERENTE');
+CREATE TYPE user_role AS ENUM ('ADMIN', 'DOT_TEAM_LEADER', 'DOT_OPERACIONAL', 'ADERENTE');
 
 -- Audit Status Enum
 CREATE TYPE audit_status AS ENUM ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
@@ -19,7 +19,7 @@ CREATE TYPE visit_type AS ENUM ('AUDITORIA', 'FORMACAO', 'ACOMPANHAMENTO', 'OUTR
 CREATE TYPE action_status AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
 
 -- Action Responsible Enum
-CREATE TYPE action_responsible AS ENUM ('DOT', 'ADERENTE', 'BOTH');
+CREATE TYPE action_responsible AS ENUM ('DOT_OPERACIONAL', 'ADERENTE', 'BOTH');
 
 -- Evaluation Type Enum
 CREATE TYPE evaluation_type AS ENUM ('SCALE_1_5', 'OK_KO');
@@ -45,7 +45,7 @@ CREATE TABLE stores (
     formato VARCHAR(100),
     area DECIMAL(10, 2),
     telefone VARCHAR(20),
-    dot_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    dot_operacional_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     aderente_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     situacao_pdv VARCHAR(50),
     data_abertura DATE,
@@ -73,7 +73,7 @@ CREATE TABLE checklists (
 CREATE TABLE audits (
     id SERIAL PRIMARY KEY,
     store_id INTEGER NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-    dot_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    dot_operacional_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     checklist_id INTEGER REFERENCES checklists(id) ON DELETE SET NULL,
     dtstart TIMESTAMP NOT NULL,
     dtend TIMESTAMP,
@@ -170,10 +170,10 @@ CREATE TABLE section_evaluations (
 -- Indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_roles ON users USING GIN(roles);
-CREATE INDEX idx_stores_dot_user_id ON stores(dot_user_id);
+CREATE INDEX idx_stores_dot_operacional_id ON stores(dot_operacional_id);
 CREATE INDEX idx_stores_aderente_id ON stores(aderente_id);
 CREATE INDEX idx_audits_store_id ON audits(store_id);
-CREATE INDEX idx_audits_dot_user_id ON audits(dot_user_id);
+CREATE INDEX idx_audits_dot_operacional_id ON audits(dot_operacional_id);
 CREATE INDEX idx_audits_status ON audits(status);
 CREATE INDEX idx_audits_dtstart ON audits(dtstart);
 CREATE INDEX idx_visits_store_id ON visits(store_id);

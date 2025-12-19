@@ -42,7 +42,7 @@ export const Header: React.FC = () => {
   const displayRole = currentUser ? (
     currentUser.roles.includes(UserRole.ADMIN) ? 'Administrador' :
     currentUser.roles.includes(UserRole.DOT_TEAM_LEADER) ? 'DOT Team Leader' :
-    currentUser.roles.includes(UserRole.DOT) ? 'DOT' :
+    currentUser.roles.includes(UserRole.DOT_OPERACIONAL) ? 'DOT Operacional' :
     currentUser.roles.includes(UserRole.ADERENTE) ? 'Aderente' :
     'Utilizador'
   ) : '';
@@ -50,7 +50,7 @@ export const Header: React.FC = () => {
   const displayIcon = currentUser ? (
     currentUser.roles.includes(UserRole.ADMIN) ? '⚙️' :
     currentUser.roles.includes(UserRole.DOT_TEAM_LEADER) ? '👔' :
-    currentUser.roles.includes(UserRole.DOT) ? '👨‍💼' :
+    currentUser.roles.includes(UserRole.DOT_OPERACIONAL) ? '👨‍💼' :
     currentUser.roles.includes(UserRole.ADERENTE) ? '🏪' :
     '👤'
   ) : '👤';
@@ -134,7 +134,7 @@ export const Header: React.FC = () => {
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <Users size={18} />
-                    Visita DOT
+                    Visita DOT Operacional
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
                   <button 
@@ -176,7 +176,7 @@ export const Header: React.FC = () => {
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <Users size={18} />
-                    Visita DOT
+                    Visita DOT Operacional
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
                   <button 
@@ -230,23 +230,23 @@ export const Header: React.FC = () => {
               )}
               {!userIsAdmin && !userIsDotTeamLeader && !userIsAderente && (
                 <>
-                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Auditorias DOT</div>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Auditorias DOT Operacional</div>
                   <button 
-                    onClick={() => { window.location.href = '/dashboard'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-operacional/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <LayoutDashboard size={18} />
                     Dashboard
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/select-visit-type'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-operacional/select-visit-type'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                     Nova Visita
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/history'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-operacional/history'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 10"/></svg>
@@ -254,7 +254,7 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
-                    onClick={() => { window.location.href = '/dot-team-leader/reports'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-operacional/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>

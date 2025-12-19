@@ -31,7 +31,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
   useEffect(() => {
     if (user) {
       setFormData({ ...user });
-      if (user.roles.includes(UserRole.DOT)) {
+      if (user.roles.includes(UserRole.DOT_OPERACIONAL)) {
         // Find stores assigned to this DOT
         const assigned = allStores.filter(s => (s.dot_user_id || s.dotUserId) === user.id).map(s => s.id);
         setSelectedStores(assigned);
@@ -54,7 +54,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
   if (!isOpen || !user) return null;
 
   const isTeamLeader = user.roles.includes(UserRole.DOT_TEAM_LEADER);
-  const isDot = user.roles.includes(UserRole.DOT);
+  const isDot = user.roles.includes(UserRole.DOT_OPERACIONAL);
   const isAderente = user.roles.includes(UserRole.ADERENTE);
 
   const handleSave = async () => {
@@ -186,14 +186,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
             <div className="space-y-4 border-t pt-4">
               <h4 className="font-semibold text-gray-900">Configurações Aderente</h4>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">DOT Responsável</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">DOT Operacional Responsável</label>
                 <select 
                   className="w-full border rounded-lg px-3 py-2"
                   value={(formData as any).dotTeamLeaderId || ''}
                   onChange={e => setFormData({...formData, dotTeamLeaderId: Number(e.target.value)})}
                 >
                   <option value="">Selecione um DOT</option>
-                  {allUsers.filter(u => u.roles.includes(UserRole.DOT)).map(d => (
+                  {allUsers.filter(u => u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d => (
                     <option key={d.id} value={d.id}>{d.fullname}</option>
                   ))}
                 </select>
@@ -285,7 +285,7 @@ export const AdminDashboard: React.FC = () => {
     try {
       await db.updateUser(updatedUser);
       
-      if (updatedUser.roles.includes(UserRole.DOT) && additionalData?.assignedStoreIds) {
+      if (updatedUser.roles.includes(UserRole.DOT_OPERACIONAL) && additionalData?.assignedStoreIds) {
         // Handle store assignments for DOT
         const storeIds = additionalData.assignedStoreIds as number[];
         
@@ -329,7 +329,7 @@ export const AdminDashboard: React.FC = () => {
   // --- Hierarchy Data Preparation ---
   const hierarchy = useMemo(() => {
     const teamLeaders = users.filter(u => u.roles.includes(UserRole.DOT_TEAM_LEADER));
-    const dots = users.filter(u => u.roles.includes(UserRole.DOT));
+    const dots = users.filter(u => u.roles.includes(UserRole.DOT_OPERACIONAL));
     const aderentes = users.filter(u => u.roles.includes(UserRole.ADERENTE));
     
     const tree = teamLeaders.map(teamLeader => {
@@ -382,7 +382,7 @@ export const AdminDashboard: React.FC = () => {
   const [teamLeaderForm, setTeamLeaderForm] = useState({ email: '', fullname: '' });
   const [dotForm, setDotForm] = useState({ email: '', fullname: '', dotTeamLeaderId: '' as string });
   const [aderenteForm, setAderenteForm] = useState({ email: '', fullname: '', storeId: '' as string, dotId: '' as string });
-  const [storeForm, setStoreForm] = useState({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', dotUserId: '' as string, aderenteId: '' as string });
+  const [storeForm, setStoreForm] = useState({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', nome: '', dotUserId: '' as string, aderenteId: '' as string });
 
   const clearFeedback = () => { setFeedback(''); setErrorMsg(''); };
 
@@ -403,12 +403,12 @@ export const AdminDashboard: React.FC = () => {
     try {
       const dotTeamLeaderId = Number((dotForm as any).dotTeamLeaderId);
       if (!dotTeamLeaderId) throw new Error('Selecione o supervisor DOT Team Leader');
-      await db.createUser({ email: dotForm.email.trim(), fullname: dotForm.fullname.trim(), roles: [UserRole.DOT], dotTeamLeaderId, assignedStores: [] } as any);
+      await db.createUser({ email: dotForm.email.trim(), fullname: dotForm.fullname.trim(), roles: [UserRole.DOT_OPERACIONAL], dotTeamLeaderId, assignedStores: [] } as any);
       setDotForm({ email: '', fullname: '', dotTeamLeaderId: '' } as any);
-      setFeedback('DOT criado com sucesso');
+      setFeedback('DOT Operacional criado com sucesso');
       await refresh();
     } catch (e: any) {
-      setErrorMsg(e.message || 'Erro ao criar DOT');
+      setErrorMsg(e.message || 'Erro ao criar DOT Operacional');
     }
   };
 
@@ -455,7 +455,7 @@ export const AdminDashboard: React.FC = () => {
       if (storeForm.dotUserId) payload.dotUserId = Number(storeForm.dotUserId);
       if (storeForm.aderenteId) payload.aderenteId = Number(storeForm.aderenteId);
       await db.createStore(payload);
-      setStoreForm({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', dotUserId: '', aderenteId: '' });
+      setStoreForm({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', nome: '', dotUserId: '', aderenteId: '' });
       setFeedback('Loja criada com sucesso');
       await refresh();
     } catch (e: any) {
@@ -544,7 +544,7 @@ export const AdminDashboard: React.FC = () => {
   const downloadAderenteTemplate = () => { const template = `email;fullname;store_codehex;dot_email\n`+`aderente100@intermarche.pt;Joana Lopes;LOJ018;dot1@mousquetaires.com\n`+`aderente101@intermarche.pt;Paulo Reis;;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_aderentes.csv'; link.click(); };
   const downloadStoreTemplate = () => { const template = `codehex;brand;size;city;gpslat;gpslong;dot_email\n`+`LOJ001;Intermarché;Super;Lisboa;38.716;-9.13;dot1@mousquetaires.com\n`+`LOJ002;Bricomarché;Média;Porto;41.15;-8.62;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_lojas.csv'; link.click(); };
 
-  const importDOTs = async () => { if (!dotCsv) return; clearFeedback(); setImportBusy(true); setImportResult(null); try { const text = await dotCsv.text(); const lines = parseCsvText(text); const rows = lines.slice(1); let created = 0, errors = 0; const usersNow = await db.getUsers(); for (const line of rows) { const cols = line.split(';').map(c => c.trim()); if (cols.length < 3) { errors++; continue; } const [email, fullname, dot_team_leader_email] = cols; const leader = usersNow.find(u => u.email === dot_team_leader_email && u.roles.includes(UserRole.DOT_TEAM_LEADER)); if (!leader) { errors++; continue; } try { await db.createUser({ email, fullname, roles: [UserRole.DOT], dotTeamLeaderId: leader.id, assignedStores: [] } as any); created++; } catch { errors++; } } setImportResult({ created, errors }); await refresh(); } finally { setImportBusy(false); } };
+  const importDOTs = async () => { if (!dotCsv) return; clearFeedback(); setImportBusy(true); setImportResult(null); try { const text = await dotCsv.text(); const lines = parseCsvText(text); const rows = lines.slice(1); let created = 0, errors = 0; const usersNow = await db.getUsers(); for (const line of rows) { const cols = line.split(';').map(c => c.trim()); if (cols.length < 3) { errors++; continue; } const [email, fullname, dot_team_leader_email] = cols; const leader = usersNow.find(u => u.email === dot_team_leader_email && u.roles.includes(UserRole.DOT_TEAM_LEADER)); if (!leader) { errors++; continue; } try { await db.createUser({ email, fullname, roles: [UserRole.DOT_OPERACIONAL], dotTeamLeaderId: leader.id, assignedStores: [] } as any); created++; } catch { errors++; } } setImportResult({ created, errors }); await refresh(); } finally { setImportBusy(false); } };
   const importAderentes = async () => { 
     if (!aderenteCsv) return; 
     clearFeedback(); 
@@ -568,7 +568,7 @@ export const AdminDashboard: React.FC = () => {
           
           // Find DOT if provided
           if (dot_email) {
-            const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT));
+            const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT_OPERACIONAL));
             if (dot) payload.dotTeamLeaderId = dot.id;
           }
 
@@ -617,7 +617,7 @@ export const AdminDashboard: React.FC = () => {
           };
 
           if (dot_email) {
-            const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT));
+            const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT_OPERACIONAL));
             if (dot) payload.dotUserId = dot.id;
           }
 
@@ -670,8 +670,8 @@ export const AdminDashboard: React.FC = () => {
               <div className="text-sm text-gray-500">Supervisores</div>
             </div>
             <div className="bg-white rounded shadow p-4">
-              <SectionHeader title="DOTs" icon={<UsersIcon className="w-4 h-4" />} />
-              <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.DOT)).length}</div>
+              <SectionHeader title="DOT Operacional" icon={<UsersIcon className="w-4 h-4" />} />
+              <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.DOT_OPERACIONAL)).length}</div>
               <div className="text-sm text-gray-500">Auditores</div>
             </div>
             <div className="bg-white rounded shadow p-4">
@@ -699,7 +699,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 {/* Create DOT */}
                 <div className="border rounded p-3 bg-gray-50">
-                  <h4 className="text-sm font-bold mb-2">Novo DOT</h4>
+                  <h4 className="text-sm font-bold mb-2">Novo DOT Operacional</h4>
                   <div className="space-y-2">
                     <Input placeholder="Nome" value={dotForm.fullname} onChange={e=>setDotForm({...dotForm,fullname:e.target.value})} />
                     <Input placeholder="Email" value={dotForm.email} onChange={e=>setDotForm({...dotForm,email:e.target.value})} />
@@ -717,8 +717,8 @@ export const AdminDashboard: React.FC = () => {
                     <Input placeholder="Nome" value={aderenteForm.fullname} onChange={e=>setAderenteForm({...aderenteForm,fullname:e.target.value})} />
                     <Input placeholder="Email" value={aderenteForm.email} onChange={e=>setAderenteForm({...aderenteForm,email:e.target.value})} />
                     <select className="w-full border rounded px-2 py-2 text-sm" value={aderenteForm.dotId} onChange={e=>setAderenteForm({...aderenteForm,dotId:e.target.value})}>
-                      <option value="">Selecione DOT (opcional)</option>
-                      {users.filter(u=>u.roles.includes(UserRole.DOT)).map(d=><option key={d.id} value={d.id}>{d.fullname}</option>)}
+                      <option value="">Selecione DOT Operacional (opcional)</option>
+                      {users.filter(u=>u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d=><option key={d.id} value={d.id}>{d.fullname}</option>)}
                     </select>
                     <select className="w-full border rounded px-2 py-2 text-sm" value={aderenteForm.storeId} onChange={e=>setAderenteForm({...aderenteForm,storeId:e.target.value})}>
                       <option value="">Selecione Loja (opcional)</option>
@@ -771,7 +771,7 @@ export const AdminDashboard: React.FC = () => {
                     {/* DOTs List */}
                     {expandedTeamLeaders.has(teamLeader.id) && (
                       <div className="pl-8 md:pl-12 border-l-2 border-gray-100 ml-6 my-2 space-y-2">
-                        {dots.length === 0 && <div className="text-sm text-gray-400 italic p-2">Sem DOTs atribuídos</div>}
+                        {dots.length === 0 && <div className="text-sm text-gray-400 italic p-2">Sem DOTs Operacionais atribuídos</div>}
                         {dots.map(({ dot, stores: dotStores, directAderentes }) => (
                           <div key={dot.id} className="bg-gray-50 rounded-lg border border-gray-200">
                             {/* DOT Row */}
@@ -782,7 +782,7 @@ export const AdminDashboard: React.FC = () => {
                                 </button>
                                 <div className="flex flex-col">
                                   <span className="font-semibold text-gray-800">{dot.fullname}</span>
-                                  <span className="text-xs text-gray-500 bg-blue-100 text-blue-800 px-2 py-0.5 rounded w-fit">DOT</span>
+                                  <span className="text-xs text-gray-500 bg-blue-100 text-blue-800 px-2 py-0.5 rounded w-fit">DOT Operacional</span>
                                 </div>
                                 <span className="text-xs text-gray-500 hidden md:inline">{dot.email}</span>
                               </div>
@@ -790,7 +790,7 @@ export const AdminDashboard: React.FC = () => {
                                 <button onClick={() => openEditUser(dot)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-full">
                                   <Edit2 size={14} />
                                 </button>
-                                <button onClick={() => handleDeleteUser(dot.id, 'DOT')} className="p-1.5 text-red-600 hover:bg-red-50 rounded-full">
+                                <button onClick={() => handleDeleteUser(dot.id, 'DOT Operacional')} className="p-1.5 text-red-600 hover:bg-red-50 rounded-full">
                                   <Trash2 size={14} />
                                 </button>
                               </div>
@@ -826,7 +826,7 @@ export const AdminDashboard: React.FC = () => {
 
                                 {directAderentes.length > 0 && (
                                   <div className="mt-2 pt-2 border-t border-gray-100">
-                                    <div className="text-xs font-semibold text-gray-500 mb-1">Aderentes sem Loja (Associados ao DOT)</div>
+                                    <div className="text-xs font-semibold text-gray-500 mb-1">Aderentes sem Loja (Associados ao DOT Operacional)</div>
                                     {directAderentes.map(aderente => (
                                       <div key={aderente.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-100 text-sm">
                                         <div className="flex items-center gap-2 text-gray-500 italic">
@@ -858,14 +858,14 @@ export const AdminDashboard: React.FC = () => {
                     
                     {hierarchy.unassignedDots.length > 0 && (
                       <div className="mb-4">
-                        <h5 className="text-xs font-bold text-gray-500 uppercase mb-2">DOTs sem Supervisor</h5>
+                        <h5 className="text-xs font-bold text-gray-500 uppercase mb-2">DOT Operacional sem Supervisor</h5>
                         <div className="space-y-2">
                           {hierarchy.unassignedDots.map(dot => (
                             <div key={dot.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
                               <span>{dot.fullname} ({dot.email})</span>
                               <div className="flex gap-2">
                                 <button onClick={() => openEditUser(dot)} className="text-blue-600"><Edit2 size={16} /></button>
-                                <button onClick={() => handleDeleteUser(dot.id, 'DOT')} className="text-red-600"><Trash2 size={16} /></button>
+                                <button onClick={() => handleDeleteUser(dot.id, 'DOT Operacional')} className="text-red-600"><Trash2 size={16} /></button>
                               </div>
                             </div>
                           ))}
@@ -908,10 +908,10 @@ export const AdminDashboard: React.FC = () => {
                 <Input label="GPS Lat" value={storeForm.gpslat} onChange={e=>setStoreForm({...storeForm,gpslat:e.target.value})} />
                 <Input label="GPS Long" value={storeForm.gpslong} onChange={e=>setStoreForm({...storeForm,gpslong:e.target.value})} />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">DOT (opcional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">DOT Operacional (opcional)</label>
                   <select className="w-full border rounded px-3 py-2 text-sm" value={storeForm.dotUserId} onChange={e=>setStoreForm({...storeForm,dotUserId:e.target.value})}>
                     <option value="">—</option>
-                    {users.filter(u=>u.roles.includes(UserRole.DOT)).map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
+                    {users.filter(u=>u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
                   </select>
                 </div>
                 <div>
@@ -941,7 +941,7 @@ export const AdminDashboard: React.FC = () => {
                       <th className="px-3 py-2 text-left">Código</th>
                       <th className="px-3 py-2 text-left">Marca</th>
                       <th className="px-3 py-2 text-left">Cidade</th>
-                      <th className="px-3 py-2 text-left">DOT</th>
+                        <th className="px-3 py-2 text-left">DOT Operacional</th>
                       <th className="px-3 py-2 text-left">Aderente</th>
                         <th className="px-3 py-2 text-left">Ações</th>
                     </tr>
@@ -960,7 +960,7 @@ export const AdminDashboard: React.FC = () => {
                           <td className="px-3 py-2 whitespace-nowrap">
                             <select className="border rounded px-2 py-1 text-sm" value={dotId || ''} onChange={e=>handleChangeStoreDot(s.id, Number(e.target.value))}>
                               <option value="">—</option>
-                              {users.filter(u=>u.roles.includes(UserRole.DOT)).map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
+                              {users.filter(u=>u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
                             </select>
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">

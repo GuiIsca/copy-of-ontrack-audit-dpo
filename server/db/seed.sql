@@ -15,12 +15,12 @@ INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
 (2, 'leader@mousquetaires.com', 'Ana Costa', ARRAY['DOT_TEAM_LEADER']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
--- Insert DOT Users
+-- Insert DOT Operacional Users
 INSERT INTO users (id, email, fullname, roles, dot_team_leader_id, assigned_stores, password_hash) VALUES
-(3, 'dot1@mousquetaires.com', 'João Silva', ARRAY['DOT']::user_role[], 2, ARRAY[1,2,3], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(4, 'dot2@mousquetaires.com', 'Pedro Martins', ARRAY['DOT']::user_role[], 2, ARRAY[4,5,6], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(5, 'dot3@mousquetaires.com', 'Sofia Almeida', ARRAY['DOT']::user_role[], 2, ARRAY[7,8], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(6, 'dot4@mousquetaires.com', 'Rui Santos', ARRAY['DOT']::user_role[], 2, ARRAY[9,10], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
+(3, 'dot1@mousquetaires.com', 'João Silva', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[1,2,3], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(4, 'dot2@mousquetaires.com', 'Pedro Martins', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[4,5,6], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(5, 'dot3@mousquetaires.com', 'Sofia Almeida', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[7,8], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(6, 'dot4@mousquetaires.com', 'Rui Santos', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[9,10], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
 -- Insert Aderente Users 
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
@@ -36,7 +36,7 @@ INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
 (20, 'aderente10@intermarche.pt', 'Vasco Ribeiro', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
 -- Insert Stores
-INSERT INTO stores (numero, nome, formato, area, telefone, dot_user_id, aderente_id, situacao_pdv, data_abertura, ultima_retoma, distrito, amplitude_horaria, morada, codigo_postal, conjugue_adh) VALUES
+INSERT INTO stores (numero, nome, formato, area, telefone, dot_operacional_id, aderente_id, situacao_pdv, data_abertura, ultima_retoma, distrito, amplitude_horaria, morada, codigo_postal, conjugue_adh) VALUES
 ('06347', 'A DOS CUNHADOS', 'Super 1500', 1489.92, '241980190', 3, 11, 'Exploração', '2009-05-19', '2024-11-20', 'Lisboa', '09:00-21:00', 'Vale da Saúda', '2560-562', 'CECÍLIA ROBALO'),
 ('03622', 'ABRANTÉS', 'Super 2500', 3335.00, '241340810', 3, 12, 'Exploração', '1998-11-11', '2024-11-20', 'Santarém', '09:00-21:00', 'Rua das Escolas', '2200-061', 'ALDINA HENRIQUES'),
 ('03012', 'ABRIGADA', 'Super 1900', 976.00, '241736096', 3, 13, 'Exploração', '1999-01-25', '2024-11-20', 'Lisboa', '09:00-21:00', 'Lugar do Pinheiral', '2580-631', 'RICARDO DOMINGUES'),
@@ -50,116 +50,7 @@ INSERT INTO stores (numero, nome, formato, area, telefone, dot_user_id, aderente
 
 -- Insert Checklists
 INSERT INTO checklists (id, name, target_role, sections) VALUES
-(1, 'Auditoria Qualidade 2025', 'DOT', 
-'[
-  {
-    "id": 101,
-    "name": "Frescura dos Alimentos",
-    "orderindex": 1,
-    "items": [
-      {
-        "id": 1001,
-        "name": "Temperatura",
-        "criteria": [
-          {"id": 10001, "name": "Temperatura de vitrinas dentro do limite", "weight": 1},
-          {"id": 10002, "name": "Registos de temperatura atualizados", "weight": 1}
-        ]
-      },
-      {
-        "id": 1002,
-        "name": "Validades",
-        "criteria": [
-          {"id": 10003, "name": "Validades dentro de prazo", "weight": 2},
-          {"id": 10004, "name": "Procedimento de quebras cumprido", "weight": 1}
-        ]
-      }
-    ]
-  },
-  {
-    "id": 102,
-    "name": "Limpeza do Espaço",
-    "orderindex": 2,
-    "items": [
-      {
-        "id": 2001,
-        "name": "Pavimento e Paredes",
-        "criteria": [
-          {"id": 20001, "name": "Limpeza geral do pavimento", "weight": 1},
-          {"id": 20002, "name": "Estado das paredes e tetos", "weight": 1}
-        ]
-      }
-    ]
-  },
-  {
-    "id": 103,
-    "name": "Exposição / Planograma",
-    "orderindex": 3,
-    "items": [
-      {
-        "id": 3001,
-        "name": "Linear",
-        "criteria": [
-          {"id": 30001, "name": "Etiquetas de preço presentes", "weight": 1},
-          {"id": 30002, "name": "Rupturas visuais", "weight": 1}
-        ]
-      }
-    ]
-  }
-]'::jsonb),
-(2, 'Survey Aderente – Visitas às lojas', 'ADERENTE', 
-'[
-  {
-    "id": 201,
-    "name": "1. Identificação",
-    "orderindex": 1,
-    "items": [
-      {
-        "id": 2101,
-        "name": "Dados da Loja",
-        "criteria": [
-          {"id": 21001, "name": "Microsetor", "weight": 1, "type": "dropdown", "options": []},
-          {"id": 21002, "name": "Loja visitada", "weight": 1, "type": "dropdown", "options": []}
-        ]
-      }
-    ]
-  },
-  {
-    "id": 202,
-    "name": "2. Avaliação Geral da Loja",
-    "orderindex": 2,
-    "items": [
-      {
-        "id": 2201,
-        "name": "Escala 1 a 5 (1 = Muito Mau | 5 = Excelente)",
-        "criteria": [
-          {"id": 22001, "name": "Limpeza e organização geral", "weight": 1, "type": "rating"},
-          {"id": 22002, "name": "Disponibilidade de artigos (sem ruturas visíveis)", "weight": 1, "type": "rating"},
-          {"id": 22003, "name": "Frescura e qualidade dos produtos", "weight": 1, "type": "rating"},
-          {"id": 22004, "name": "Execução comercial (PLV, folheto, teatralização)", "weight": 1, "type": "rating"},
-          {"id": 22005, "name": "Atendimento ao cliente observado", "weight": 1, "type": "rating"},
-          {"id": 22006, "name": "Impressão geral da loja (experiência cliente)", "weight": 1, "type": "rating"}
-        ]
-      }
-    ]
-  },
-  {
-    "id": 203,
-    "name": "3. Destaques da Loja",
-    "orderindex": 3,
-    "items": [
-      {
-        "id": 2301,
-        "name": "Observações",
-        "criteria": [
-          {"id": 23001, "name": "Pontos fortes que observou", "weight": 1, "type": "text"},
-          {"id": 23002, "name": "Pontos a melhorar", "weight": 1, "type": "text"},
-          {"id": 23003, "name": "Sugestões ao Aderente Visitado (opcional, mas útil)", "weight": 1, "type": "text"}
-        ]
-      }
-    ]
-  }
-]'::jsonb),
-(3, 'Auditoria DOT Team Leader 2025 - Guião Completo', 'DOT_TEAM_LEADER', 
+(1, 'Auditoria DOT 2025 - Guião Completo', 'DOT_OPERACIONAL', 
 '[
   {
     "id": 1,
@@ -607,22 +498,77 @@ INSERT INTO checklists (id, name, target_role, sections) VALUES
       }
     ]
   }
+]'::jsonb),
+(2, 'Survey Aderente – Visitas às lojas', 'ADERENTE', 
+'[
+  {
+    "id": 201,
+    "name": "1. Identificação",
+    "orderindex": 1,
+    "items": [
+      {
+        "id": 2101,
+        "name": "Dados da Loja",
+        "criteria": [
+          {"id": 21001, "name": "Microsetor", "weight": 1, "type": "dropdown", "options": []},
+          {"id": 21002, "name": "Loja visitada", "weight": 1, "type": "dropdown", "options": []}
+        ]
+      }
+    ]
+  },
+  {
+    "id": 202,
+    "name": "2. Avaliação Geral da Loja",
+    "orderindex": 2,
+    "items": [
+      {
+        "id": 2201,
+        "name": "Escala 1 a 5 (1 = Muito Mau | 5 = Excelente)",
+        "criteria": [
+          {"id": 22001, "name": "Limpeza e organização geral", "weight": 1, "type": "rating"},
+          {"id": 22002, "name": "Disponibilidade de artigos (sem ruturas visíveis)", "weight": 1, "type": "rating"},
+          {"id": 22003, "name": "Frescura e qualidade dos produtos", "weight": 1, "type": "rating"},
+          {"id": 22004, "name": "Execução comercial (PLV, folheto, teatralização)", "weight": 1, "type": "rating"},
+          {"id": 22005, "name": "Atendimento ao cliente observado", "weight": 1, "type": "rating"},
+          {"id": 22006, "name": "Impressão geral da loja (experiência cliente)", "weight": 1, "type": "rating"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": 203,
+    "name": "3. Destaques da Loja",
+    "orderindex": 3,
+    "items": [
+      {
+        "id": 2301,
+        "name": "Observações",
+        "criteria": [
+          {"id": 23001, "name": "Pontos fortes que observou", "weight": 1, "type": "text"},
+          {"id": 23002, "name": "Pontos a melhorar", "weight": 1, "type": "text"},
+          {"id": 23003, "name": "Sugestões ao Aderente Visitado (opcional, mas útil)", "weight": 1, "type": "text"}
+        ]
+      }
+    ]
+  }
 ]'::jsonb);
 
 -- Insert Sample Audits
+/*
 INSERT INTO audits (id, store_id, dot_user_id, checklist_id, dtstart, status, created_by) VALUES
-(1, 1, 3, 3, '2025-12-10 09:00:00', 'SCHEDULED', 2),
-(2, 2, 3, 3, '2025-12-12 10:00:00', 'SCHEDULED', 2),
-(3, 4, 4, 3, '2025-12-11 14:00:00', 'SCHEDULED', 2);
+(1, 1, 3, 1, '2025-12-10 09:00:00', 'SCHEDULED', 2),
+(2, 2, 3, 1, '2025-12-12 10:00:00', 'SCHEDULED', 2),
+(3, 4, 4, 1, '2025-12-11 14:00:00', 'SCHEDULED', 2);
 
 -- Insert Sample Visits
 INSERT INTO visits (id, store_id, user_id, type, title, description, dtstart, dtend, status, created_by) VALUES
 (1, 5, 4, 'FORMACAO', 'Formação Segurança Alimentar', 'Sessão de formação sobre boas práticas', '2025-12-15 09:00:00', '2025-12-15 12:00:00', 'SCHEDULED', 2),
 (2, 7, 5, 'ACOMPANHAMENTO', 'Acompanhamento Pós-Auditoria', 'Verificação de implementação de ações', '2025-12-20 10:00:00', '2025-12-20 16:00:00', 'SCHEDULED', 2);
+*/
 
 -- Reset sequences
 SELECT setval('users_id_seq', 20, true);
 SELECT setval('stores_id_seq', 10, true);
-SELECT setval('checklists_id_seq', 3, true);
+SELECT setval('checklists_id_seq', 2, true);
 SELECT setval('audits_id_seq', 3, true);
 SELECT setval('visits_id_seq', 2, true);

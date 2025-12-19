@@ -7,7 +7,7 @@ import { ArrowLeft, Image as ImageIcon, FileText, CheckCircle, XCircle, ListTodo
 import { db } from '../services/dbAdapter';
 import { Audit, AuditScore, AuditStatus, Checklist, Store, ActionPlan, SectionEvaluation } from '../types';
 
-export const DotAuditView: React.FC = () => {
+export const DotOperacionalAuditView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [audit, setAudit] = useState<Audit | null>(null);
@@ -25,29 +25,29 @@ export const DotAuditView: React.FC = () => {
       const auditData = await db.getAuditById(Number(id));
       if (!auditData) { navigate('/dashboard'); return; }
       setAudit(auditData);
-      console.log('DotAuditView: audit =', auditData);
+      console.log('DotOperacionalAuditView: audit =', auditData);
       
       const stores = await db.getStores();
       setStore(stores.find(s => s.id === auditData.store_id) || null);
       
       const checklistData = await db.getChecklist(auditData.checklist_id);
       setChecklist(checklistData || null);
-      console.log('DotAuditView: checklist =', checklistData);
+      console.log('DotOperacionalAuditView: checklist =', checklistData);
       if (checklistData?.sections) {
         console.log('Section IDs:', checklistData.sections.map(s => ({ id: s.id, name: s.name })));
       }
       
       const scoresData = await db.getScores(Number(id));
       setScores(scoresData || []);
-      console.log('DotAuditView: scores =', scoresData);
+      console.log('DotOperacionalAuditView: scores =', scoresData);
       
       const actionsData = await db.getActions(Number(id));
       setActions(actionsData || []);
-      console.log('DotAuditView: actions =', actionsData);
+      console.log('DotOperacionalAuditView: actions =', actionsData);
       
       const sectionEvalsData = await db.getSectionEvaluations(Number(id));
       setSectionEvaluations(sectionEvalsData || []);
-      console.log('DotAuditView: sectionEvaluations =', sectionEvalsData);
+      console.log('DotOperacionalAuditView: sectionEvaluations =', sectionEvalsData);
       if (sectionEvalsData && sectionEvalsData.length > 0) {
         console.log('First section evaluation details:', JSON.stringify(sectionEvalsData[0], null, 2));
       }
@@ -404,4 +404,4 @@ export const DotAuditView: React.FC = () => {
   );
 };
 
-export default DotAuditView;
+export default DotOperacionalAuditView;

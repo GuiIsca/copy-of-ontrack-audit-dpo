@@ -22,8 +22,8 @@ import { DOTTeamLeaderImportTasksCSV } from './pages/DOTTeamLeaderImportTasksCSV
 import { DOTTeamLeaderNewVisit } from './pages/DOTTeamLeaderNewVisit';
 import { DOTTeamLeaderNewVisitDOT } from './pages/DOTTeamLeaderNewVisitDOT';
 import { DOTTeamLeaderSelectNewVisit } from './pages/DOTTeamLeaderSelectNewVisit';
-import { DotAuditPage } from './pages/DotAuditPage';
-import { DotAuditView } from './pages/DotAuditView';
+import { DotOperacionalAuditPage } from './pages/DotOperacionalAuditPage';
+import { DotOperacionalAuditView } from './pages/DotOperacionalAuditView';
 import { AderenteVisitPage } from './pages/AderenteVisitPage';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
@@ -81,16 +81,56 @@ const App: React.FC = () => {
                 <Dashboard />
             </ProtectedRoute>
         } />
+        {/* NEW: DOT Operacional specific routes */}
+        <Route path="/dot-operacional/dashboard" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <Dashboard />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/new-audit" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
+                <NewAudit />
+            </ProtectedRoute>
+        } />
+            {/* Redirecting /dot/new-audit to /dot-operacional/new-audit */}
+            <Route path="/dot/new-audit" element={<Navigate to="/dot-operacional/new-audit" replace />} />
+        <Route path="/dot-operacional/execute/:id" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
+                <AuditExecution />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/audit/:id" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
+                <DotOperacionalAuditView />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/new-visit" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
+                <NewVisit />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/select-visit-type" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
+                <SelectVisitType />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/history" element={
+            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
+                <AuditList />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/reports" element={
+            <ProtectedRoute requireRole={canViewReports}>
+                <Reports />
+            </ProtectedRoute>
+        } />
         <Route path="/dot/new-audit" element={
             <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
-                <NewAudit />
+                <Navigate to="/dot-operacional/new-audit" replace />
             </ProtectedRoute>
         } />
-        <Route path="/new-audit" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
-                <NewAudit />
-            </ProtectedRoute>
-        } />
+            {/* Back-compat: route moved to /dot-operacional/new-audit */}
+            <Route path="/dot/new-audit" element={<Navigate to="/dot-operacional/new-audit" replace />} />
         <Route path="/dot/select-visit-type" element={
             <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <SelectVisitType />
@@ -121,14 +161,10 @@ const App: React.FC = () => {
                 <NewVisit />
             </ProtectedRoute>
         } />
-        <Route path="/dot/new-audit" element={
-            <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
-                <DotAuditPage />
-            </ProtectedRoute>
-        } />
+        {/* Removed duplicate/conflicting route for /dot/new-audit to avoid ambiguity */}
         <Route path="/dot/audit/:id" element={
             <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
-                <DotAuditView />
+                <DotOperacionalAuditView />
             </ProtectedRoute>
         } />
         <Route path="/dot/execute/:id" element={

@@ -39,7 +39,7 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
       // DOT Team Leader can see all stores and DOTs
       const allStores = await db.getStores();
       const allUsers = await db.getUsers();
-      const dotUsers = allUsers.filter(u => u.roles?.includes(UserRole.DOT));
+      const dotUsers = allUsers.filter(u => u.roles?.includes(UserRole.DOT_OPERACIONAL));
       setStores(allStores);
       setDots(dotUsers);
     };
@@ -63,21 +63,24 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
       const datetime = new Date(`${date}T${time}`);
       const datetimeEnd = new Date(`${date}T${timeEnd}`);
       
-      // Se for AUDITORIA, criar um Audit com checklist 2025 (ID=3)
+      let createdItem: any = null;
+
+      // Se for AUDITORIA, criar um Audit com o checklist ativo
       // Caso contrário, criar uma Visit normal
       if (visitType === VisitType.AUDITORIA) {
-        await db.createAudit({
+        createdItem = await db.createAudit({
           store_id: selectedStoreId as number,
           user_id: currentUser.userId, // DOT Team Leader é o executor
           dot_user_id: currentUser.userId,
-          checklist_id: 3, // Checklist 2025 - Guião Completo
+          dot_operacional_id: currentUser.userId,
+          checklist_id: 1,
           dtstart: datetime.toISOString(),
           status: AuditStatus.NEW,
           created_by: currentUser.userId
         });
       } else {
         // Para outros tipos de visita (Formação, Acompanhamento, Outros)
-        await db.createVisit({
+        createdItem = await db.createVisit({
           type: visitType,
           title: title.trim(),
           description: text.trim(),
@@ -90,7 +93,16 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
         });
       }
       
-      navigate(isAdminContext ? '/admin/visitas' : '/dot-team-leader/dashboard');
+      // Redirecionar para os detalhes
+      if (createdItem?.id) {
+        if (visitType === VisitType.AUDITORIA) {
+          navigate(`/dot-operacional/audit/${createdItem.id}`);
+        } else {
+          navigate(`/visit/${createdItem.id}`);
+        }
+      } else {
+        navigate(isAdminContext ? '/admin/visitas' : '/dot-team-leader/dashboard');
+      }
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');

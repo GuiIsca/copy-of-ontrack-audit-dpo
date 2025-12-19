@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { db } from '../services/dbAdapter';
-import { AuditStatus, Store } from '../types';
+import { AuditStatus, Store, UserRole } from '../types';
 import { getCurrentUser } from '../utils/auth';
 import { canCreateAudit } from '../utils/permissions';
 import { ArrowLeft, AlertCircle, Calendar, MapPin, Users, Save } from 'lucide-react';
@@ -35,8 +35,8 @@ export const NewAudit: React.FC = () => {
       const email = currentUser?.email || '';
       const user = await db.getUserByEmail(email);
 
-      if (user && Array.isArray(user.roles) && user.roles.includes('DOT' as any)) {
-        const dotStores = await db.getStoresForDOT(user.id);
+      if (user && Array.isArray(user.roles) && user.roles.includes(UserRole.DOT_OPERACIONAL)) {
+        const dotStores = await db.getStoresForDOTOperacional(user.id);
         setAvailableStores(dotStores);
       } else {
         const stores = await db.getStores();
@@ -53,8 +53,8 @@ export const NewAudit: React.FC = () => {
       const email = currentUser?.email || '';
       const user = await db.getUserByEmail(email);
 
-      // Verificar se DOT pode criar auditoria para esta loja (tem de ser uma das lojas atribuídas)
-      if (user && Array.isArray(user.roles) && user.roles.includes('DOT' as any)) {
+      // Verificar se DOT Operacional pode criar auditoria para esta loja (tem de ser uma das lojas atribuídas)
+      if (user && Array.isArray(user.roles) && user.roles.includes(UserRole.DOT_OPERACIONAL)) {
         const allowed = availableStores.some(s => s.id === parseInt(selectedStore));
         if (!allowed) {
           setError('Não tem permissão para criar auditorias nesta loja.');
@@ -65,17 +65,16 @@ export const NewAudit: React.FC = () => {
 
       
         const newAudit = await db.createAudit({
-          dot_user_id: user?.id || 0,
+          dot_operacional_id: user?.id || 0,
           user_id: user?.id || 0,
           store_id: parseInt(selectedStore),
-          checklist_id: 3,
+          checklist_id: 1,
           dtstart: new Date(date).toISOString(),
-          // DB expects string status enum; use 'SCHEDULED' for new audits
-          status: 'SCHEDULED',
+          status: AuditStatus.NEW,
           createdBy: user?.id || 0,
       });
 
-      navigate(`/dot/audit/${newAudit.id}`);
+      navigate(`/dot-operacional/audit/${newAudit.id}`);
   };
 
   return (

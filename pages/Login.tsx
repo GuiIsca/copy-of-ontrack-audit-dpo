@@ -32,7 +32,7 @@ export const Login: React.FC = () => {
       };
       localStorage.setItem('ontrack_auth', JSON.stringify(authData));
       
-      // Redirect based on role (prioridade: ADMIN > DOT TEAM LEADER > ADERENTE > DOT)
+      // Redirect based on role (prioridade: ADMIN > DOT TEAM LEADER > ADERENTE > DOT Operacional)
       if (userRoles.includes(UserRole.ADMIN)) {
         navigate('/admin/dashboard');
       } else if (userRoles.includes(UserRole.DOT_TEAM_LEADER)) {
@@ -108,7 +108,7 @@ export const Login: React.FC = () => {
                 }}
                 className="w-full justify-start"
               >
-                👨‍💼 DOT
+                👨‍💼 DOT Operacional
               </Button>
               <Button 
                 type="button"

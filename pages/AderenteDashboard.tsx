@@ -43,7 +43,7 @@ export const AderenteDashboard: React.FC = () => {
       // Carregar TODAS as auditorias (sem filtrar por userId)
       const allAudits = await db.getAudits(); // Sem parâmetro = retorna todas
       
-      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT ou DOT Team Leader, excluindo Admin)
+      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT Operacional ou DOT Team Leader, excluindo Admin)
       const enriched = allAudits
         .filter(a => {
           const isMyStore = myStoreIds.includes(a.store_id);

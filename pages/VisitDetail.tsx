@@ -186,7 +186,7 @@ useEffect(() => {
                 <div className="flex items-start gap-3">
                   <User className="text-gray-400 mt-1" size={20} />
                   <div>
-                    <div className="text-sm font-medium text-gray-500">DOT Responsável</div>
+                    <div className="text-sm font-medium text-gray-500">DOT Operacional Responsável</div>
                     <div className="text-base font-semibold text-gray-900">{dotUser.fullname}</div>
                     <div className="text-sm text-gray-600">{dotUser.email}</div>
                   </div>

@@ -2,14 +2,14 @@ import { UserRole, AuditStatus } from '../types';
 import { getCurrentUser, hasRole } from './auth';
 
 // ====================================
-// HIERARQUIA: ADMIN > DOT_TEAM_LEADER > DOT > ADERENTE
+// HIERARQUIA: ADMIN > DOT_TEAM_LEADER > DOT OPERACIONAL > ADERENTE
 // ====================================
 
 export const canCreateAudit = (): boolean => {
-  // DOT pode criar auditorias nas suas próprias lojas
+  // DOT Operacional pode criar auditorias nas suas próprias lojas
   // DOT Team Leader pode criar via CSV
   // ADMIN pode criar sempre
-  return hasRole(UserRole.DOT) || hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN);
+  return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN);
 };
 
 // Accept both numeric and string statuses to support mixed sources
@@ -20,7 +20,7 @@ export const canEditAudit = (auditStatus: number | string, auditUserId?: number,
   // ADMIN pode editar sempre
   if (hasRole(UserRole.ADMIN)) return true;
   
-  // Verificar se o status permite edição (tanto para DOT Team Leader como DOT)
+  // Verificar se o status permite edição (tanto para DOT Team Leader como DOT Operacional)
   let isEditable = false;
   if (typeof auditStatus === 'number') {
     // Legacy numeric statuses: allow anything below submitted/closed
@@ -35,8 +35,8 @@ export const canEditAudit = (auditStatus: number | string, auditUserId?: number,
   // DOT Team Leader pode editar enquanto não submetida
   if (hasRole(UserRole.DOT_TEAM_LEADER)) return isEditable;
   
-  // DOT pode editar conteúdos enquanto não submetida.
-  if (hasRole(UserRole.DOT)) {
+  // DOT Operacional pode editar conteúdos enquanto não submetida.
+  if (hasRole(UserRole.DOT_OPERACIONAL)) {
     return isEditable;
   }
 
@@ -67,9 +67,9 @@ export const canEditAuditDate = (createdBy?: number): boolean => {
   // DOT Team Leader pode alterar datas
   if (hasRole(UserRole.DOT_TEAM_LEADER)) return true;
   
-  // DOT pode alterar datas APENAS de auditorias que ele próprio criou
+  // DOT Operacional pode alterar datas APENAS de auditorias que ele próprio criou
   // NÃO pode alterar datas de auditorias criadas pelo DOT Team Leader
-  if (hasRole(UserRole.DOT) && createdBy) {
+  if (hasRole(UserRole.DOT_OPERACIONAL) && createdBy) {
     return currentUser.userId === createdBy;
   }
   
@@ -83,9 +83,9 @@ export const canDeleteAudit = (createdBy?: number): boolean => {
   // ADMIN pode apagar sempre
   if (hasRole(UserRole.ADMIN)) return true;
   
-  // DOT pode apagar APENAS auditorias que ele próprio criou manualmente
+  // DOT Operacional pode apagar APENAS auditorias que ele próprio criou manualmente
   // NÃO pode apagar auditorias criadas pelo DOT Team Leader via CSV
-  if (hasRole(UserRole.DOT) && createdBy) {
+  if (hasRole(UserRole.DOT_OPERACIONAL) && createdBy) {
     return currentUser.userId === createdBy;
   }
   
@@ -125,8 +125,8 @@ export const canSubmitAudit = (auditUserId: number | undefined, auditStatus?: nu
   const currentUser = getCurrentUser();
   if (!currentUser) return false;
   
-  // DOT pode submeter auditorias em curso (incluindo criadas pelo DOT Team Leader)
-  if (hasRole(UserRole.DOT)) {
+  // DOT Operacional pode submeter auditorias em curso (incluindo criadas pelo DOT Team Leader)
+  if (hasRole(UserRole.DOT_OPERACIONAL)) {
     // If provided, respect creator when available but don't require it
     const isCreatorOrAssigned = auditUserId ? currentUser.userId === auditUserId : true;
     // Allow submission for NEW/SCHEDULED/IN_PROGRESS
@@ -149,14 +149,14 @@ export const canSubmitAudit = (auditUserId: number | undefined, auditStatus?: nu
 };
 
 export const canManageActions = (): boolean => {
-  // DOT e Aderente podem ver ações
+  // DOT Operacional e Aderente podem ver ações
   // DOT Team Leader e ADMIN também podem
-  return hasRole(UserRole.DOT) || hasRole(UserRole.ADERENTE) || hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN);
+  return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.ADERENTE) || hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN);
 };
 
 export const canCreateActions = (): boolean => {
-  // Apenas DOT pode criar ações (após auditoria)
-  return hasRole(UserRole.DOT) || hasRole(UserRole.ADMIN);
+  // Apenas DOT Operacional pode criar ações (após auditoria)
+  return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.ADMIN);
 };
 
 export const canUpdateActionStatus = (actionResponsible: string): boolean => {
@@ -166,8 +166,8 @@ export const canUpdateActionStatus = (actionResponsible: string): boolean => {
   // ADMIN pode sempre atualizar
   if (hasRole(UserRole.ADMIN)) return true;
   
-  // DOT pode sempre atualizar ações que criou
-  if (hasRole(UserRole.DOT)) return true;
+  // DOT Operacional pode sempre atualizar ações que criou
+  if (hasRole(UserRole.DOT_OPERACIONAL)) return true;
   
   // Aderente pode atualizar apenas se for responsável
   if (hasRole(UserRole.ADERENTE)) {
@@ -184,7 +184,7 @@ export const canCloseAudit = (): boolean => {
 
 export const canViewReports = (): boolean => {
   // Apenas DOT Team Leader e ADMIN podem ver relatórios
-  return hasRole(UserRole.DOT) || hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN);
+  return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN);
 };
 
 export const canImportAuditsCSV = (): boolean => {
@@ -212,12 +212,12 @@ export const canAccessAderenteDashboard = (): boolean => {
 };
 
 export const canAccessDOTDashboard = (): boolean => {
-  return hasRole(UserRole.DOT) || hasRole(UserRole.ADMIN);
+  return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.ADMIN);
 };
 
 export const canAddInternalComments = (): boolean => {
-  // Apenas DOT pode adicionar comentários internos
-  return hasRole(UserRole.DOT) || hasRole(UserRole.ADMIN);
+  // Apenas DOT Operacional pode adicionar comentários internos
+  return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.ADMIN);
 };
 
 export const canAccessAdminDashboard = (): boolean => {
@@ -227,7 +227,7 @@ export const canAccessAdminDashboard = (): boolean => {
 // Helper functions para verificação de roles
 export const isAdmin = (): boolean => hasRole(UserRole.ADMIN);
 export const isDotTeamLeader = (): boolean => hasRole(UserRole.DOT_TEAM_LEADER);
-export const isDOT = (): boolean => hasRole(UserRole.DOT);
+export const isDOTOperacional = (): boolean => hasRole(UserRole.DOT_OPERACIONAL);
 export const isAderente = (): boolean => hasRole(UserRole.ADERENTE);
 
 export const canViewAllVisits = (): boolean => {
@@ -257,8 +257,8 @@ export const canEditVisit = (visitStatus: number | string, createdBy?: number): 
   // DOT Team Leader pode editar enquanto não submetida
   if (hasRole(UserRole.DOT_TEAM_LEADER)) return isEditable;
   
-  // DOT pode editar enquanto não submetida
-  if (hasRole(UserRole.DOT)) return isEditable;
+  // DOT Operacional pode editar enquanto não submetida
+  if (hasRole(UserRole.DOT_OPERACIONAL)) return isEditable;
 
   // Aderente pode editar suas próprias visitas enquanto não estão submetidas
   if (hasRole(UserRole.ADERENTE) && createdBy && createdBy === currentUser.userId) {
@@ -272,6 +272,6 @@ export const getDefaultDashboard = (): string => {
   if (hasRole(UserRole.ADMIN)) return '/admin/dashboard';
   if (hasRole(UserRole.DOT_TEAM_LEADER)) return '/dot-team-leader/dashboard';
   if (hasRole(UserRole.ADERENTE)) return '/aderente/dashboard';
-  if (hasRole(UserRole.DOT)) return '/dashboard';
+  if (hasRole(UserRole.DOT_OPERACIONAL)) return '/dot-operacional/dashboard';
   return '/';
 };

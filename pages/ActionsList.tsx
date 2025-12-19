@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { ArrowLeft, Clock, Check, AlertCircle, ChevronRight } from 'lucide-react';
 import { db } from '../services/dbAdapter';
-import { ActionPlan, ActionStatus, Audit, Store } from '../types';
+import { ActionPlan, ActionStatus, Audit, Store, UserRole } from '../types';
 import { getCurrentUser } from '../utils/auth';
 
 export const ActionsList: React.FC = () => {
@@ -21,12 +21,12 @@ export const ActionsList: React.FC = () => {
         return;
       }
 
-      // Get all audits for this DOT
+      // Get all audits for this DOT Operacional
       const user = await db.getUserByEmail(currentUser.email);
       if (!user) return;
 
       let audits = await db.getAudits(1);
-      if (user.roles.includes('DOT' as any)) {
+      if (user.roles.includes(UserRole.DOT_OPERACIONAL as any)) {
         audits = audits.filter(a => a.user_id === user.id);
       }
 
@@ -115,7 +115,7 @@ export const ActionsList: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8 flex items-center gap-4">
           <button 
-            onClick={() => navigate('/dot/dashboard')} 
+            onClick={() => navigate('/dot-operacional/dashboard')} 
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft size={24} />

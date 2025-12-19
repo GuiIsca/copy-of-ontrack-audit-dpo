@@ -2,14 +2,19 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { FileCheck, GraduationCap, Users, FileText, ArrowLeft } from 'lucide-react';
-import { VisitType } from '../types';
+import { VisitType, UserRole } from '../types';
 import { getCurrentUser } from '../utils/auth';
-import { getDefaultDashboard } from '../utils/permissions';
+import { getDefaultDashboard, canAccessDOTDashboard } from '../utils/permissions';
+import { db } from '../services/dbAdapter';
 
 export const SelectVisitType: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedDate = location.state?.selectedDate;
+  
+  // Determine audit route based on user role
+  const isDOTOperacional = canAccessDOTDashboard();
+  const auditRoute = isDOTOperacional ? '/dot-operacional/new-audit' : '/new-audit';
 
   const visitTypes = [
     {
@@ -19,7 +24,7 @@ export const SelectVisitType: React.FC = () => {
       description: 'Auditoria completa com checklist de qualidade e segurança',
       color: 'bg-red-50 border-red-200 hover:bg-red-100',
       iconColor: 'text-red-600',
-      route: '/new-audit'
+      route: auditRoute
     },
     {
       type: VisitType.FORMACAO,

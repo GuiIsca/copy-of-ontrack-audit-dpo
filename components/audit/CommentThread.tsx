@@ -3,7 +3,7 @@ import { MessageSquare, Send } from 'lucide-react';
 import { db } from '../../services/dbAdapter';
 import { AuditComment, UserRole } from '../../types';
 import { getCurrentUser } from '../../utils/auth';
-import { isDOT } from '../../utils/permissions';
+import { isDOTOperacional } from '../../utils/permissions';
 import { Button } from '../ui/Button';
 
 interface CommentThreadProps {
@@ -15,7 +15,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
   const [newComment, setNewComment] = useState('');
   const [isInternal, setIsInternal] = useState(false);
   const currentUser = getCurrentUser();
-  const userIsDOT = isDOT();
+  const userIsDOTOperacional = isDOTOperacional();
 
   useEffect(() => {
     loadComments();
@@ -24,7 +24,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
   const loadComments = async () => {
     const allComments = await db.getComments(auditId);
     // Aderente não vê comentários internos
-    const visibleComments = userIsDOT 
+    const visibleComments = userIsDOTOperacional 
       ? allComments 
       : allComments.filter(c => !c.isInternal);
     setComments(visibleComments);
@@ -42,8 +42,8 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
     let userRole = 'Aderente';
     if (user.roles.some(r => r === UserRole.DOT_TEAM_LEADER)) {
       userRole = 'DOT Team Leader';
-    } else if (user.roles.some(r => r === UserRole.DOT)) {
-      userRole = 'DOT';
+    } else if (user.roles.some(r => r === UserRole.DOT_OPERACIONAL)) {
+      userRole = 'DOT Operacional';
     } else if (user.roles.some(r => r === UserRole.ADMIN)) {
       userRole = 'ADMIN';
     } else if (user.roles.some(r => r === UserRole.ADERENTE)) {
@@ -56,7 +56,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
       username: user.fullname,
       userRole: userRole,
       comment: newComment.trim(),
-      isInternal: isInternal && userIsDOT // Only DOT can mark as internal
+      isInternal: isInternal && userIsDOTOperacional // Only DOT Operacional can mark as internal
     });
 
     setNewComment('');
@@ -103,7 +103,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
             <div
               key={comment.id}
               className={`p-4 rounded-lg border ${
-                comment.userRole === 'DOT'
+                comment.userRole === 'DOT Operacional'
                   ? 'bg-blue-50 border-blue-100'
                   : comment.userRole === 'DOT Team Leader'
                   ? 'bg-red-50 border-red-100'
@@ -116,7 +116,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                      comment.userRole === 'DOT'
+                      comment.userRole === 'DOT Operacional'
                         ? 'bg-blue-200 text-blue-800'
                         : comment.userRole === 'DOT Team Leader'
                         ? 'bg-red-200 text-red-800'
@@ -134,7 +134,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
                       </span>
                       <span
                         className={`text-xs px-2 py-0.5 rounded ${
-                          comment.userRole === 'DOT'
+                          comment.userRole === 'DOT Operacional'
                             ? 'bg-blue-100 text-blue-700'
                             : comment.userRole === 'DOT Team Leader'
                             ? 'bg-red-100 text-red-700'
@@ -177,7 +177,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
         
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-4">
-            {userIsDOT && (
+            {userIsDOTOperacional && (
               <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
                 <input
                   type="checkbox"
@@ -185,7 +185,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({ auditId }) => {
                   onChange={(e) => setIsInternal(e.target.checked)}
                   className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                 />
-                🔒 Comentário interno (apenas DOT)
+                🔒 Comentário interno (apenas DOT Operacional)
               </label>
             )}
           </div>
