@@ -117,17 +117,9 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
 
       console.log('Visit/Audit created successfully');
       
-      // Redirecionar para os detalhes
-      if (createdItem?.id) {
-        if (visitType === VisitType.AUDITORIA) {
-          navigate(`/dot-operacional/audit/${createdItem.id}`);
-        } else {
-          navigate(`/visit/${createdItem.id}`);
-        }
-      } else {
-        const redirectUrl = currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/dot-team-leader/dashboard';
-        navigate(redirectUrl);
-      }
+      // Redirecionar para o dashboard após criar
+      const redirectUrl = currentUser?.roles?.includes(UserRole.ADMIN) ? '/admin/visitas' : '/dot-team-leader/dashboard';
+      navigate(redirectUrl);
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');

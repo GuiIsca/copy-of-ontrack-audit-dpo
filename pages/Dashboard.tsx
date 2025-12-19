@@ -10,6 +10,7 @@ import { canCreateAudit } from '../utils/permissions';
 import { ScoreGauge } from '../components/charts/ScoreGauge';
 import { MonthPlanner } from '../components/calendar/MonthPlanner';
 import { WeekPlanner } from '../components/calendar/WeekPlanner';
+import { CustomDateRangePlanner } from '../components/calendar/CustomDateRangePlanner';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showStores, setShowStores] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  type CalendarScope = 'month' | 'week';
+  type CalendarScope = 'month' | 'week' | 'custom';
   const [calendarScope, setCalendarScope] = useState<CalendarScope>('month');
   const [weekFocusDate, setWeekFocusDate] = useState<Date | undefined>(undefined);
 
@@ -361,6 +362,12 @@ export const Dashboard: React.FC = () => {
               >
                 Vista Semanal
               </button>
+              <button
+                onClick={() => setCalendarScope('custom')}
+                className={`px-4 py-2 rounded-lg text-sm ${calendarScope === 'custom' ? 'bg-mousquetaires text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+              >
+                Vista Personalizada
+              </button>
             </div>
 
             {calendarScope === 'month' ? (
@@ -373,7 +380,7 @@ export const Dashboard: React.FC = () => {
                 }}
                 onShowWeek={(date) => { setWeekFocusDate(date); setCalendarScope('week'); }}
               />
-            ) : (
+            ) : calendarScope === 'week' ? (
               <WeekPlanner 
                 audits={audits} 
                 onAuditClick={handleItemClick}
@@ -383,7 +390,17 @@ export const Dashboard: React.FC = () => {
                 }}
                 initialDate={weekFocusDate}
               />
+            ) : (
+              <CustomDateRangePlanner 
+                audits={audits} 
+                onAuditClick={handleItemClick}
+                onDateClick={(date) => {
+                  // Navigate to select visit type with pre-selected date
+                  navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } });
+                }}
+              />
             )}
+
           </div>
         )}
 

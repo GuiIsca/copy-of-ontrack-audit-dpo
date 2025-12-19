@@ -11,6 +11,7 @@ import {
 import { db } from '../services/dbAdapter';
 import { MonthPlanner } from '../components/calendar/MonthPlanner';
 import { WeekPlanner } from '../components/calendar/WeekPlanner';
+import { CustomDateRangePlanner } from '../components/calendar/CustomDateRangePlanner';
 import { Audit, AuditStatus, Store, UserRole, Visit, VisitType } from '../types';
 import { getCurrentUser } from '../utils/auth';
 
@@ -35,7 +36,7 @@ export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ admi
   type ViewMode = 'list' | 'calendar' | 'store' | 'dot';
   type PageSize = 5 | 15 | 25;
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  type CalendarScope = 'month' | 'week';
+  type CalendarScope = 'month' | 'week' | 'custom';
   const [calendarScope, setCalendarScope] = useState<CalendarScope>('month');
   const [weekFocusDate, setWeekFocusDate] = useState<Date | undefined>(undefined);
   const [pageSize, setPageSize] = useState<PageSize>(15);
@@ -795,6 +796,12 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
               >
                 Vista Semanal
               </button>
+              <button
+                onClick={() => setCalendarScope('custom')}
+                className={`px-4 py-2 rounded-lg text-sm ${calendarScope === 'custom' ? 'bg-mousquetaires text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+              >
+                Vista Personalizada
+              </button>
             </div>
 
             {(() => {
@@ -830,12 +837,18 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                   onDateClick={(date) => window.location.href = `/dot-team-leader/select-new-visit?date=${date.toISOString()}`}
                   onShowWeek={(date) => { setWeekFocusDate(date); setCalendarScope('week'); }}
                 />
-              ) : (
+              ) : calendarScope === 'week' ? (
                 <WeekPlanner
                   audits={plannerAudits}
                   onAuditClick={handleItemClick}
                   onDateClick={(date) => window.location.href = `/dot-team-leader/select-new-visit?date=${date.toISOString()}`}
                   initialDate={weekFocusDate}
+                />
+              ) : (
+                <CustomDateRangePlanner
+                  audits={plannerAudits}
+                  onAuditClick={handleItemClick}
+                  onDateClick={(date) => window.location.href = `/dot-team-leader/select-new-visit?date=${date.toISOString()}`}
                 />
               );
             })()}

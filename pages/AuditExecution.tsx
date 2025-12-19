@@ -1528,8 +1528,8 @@ export const AuditExecution: React.FC = () => {
                     {currentSectionIndex + 1} / {checklist.sections.length}
                 </div>
                 
-                {/* Save Button - only show if not readonly */}
-                {!isReadOnly && (
+                {/* Save Button - only show if not readonly and not on last section */}
+                {!isReadOnly && currentSectionIndex < checklist.sections.length - 1 && (
                   <Button 
                     variant="outline"
                     onClick={handleSaveVisit}
@@ -1580,7 +1580,7 @@ export const AuditExecution: React.FC = () => {
                       </Button>
                     </div>
                   ) : (
-                    canSubmit && !isReadOnly && (
+                    !isReadOnly && (
                       <div className="flex gap-2 flex-1 sm:flex-none">
                         <Button 
                           variant="outline"
@@ -1590,8 +1590,8 @@ export const AuditExecution: React.FC = () => {
                         >
                           <Save className="mr-1" size={18} /> Guardar
                         </Button>
-                        <Button onClick={handleFinish} className="flex-1 sm:flex-none">
-                          Finalizar <CheckCircle className="ml-1" size={18} />
+                        <Button onClick={handleFinish} disabled={submitting} className="flex-1 sm:flex-none">
+                          Submeter <Send className="ml-1" size={18} />
                         </Button>
                       </div>
                     )
