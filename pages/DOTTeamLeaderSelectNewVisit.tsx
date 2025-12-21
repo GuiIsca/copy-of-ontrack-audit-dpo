@@ -1,12 +1,13 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { ArrowLeft, User, Users } from 'lucide-react';
 
 export const DOTTeamLeaderSelectNewVisit: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const selectedDate = location.state?.selectedDate;
+  const [searchParams] = useSearchParams();
+  const selectedDate = location.state?.selectedDate || searchParams.get('date');
 
   const handleSelectTeamLeader = () => {
     navigate('/dot-team-leader/new-visit-leader', { state: { selectedDate } });

@@ -14,7 +14,7 @@ import { CustomDateRangePlanner } from '../components/calendar/CustomDateRangePl
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [audits, setAudits] = useState<(Audit & { store: Store; visitType?: VisitType })[]>([]);
+  const [audits, setAudits] = useState<(Audit & { store: Store; visitType?: VisitType; isAudit?: boolean })[]>([]);
   const [assignedStores, setAssignedStores] = useState<Store[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,15 +24,14 @@ export const Dashboard: React.FC = () => {
   const [calendarScope, setCalendarScope] = useState<CalendarScope>('month');
   const [weekFocusDate, setWeekFocusDate] = useState<Date | undefined>(undefined);
 
-  const handleItemClick = (id: number) => {
-    const item = audits.find(a => a.id === id);
+  const handleItemClick = (id: number, itemType: 'audit' | 'visit') => {
+    const item = itemType === 'audit' 
+      ? audits.find(a => (a as any).isAudit === true && a.id === id)
+      : audits.find(a => (a as any).isAudit === false && a.id === id);
+    
     if (!item) return;
     
-    // Se checklist_id === 0 ou não existe, é uma Visit
-    if (!item.checklist_id || item.checklist_id === 0) {
-      navigate(`/visit/${id}`);
-    } else {
-      // Se tem checklist_id, é uma Audit
+    if (itemType === 'audit') {
       // Se está em progresso (NEW ou IN_PROGRESS), vai para execute (editar)
       // Se está finalizada (COMPLETED), vai para audit (visualizar)
       if (item.status === 0 || item.status === 1) { // NEW ou IN_PROGRESS
@@ -40,7 +39,28 @@ export const Dashboard: React.FC = () => {
       } else {
         navigate(`/dot-operacional/audit/${id}`);
       }
+    } else {
+      // É uma Visit
+      navigate(`/visit/${id}`);
     }
+  };
+
+  // Wrapper para calendários - detecta automaticamente o tipo
+  const handleCalendarClick = (id: number, isAudit?: boolean) => {
+    // Se isAudit é passado do calendário, usa isso; senão, procura nos dados
+    let itemType: 'audit' | 'visit' = 'audit';
+    
+    if (isAudit === false) {
+      itemType = 'visit';
+    } else if (isAudit === true) {
+      itemType = 'audit';
+    } else {
+      // Fallback: procura primeiro por audit, depois por visit
+      const auditItem = audits.find(a => (a as any).isAudit === true && a.id === id);
+      itemType = auditItem ? 'audit' : 'visit';
+    }
+    
+    handleItemClick(id, itemType);
   };
 
   useEffect(() => {
@@ -83,7 +103,7 @@ export const Dashboard: React.FC = () => {
       };
       
       // Filter out admin-created items (but DOT/Aderente can see items assigned to them)
-      const filterAdminItems = <T extends { createdBy?: number; created_by?: number; user_id?: number; dot_user_id?: number }>(items: T[]): T[] => {
+      const filterAdminItems = <T extends { createdBy?: number; created_by?: number; user_id?: number; dot_user_id?: number; dot_operacional_id?: number }>(items: T[]): T[] => {
         // If current user is admin, show everything
         if (user?.roles?.includes('ADMIN' as any)) {
           return items;
@@ -91,6 +111,19 @@ export const Dashboard: React.FC = () => {
         
         return items.filter(item => {
           const createdBy = (item as any).createdBy ?? (item as any).created_by;
+          const dotOpId = (item as any).dot_operacional_id ?? (item as any).dot_user_id;
+          const itemUserId = (item as any).user_id;
+          
+          // For DOT Operacional: show if assigned to this DOT (regardless of who created it)
+          if (user?.roles?.includes(UserRole.DOT_OPERACIONAL as any)) {
+            if (Number(dotOpId) === user?.id) {
+              return true; // Show audits assigned to this DOT
+            }
+            if (Number(itemUserId) === user?.id) {
+              return true; // Show visits created by this DOT
+            }
+          }
+          
           if (!createdBy) return true;
           const creator = allUsers.find(u => u.id === createdBy);
           
@@ -107,7 +140,9 @@ export const Dashboard: React.FC = () => {
       const enrichedAudits = filterAdminItems(rawAudits).map(a => ({
           ...a,
           store: stores.find(s => s.id === a.store_id) as Store,
-          visitType: VisitType.AUDITORIA
+          visitType: VisitType.AUDITORIA,
+          isAudit: true,
+          sourceId: `audit_${a.id}`
       }));
 
       // Convert visits to audit-like shape for calendar display
@@ -119,11 +154,14 @@ export const Dashboard: React.FC = () => {
           dtstart: v.dtstart,
           status: v.status,
           store: stores.find(s => s.id === v.store_id) as Store,
-          visitType: mapVisitType(v.type)
+          visitType: mapVisitType(v.type),
+          isAudit: false,
+          sourceId: `visit_${v.id}`
       })) as (Audit & { store: Store; visitType: VisitType })[];
 
       // Merge audits and visits for calendar display
-      setAudits([...enrichedAudits, ...enrichedVisits]);
+      const merged = [...enrichedAudits, ...enrichedVisits];
+      setAudits(merged);
       setAllUsers(allUsers);
       setLoading(false);
     };
@@ -373,7 +411,7 @@ export const Dashboard: React.FC = () => {
             {calendarScope === 'month' ? (
               <MonthPlanner 
                 audits={audits} 
-                onAuditClick={handleItemClick}
+                onAuditClick={handleCalendarClick}
                 onDateClick={(date) => {
                   // Navigate to select visit type with pre-selected date
                   navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } });
@@ -383,7 +421,7 @@ export const Dashboard: React.FC = () => {
             ) : calendarScope === 'week' ? (
               <WeekPlanner 
                 audits={audits} 
-                onAuditClick={handleItemClick}
+                onAuditClick={handleCalendarClick}
                 onDateClick={(date) => {
                   // Navigate to select visit type with pre-selected date
                   navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } });
@@ -393,7 +431,7 @@ export const Dashboard: React.FC = () => {
             ) : (
               <CustomDateRangePlanner 
                 audits={audits} 
-                onAuditClick={handleItemClick}
+                onAuditClick={handleCalendarClick}
                 onDateClick={(date) => {
                   // Navigate to select visit type with pre-selected date
                   navigate('/select-visit-type', { state: { selectedDate: date.toISOString() } });

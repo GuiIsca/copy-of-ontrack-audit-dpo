@@ -8,11 +8,13 @@ import { VisitType } from '../types';
 
 interface CSVRow {
   tipo: string; // Auditoria|Formacao|Acompanhamento|Outros
+  dot_email: string;
+  numero_loja: string;
+  data: string; // DD/MM/YYYY
+  hora_inicio: string; // HH:MM
+  hora_fim: string; // HH:MM
   titulo: string;
   texto: string;
-  data: string; // DD/MM/YYYY
-  dot_email: string;
-  lojas: string; // comma-separated store codes
 }
 
 interface ValidationError {
@@ -67,24 +69,37 @@ export const DOTTeamLeaderImportTasksCSV: React.FC = () => {
       dataLines.forEach((line, index) => {
         const row = index + 2;
         const columns = line.split(';').map(col => col.trim());
-        if (columns.length < 6) {
-          errors.push({ row, field: 'all', message: 'Linha incompleta (faltam colunas)' });
-          return;
+        
+        // Skip completely empty lines or lines with less than 8 columns
+        if (columns.length < 8 || columns.every(col => !col)) {
+          return; // Skip silently, don't report error
         }
-        const [tipo, titulo, texto, data, dot_email, lojas] = columns;
-        if (!tipo || !['Auditoria','Formacao','Acompanhamento','Outros'].includes(tipo)) {
-          errors.push({ row, field: 'tipo', message: 'Tipo inválido' });
-        }
-        if (!data || !/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
-          errors.push({ row, field: 'data', message: 'Data inválida (use DD/MM/YYYY)' });
+        
+        const [tipo, dot_email, numero_loja, data, hora_inicio, hora_fim, titulo, texto] = columns;
+        if (!tipo || !['auditoria','formacao','acompanhamento','outros'].includes(tipo.toLowerCase())) {
+          errors.push({ row, field: 'tipo', message: 'Tipo inválido (use: Auditoria, Formacao, Acompanhamento ou Outros)' });
         }
         if (!dot_email || !dot_email.includes('@')) {
           errors.push({ row, field: 'dot_email', message: 'Email do DOT Operacional inválido' });
         }
-        if (!lojas) {
-          errors.push({ row, field: 'lojas', message: 'Lista de lojas é obrigatória' });
+        if (!numero_loja) {
+          errors.push({ row, field: 'numero_loja', message: 'Número da loja é obrigatório' });
         }
-        parsed.push({ tipo, titulo, texto, data, dot_email, lojas });
+        // Validate that numero_loja is NOT a pure number (Excel issue)
+        // Should contain letters (LOJ) or have leading zeros preserved
+        if (numero_loja && /^\d+$/.test(numero_loja) && !numero_loja.startsWith('0')) {
+          errors.push({ row, field: 'numero_loja', message: 'Número da loja parece ser puro número. Excel removeu zeros? Formata como TEXTO no Excel e tenta novamente.' });
+        }
+        if (!data || !/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
+          errors.push({ row, field: 'data', message: 'Data inválida (use DD/MM/YYYY)' });
+        }
+        if (!hora_inicio || !/^\d{2}:\d{2}$/.test(hora_inicio)) {
+          errors.push({ row, field: 'hora_inicio', message: 'Hora de início inválida (use HH:MM)' });
+        }
+        if (!hora_fim || !/^\d{2}:\d{2}$/.test(hora_fim)) {
+          errors.push({ row, field: 'hora_fim', message: 'Hora de fim inválida (use HH:MM)' });
+        }
+        parsed.push({ tipo, dot_email, numero_loja, data, hora_inicio, hora_fim, titulo, texto });
       });
 
       setCsvData(parsed);
@@ -115,11 +130,11 @@ export const DOTTeamLeaderImportTasksCSV: React.FC = () => {
   };
 
   const downloadTemplate = () => {
-    const template = `tipo;titulo;texto;data;dot_email;lojas\n`+
-      `Auditoria;Auditoria Qualidade Q1;Auditoria trimestral;15/01/2026;dot1@mousquetaires.com;LOJ001\n`+
-      `Formacao;Formação HACCP;Sessão inicial;20/01/2026;dot1@mousquetaires.com;LOJ001,LOJ002\n`+
-      `Acompanhamento;Acompanhamento Pós-Auditoria;Follow-up;25/01/2026;dot2@mousquetaires.com;LOJ004\n`+
-      `Outros;Visita Protocolar;Visita de cortesia;30/01/2026;dot3@mousquetaires.com;LOJ007`;
+    const template = `tipo;dot;numero_loja;data;hora_inicio;hora_fim;titulo;texto\n`+
+      `Auditoria;dot1@mousquetaires.com;LOJ001;15/01/2026;09:00;11:30;Auditoria Qualidade Q1;Auditoria trimestral\n`+
+      `Formacao;dot1@mousquetaires.com;LOJ002;20/01/2026;10:00;12:00;Formação HACCP;Sessão inicial\n`+
+      `Acompanhamento;dot2@mousquetaires.com;LOJ004;25/01/2026;14:00;15:30;Acompanhamento Pós-Auditoria;Follow-up\n`+
+      `Outros;dot3@mousquetaires.com;LOJ007;30/01/2026;16:00;17:00;Visita Protocolar;Visita de cortesia`;
     const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -142,6 +157,21 @@ export const DOTTeamLeaderImportTasksCSV: React.FC = () => {
             <Download className="w-4 h-4 mr-2" />
             Download Template
           </Button>
+        </div>
+
+        {/* Aviso sobre formatação Excel */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-yellow-900 mb-2">⚠️ Importante: Formatação do Excel</h3>
+              <ul className="text-sm text-yellow-800 space-y-1">
+                <li>• <strong>Coluna "numero_loja":</strong> Formata como <code className="bg-yellow-100 px-1 rounded">TEXTO</code> antes de adicionar dados</li>
+                <li>• Se metes LOJ001, o Excel pode mudar para 1001 (remove zeros à esquerda)</li>
+                <li>• <strong>Solução rápida:</strong> Adiciona um apóstrofo antes: <code className="bg-yellow-100 px-1 rounded">'LOJ001</code></li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6 mb-6">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -11,7 +11,8 @@ import { getCurrentUser } from '../utils/auth';
 export const DOTTeamLeaderNewVisit: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const preSelectedDate = location.state?.selectedDate;
+  const [searchParams] = useSearchParams();
+  const preSelectedDate = location.state?.selectedDate || searchParams.get('date');
   const initialDate = preSelectedDate 
     ? new Date(preSelectedDate).toISOString().split('T')[0]
     : new Date().toISOString().split('T')[0];
@@ -93,16 +94,8 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
         });
       }
       
-      // Redirecionar para os detalhes
-      if (createdItem?.id) {
-        if (visitType === VisitType.AUDITORIA) {
-          navigate(`/dot-operacional/audit/${createdItem.id}`);
-        } else {
-          navigate(`/visit/${createdItem.id}`);
-        }
-      } else {
-        navigate(isAdminContext ? '/admin/visitas' : '/dot-team-leader/dashboard');
-      }
+      // Redirecionar para o dashboard
+      navigate(isAdminContext ? '/admin/visitas' : '/dot-team-leader/dashboard');
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');

@@ -174,7 +174,7 @@ export const CustomDateRangePlanner: React.FC<CustomDateRangePlannerProps> = ({ 
                       key={audit.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onAuditClick(audit.id);
+                        onAuditClick(audit.id, (audit as any).isAudit);
                       }}
                       className="w-full text-left p-1 rounded bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-mousquetaires transition-all group"
                       title={`${audit.store.nome} - ${audit.store.city} às ${new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`}

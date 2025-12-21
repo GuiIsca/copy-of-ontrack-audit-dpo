@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, Save, Calendar, MapPin, Users } from 'lucide-react';
@@ -10,7 +10,8 @@ import { getCurrentUser } from '../utils/auth';
 export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const preSelectedDate = location.state?.selectedDate;
+  const [searchParams] = useSearchParams();
+  const preSelectedDate = location.state?.selectedDate || searchParams.get('date');
   const initialDate = preSelectedDate 
     ? new Date(preSelectedDate).toISOString().split('T')[0]
     : new Date().toISOString().split('T')[0];
@@ -46,10 +47,12 @@ export const DOTTeamLeaderNewVisitDOT: React.FC = () => {
       
       // Admin sees all DOTs; DOT Team Leader sees only their associated DOTs
       const isAdmin = currentUser.roles?.includes(UserRole.ADMIN);
-      const dotUsers = allUsers.filter(u => 
-        u.roles?.includes(UserRole.DOT_OPERACIONAL) && 
-        (isAdmin || Number((u as any).dotTeamLeaderId) === Number(currentUser.userId))
-      );
+      const dotUsers = allUsers.filter(u => {
+        const hasDotRole = u.roles?.includes(UserRole.DOT_OPERACIONAL);
+        const teamLeaderId = (u as any).dotTeamLeaderId || (u as any).dot_team_leader_id;
+        const hasTeamLeader = isAdmin || (teamLeaderId && Number(teamLeaderId) === Number(currentUser.userId));
+        return hasDotRole && hasTeamLeader;
+      });
       
       setAllStores(stores);
       setDots(dotUsers);

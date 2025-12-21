@@ -86,12 +86,8 @@ export const NewVisit: React.FC = () => {
         created_by: currentUser.userId
       });
 
-      // Redirecionar para os detalhes da visita criada
-      if (createdVisit?.id) {
-        navigate(`/visit/${createdVisit.id}`);
-      } else {
-        navigate(getDefaultDashboard());
-      }
+      // Redirecionar para o dashboard
+      navigate(getDefaultDashboard());
     } catch (error) {
       console.error('Erro ao criar visita:', error);
       setError('Erro ao criar visita. Por favor, tente novamente.');

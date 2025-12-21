@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -20,6 +20,7 @@ type VisitItem = (Audit & { store: Store; visitType: VisitType }) | (Visit & { s
 
 export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ adminView = false }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = getCurrentUser();
   const isAdminView = adminView || (currentUser?.roles || []).includes(UserRole.ADMIN);
   const [visits, setVisits] = useState<VisitItem[]>([]);
@@ -47,6 +48,7 @@ export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ admi
   const [profileFilter, setProfileFilter] = useState<ProfileFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -57,7 +59,20 @@ export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ admi
       
       // Get all audits
       const allAuditsData = await db.getAudits();
-      const enrichedAudits: VisitItem[] = allAuditsData
+      
+      // For non-admin Team Leaders, filter to only their assigned DOTs
+      let auditsToShow = allAuditsData;
+      if (!isAdminView) {
+        const myDots = allUsers
+          .filter(u => u.roles?.includes(UserRole.DOT_OPERACIONAL) && (u as any).dotTeamLeaderId === currentUser?.userId)
+          .map(u => u.id);
+        console.log('DOT Team Leader:', currentUser?.userId, 'My DOTs:', myDots);
+        console.log('All audits:', allAuditsData.length);
+        auditsToShow = allAuditsData.filter(a => myDots.includes(a.dot_operacional_id));
+        console.log('Filtered audits:', auditsToShow.length);
+      }
+      
+      const enrichedAudits: VisitItem[] = auditsToShow
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
           const createdBy = (audit as any).createdBy ?? (audit as any).created_by;
@@ -99,7 +114,12 @@ export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ admi
     };
     
     loadData();
-  }, []);
+  }, [refreshKey]);
+
+  // Reload data when coming back to dashboard
+  useEffect(() => {
+    setRefreshKey(prev => prev + 1);
+  }, [location.key]);
 
   // Helper function to navigate to the correct view based on ownership
   // Uses same logic as Dashboard.tsx - check checklist_id to differentiate
