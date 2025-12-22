@@ -51,11 +51,12 @@ export const AderenteAuditView: React.FC = () => {
       
       // Auto-fill "Loja visitada" (criteria 21002) if not already in scores
       if (foundStore && !scoresData.find(s => s.criteria_id === 21002)) {
+        const storeDisplay = foundStore.city ? `${foundStore.nome} - ${foundStore.city}` : foundStore.nome;
         scoresData.push({
           audit_id: Number(id),
           criteria_id: 21002,
           score: null,
-          comment: `${foundStore.nome} - ${foundStore.city}`,
+          comment: storeDisplay,
           photos: []
         } as AuditScore);
       }
@@ -164,7 +165,7 @@ export const AderenteAuditView: React.FC = () => {
                 </h1>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div>
-                    <span className="font-medium">Loja:</span> {store?.nome && store?.city ? `${store.nome} - ${store.city}` : 'N/A'}
+                    <span className="font-medium">Loja:</span> {store ? `${store.numero} - ${store.nome}` : 'N/A'}
                   </div>
                   <div>
                     <span className="font-medium">Data:</span>{' '}
@@ -174,7 +175,7 @@ export const AderenteAuditView: React.FC = () => {
                       year: 'numeric'
                     })}
                   </div>
-                  {creator && (
+                  {creator && !creator.roles?.includes('DOT_OPERACIONAL') && !creator.roles?.includes('DOT_TEAM_LEADER') && !creator.roles?.includes('AMONT') && (
                     <div>
                       <span className="font-medium">Nome:</span> {creator.fullname}
                     </div>
@@ -322,9 +323,6 @@ export const AderenteAuditView: React.FC = () => {
                             {/* Comment */}
                             {scoreData?.comment && (![21001, 21002].includes(criteria.id)) && (
                               <div className="mt-3 pt-3 border-t border-gray-200">
-                                <p className="text-xs font-semibold text-gray-600 mb-1">
-                                  💬 Comentário:
-                                </p>
                                 <p className="text-sm text-gray-700">
                                   {scoreData.comment}
                                 </p>

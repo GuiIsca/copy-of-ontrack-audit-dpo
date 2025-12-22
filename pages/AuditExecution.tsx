@@ -871,7 +871,7 @@ export const AuditExecution: React.FC = () => {
                                   {/* Dropdown */}
                                   {critType === 'dropdown' && (
                                     <select
-                                      disabled={isReadOnly || isSaving}
+                                      disabled={isReadOnly || isSaving || crit.id === 21002}
                                       value={criteriaComments[crit.id] || ''}
                                       onChange={(e) => handleCommentChange(crit.id, e.target.value)}
                                       onBlur={() => saveComment(crit.id)}
@@ -1110,7 +1110,7 @@ export const AuditExecution: React.FC = () => {
                                       {/* Dropdown */}
                                       {critType === 'dropdown' && (
                                           <select
-                                              disabled={isReadOnly || isSaving}
+                                              disabled={isReadOnly || isSaving || crit.id === 21002}
                                               value={criteriaComments[crit.id] || ''}
                                               onChange={(e) => handleCommentChange(crit.id, e.target.value)}
                                               className="w-full text-sm border border-gray-200 rounded bg-gray-50 px-3 py-2 focus:ring-1 focus:ring-mousquetaires outline-none"

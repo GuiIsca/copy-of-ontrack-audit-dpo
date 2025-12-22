@@ -229,8 +229,16 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         // For visits, check user_id
         return v.user_id === currentUser.userId;
       });
+    } else if (currentUser) {
+      // Quando não está em "Minhas Visitas", ocultar visitas próprias
+      filtered = filtered.filter(v => {
+        const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
+        const createdBy = Number((v as any).createdBy ?? (v as any).created_by);
+        const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
+        const ownerId = isAudit ? (dotId || createdBy) : (v.user_id || createdBy);
+        return ownerId !== currentUser.userId;
+      });
     }
-    // Note: When minhasVisitas is false, we show everything (no filtering by user)
 
     setFilteredVisits(filtered);
   }, [searchTerm, statusFilter, typeFilter, brandFilter, minhasVisitas, visits, currentUser, isAdminView]);
@@ -599,19 +607,16 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
   const brands = Array.from(new Set(visits.map(v => v.store.nome)));
 
   const stats = {
-    total: visits.length,
-    ended: visits.filter(v => v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED).length,
-    avgScore: (() => {
-      const auditsWithScore = visits.filter(v => v.visitType === VisitType.AUDITORIA && 'score' in v && v.score !== undefined);
-      return auditsWithScore.length > 0
-        ? auditsWithScore.reduce((sum, v) => sum + ((v as any).score || 0), 0) / auditsWithScore.length
-        : 0;
-    })(),
+    total: minhasVisitas 
+      ? filteredVisits.length 
+      : filteredVisits.filter(v => v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED).length,
+    ended: filteredVisits.filter(v => v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED).length,
+    inProgress: filteredVisits.filter(v => v.status === AuditStatus.NEW || v.status === AuditStatus.IN_PROGRESS).length,
     byType: {
-      auditoria: visits.filter(v => v.visitType === VisitType.AUDITORIA).length,
-      formacao: visits.filter(v => v.visitType === VisitType.FORMACAO).length,
-      acompanhamento: visits.filter(v => v.visitType === VisitType.ACOMPANHAMENTO).length,
-      outros: visits.filter(v => v.visitType === VisitType.OUTROS).length,
+      auditoria: filteredVisits.filter(v => v.visitType === VisitType.AUDITORIA).length,
+      formacao: filteredVisits.filter(v => v.visitType === VisitType.FORMACAO).length,
+      acompanhamento: filteredVisits.filter(v => v.visitType === VisitType.ACOMPANHAMENTO).length,
+      outros: filteredVisits.filter(v => v.visitType === VisitType.OUTROS).length,
     }
   };
 
@@ -629,7 +634,7 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className={`grid gap-4 mb-8 ${minhasVisitas ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-1'}`}>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -639,28 +644,28 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
               <FileText className="text-gray-400" size={32} />
             </div>
           </div>
-
-          <div className="bg-green-50 rounded-lg shadow-sm border border-green-100 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-green-600">{stats.ended}</div>
-                <div className="text-sm text-green-600">Concluídas</div>
-              </div>
-              <CheckCircle className="text-green-400" size={32} />
-            </div>
-          </div>
-
-          <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {stats.avgScore.toFixed(0)}%
+          {minhasVisitas && (
+            <>
+              <div className="bg-yellow-50 rounded-lg shadow-sm border border-yellow-100 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
+                    <div className="text-sm text-yellow-600">Em Progresso</div>
+                  </div>
+                  <Clock className="text-yellow-400" size={32} />
                 </div>
-                <div className="text-sm text-blue-600">Média Global</div>
               </div>
-              <TrendingUp className="text-blue-400" size={32} />
-            </div>
-          </div>
+              <div className="bg-green-50 rounded-lg shadow-sm border border-green-100 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold text-green-600">{stats.ended}</div>
+                    <div className="text-sm text-green-600">Concluídas</div>
+                  </div>
+                  <CheckCircle className="text-green-400" size={32} />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Filters */}
@@ -896,10 +901,11 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loja</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DOT Operacional</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                    {!minhasVisitas && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    {minhasVisitas && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                   </tr>
@@ -917,6 +923,14 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                       ? ((visit as any).dot_operacional_id || (visit as any).dot_user_id)
                       : visit.user_id;
                     const dotUser = responsibleUserId ? users.find(u => u.id === responsibleUserId) : null;
+                    const dotRole = dotUser?.roles?.[0];
+                    const profileLabel = dotRole === UserRole.DOT_OPERACIONAL ? 'DOT Operacional'
+                      : dotRole === UserRole.DOT_TEAM_LEADER ? 'DOT Team Leader'
+                      : dotRole === UserRole.ADERENTE ? 'Aderente'
+                      : dotRole === UserRole.AMONT ? 'Amont'
+                      : dotRole === UserRole.ADMIN ? 'Admin'
+                      : '-';
+                    const isOwn = !!currentUser && responsibleUserId === currentUser.userId;
                     return (
                       <tr 
                         key={`${visit.visitType}-${visit.id}`} 
@@ -932,9 +946,10 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {dotUser ? dotUser.fullname : '-'}
                         </td>
+                        {!minhasVisitas && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{profileLabel}</td>}
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(visit.dtstart).toLocaleDateString('pt-PT')}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{getVisitTypeBadge(visit.visitType)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(visit.status)}</td>
+                        {minhasVisitas && <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(visit.status)}</td>}
                         <td className="px-6 py-4 whitespace-nowrap">
                           {score !== undefined && score !== null ? (
                             <div className="flex items-center gap-2">
