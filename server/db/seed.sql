@@ -24,7 +24,7 @@ INSERT INTO users (id, email, fullname, roles, dot_team_leader_id, assigned_stor
 
 -- Insert AMONT User (Independent Auditor)
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
-(7, 'amont@mousquetaires.com', 'Fernando Amont', ARRAY['AMONT']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
+(7, 'amont@mousquetaires.com', 'Fernando Barbosa', ARRAY['AMONT']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
 -- Insert Aderente Users 
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES

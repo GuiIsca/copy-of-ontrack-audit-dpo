@@ -134,7 +134,7 @@ export const Login: React.FC = () => {
                 }}
                 className="w-full justify-start"
               >
-                🔍 AMONT (Auditor Independente)
+                🔍 AMONT
               </Button>
             </div>
           </div>
