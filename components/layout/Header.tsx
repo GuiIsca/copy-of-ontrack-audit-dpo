@@ -215,7 +215,13 @@ export const Header: React.FC = () => {
                     <Users size={18} />
                     Nova Visita
                   </button>
-                  {/* Histórico removido */}
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/history'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 10"/></svg>
+                    Histórico
+                  </button>
                   <button 
                     onClick={() => { window.location.href = '/aderente/actions'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
