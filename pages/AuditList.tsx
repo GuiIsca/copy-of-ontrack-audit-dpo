@@ -279,18 +279,18 @@ export const AuditList: React.FC = () => {
               <div
                 key={`v-${item.id}`}
                 className="text-xs bg-gray-500 text-white px-1 py-0.5 rounded mb-1 truncate"
-                title={`${item.store.city} - ${item.store.numero}`}
+                title={`${item.store.nome} - ${item.store.city}`}
               >
-                {item.store.numero} ({item.visitType})
+                {item.store.nome} ({item.visitType})
               </div>
             ) : (
               <div
                 key={`a-${item.id}`}
                 onClick={() => handleAuditClick(item)}
                 className="text-xs bg-mousquetaires text-white px-1 py-0.5 rounded mb-1 cursor-pointer hover:bg-red-900 truncate"
-                title={`${item.store.city} - ${item.store.numero}`}
+                title={`${item.store.nome} - ${item.store.city}`}
               >
-                {item.store.numero}
+                {item.store.nome}
               </div>
             )
           )}
@@ -337,13 +337,10 @@ export const AuditList: React.FC = () => {
               className="bg-white border border-gray-200 rounded-lg p-4"
             >
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {store.city}{' '}
-                <span className="text-sm text-gray-500">
-                  ({store.codehex})
-                </span>
+                {store.nome}
               </h3>
               <div className="text-sm text-gray-600 mb-3">
-                {store.nome} • {store.size}
+                {store.city} - {store.numero}
               </div>
               <div className="space-y-2">
                 {audits.slice(0, 5).map(audit => (
@@ -687,13 +684,10 @@ export const AuditList: React.FC = () => {
                           ).toLocaleDateString()}
                         </td>
                         <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${isReplaced ? 'line-through' : ''}`}>
-                          {audit.store.city}{' '}
-                          <span className="text-gray-500 text-xs">
-                            ({audit.store.codehex})
-                          </span>
-                          {audit.store.nome && (
+                          {audit.store.nome}
+                          {audit.store.city && (
                             <span className="text-gray-500 text-xs ml-1">
-                              - {audit.store.nome}
+                              ({audit.store.city})
                             </span>
                           )}
                         </td>

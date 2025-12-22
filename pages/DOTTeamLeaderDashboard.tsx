@@ -460,9 +460,9 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         {pagedGroups.map(({ store, visits }) => (
           <div key={store.id} className="bg-white border border-gray-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {store.city} <span className="text-sm text-gray-500">({store.codehex})</span>
+              {store.nome}
             </h3>
-            <div className="text-sm text-gray-600 mb-3">{store.nome} • {store.size}</div>
+            <div className="text-sm text-gray-600 mb-3">{store.city} - {store.numero}</div>
             <div className="space-y-2">
               {(expandedStores.includes(store.id) ? visits : visits.slice(0,5)).map(v => {
                 const isAudit = v.visitType === VisitType.AUDITORIA;
@@ -539,24 +539,27 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
         const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
         return isAudit ? dotId === dot.id : v.user_id === dot.id;
       }),
-      stores: storesInFiltered.filter(s => {
-        // Check the role of the user to determine which field to use
-        const userRoles = dot.roles || [];
-        if (userRoles.includes(UserRole.DOT_OPERACIONAL)) {
-          return (s as any).dot_operacional_id === dot.id || s.dotUserId === dot.id || (s as any).dot_user_id === dot.id;
-        } else if (userRoles.includes(UserRole.ADERENTE)) {
-          return (s.aderenteId === dot.id || s.aderente_id === dot.id);
-        }
-        // For Team Leader and others, return all stores from visits
-        return true;
-      })
+      // Count unique stores that have SUBMITTED or ENDED visits (exclude IN_PROGRESS)
+      visitedStores: Array.from(new Set(
+        viewVisits
+          .filter(v => {
+            // For audits, check DOT executor; for visits, check user_id
+            const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
+            const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
+            const matchesDot = isAudit ? dotId === dot.id : v.user_id === dot.id;
+            // Only count SUBMITTED (2) or ENDED (3) status, exclude IN_PROGRESS (1)
+            const hasValidStatus = v.status === 2 || v.status === 3 || v.status === AuditStatus.SUBMITTED || v.status === AuditStatus.ENDED;
+            return matchesDot && hasValidStatus;
+          })
+          .map(v => v.store_id)
+      ))
     })).filter(g => g.visits.length > 0);
     return (
       <div className="space-y-4">
-        {groups.map(({ dot, visits, stores }) => (
+        {groups.map(({ dot, visits, visitedStores }) => (
           <div key={dot.id} className="bg-white border border-gray-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">{dot.fullname}</h3>
-            <div className="text-sm text-gray-600 mb-3">{dot.email} • {stores.length} {stores.length === 1 ? 'loja' : 'lojas'}</div>
+            <div className="text-sm text-gray-600 mb-3">{dot.email} • {visitedStores.length} {visitedStores.length === 1 ? 'loja' : 'lojas'}</div>
             <div className="space-y-2">
               {(expandedDots.includes(dot.id) ? visits : visits.slice(0,5)).map(v => {
                 const isAudit = v.visitType === VisitType.AUDITORIA;
