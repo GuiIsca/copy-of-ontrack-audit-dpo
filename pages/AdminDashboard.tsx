@@ -382,6 +382,7 @@ export const AdminDashboard: React.FC = () => {
   const [teamLeaderForm, setTeamLeaderForm] = useState({ email: '', fullname: '' });
   const [dotForm, setDotForm] = useState({ email: '', fullname: '', dotTeamLeaderId: '' as string });
   const [aderenteForm, setAderenteForm] = useState({ email: '', fullname: '', storeId: '' as string, dotId: '' as string });
+  const [amontForm, setAmontForm] = useState({ email: '', fullname: '' });
   const [storeForm, setStoreForm] = useState({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', nome: '', dotUserId: '' as string, aderenteId: '' as string });
 
   const clearFeedback = () => { setFeedback(''); setErrorMsg(''); };
@@ -438,6 +439,22 @@ export const AdminDashboard: React.FC = () => {
       await refresh();
     } catch (e: any) {
       setErrorMsg(e.message || 'Erro ao criar Aderente');
+    }
+  };
+
+  const handleCreateAmont = async () => {
+    clearFeedback();
+    try {
+      await db.createUser({ 
+        email: amontForm.email.trim(), 
+        fullname: amontForm.fullname.trim(), 
+        roles: [UserRole.AMONT] 
+      });
+      setAmontForm({ email: '', fullname: '' });
+      setFeedback('AMONT criado com sucesso');
+      await refresh();
+    } catch (e: any) {
+      setErrorMsg(e.message || 'Erro ao criar AMONT');
     }
   };
   // --- Store handlers ---
@@ -663,7 +680,7 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white rounded shadow p-4">
               <SectionHeader title="DOT Team Leader" icon={<UsersIcon className="w-4 h-4" />} />
               <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.DOT_TEAM_LEADER)).length}</div>
@@ -673,6 +690,11 @@ export const AdminDashboard: React.FC = () => {
               <SectionHeader title="DOT Operacional" icon={<UsersIcon className="w-4 h-4" />} />
               <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.DOT_OPERACIONAL)).length}</div>
               <div className="text-sm text-gray-500">Auditores</div>
+            </div>
+            <div className="bg-white rounded shadow p-4">
+              <SectionHeader title="AMONT" icon={<UsersIcon className="w-4 h-4" />} />
+              <div className="text-3xl font-bold">{users.filter(u => u.roles.includes(UserRole.AMONT)).length}</div>
+              <div className="text-sm text-gray-500">Auditores Independentes</div>
             </div>
             <div className="bg-white rounded shadow p-4">
               <SectionHeader title="Lojas" icon={<StoreIcon className="w-4 h-4" />} />
@@ -687,7 +709,7 @@ export const AdminDashboard: React.FC = () => {
             {/* Quick Create Actions */}
             <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
               <h3 className="font-semibold text-gray-800 mb-4">Adicionar Novo Utilizador</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Create Team Leader */}
                 <div className="border rounded p-3 bg-gray-50">
                   <h4 className="text-sm font-bold mb-2">Novo DOT Team Leader</h4>
@@ -708,6 +730,15 @@ export const AdminDashboard: React.FC = () => {
                       {users.filter(u=>u.roles.includes(UserRole.DOT_TEAM_LEADER)).map(a=><option key={a.id} value={a.id}>{a.fullname}</option>)}
                     </select>
                     <Button size="sm" fullWidth onClick={handleCreateDOT}>Criar</Button>
+                  </div>
+                </div>
+                {/* Create AMONT */}
+                <div className="border rounded p-3 bg-gray-50">
+                  <h4 className="text-sm font-bold mb-2">Novo AMONT</h4>
+                  <div className="space-y-2">
+                    <Input placeholder="Nome" value={amontForm.fullname} onChange={e=>setAmontForm({...amontForm,fullname:e.target.value})} />
+                    <Input placeholder="Email" value={amontForm.email} onChange={e=>setAmontForm({...amontForm,email:e.target.value})} />
+                    <Button size="sm" fullWidth onClick={handleCreateAmont}>Criar</Button>
                   </div>
                 </div>
                 {/* Create Aderente */}
@@ -889,6 +920,34 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* AMONT Section - Independent Auditors */}
+                {users.filter(u => u.roles.includes(UserRole.AMONT)).length > 0 && (
+                  <div className="bg-indigo-50 p-4 border-t border-indigo-200">
+                    <h4 className="font-bold text-indigo-900 mb-3">AMONT - Auditores Independentes</h4>
+                    <div className="space-y-2">
+                      {users.filter(u => u.roles.includes(UserRole.AMONT)).map(amont => (
+                        <div key={amont.id} className="flex items-center justify-between bg-white p-3 rounded border border-indigo-200">
+                          <div className="flex items-center gap-3">
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-gray-900">{amont.fullname}</span>
+                              <span className="text-xs text-gray-500">{amont.email}</span>
+                            </div>
+                            <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">AMONT</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => openEditUser(amont)} className="text-blue-600 hover:text-blue-800">
+                              <Edit2 size={16} />
+                            </button>
+                            <button onClick={() => handleDeleteUser(amont.id, 'AMONT')} className="text-red-600 hover:text-red-800">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

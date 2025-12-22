@@ -6,7 +6,8 @@ export enum UserRole {
   DOT_TEAM_LEADER = 'DOT_TEAM_LEADER',
   SUPERVISOR = 'SUPERVISOR',
   LEADER = 'LEADER',
-  ADMIN = 'ADMIN'
+  ADMIN = 'ADMIN',
+  AMONT = 'AMONT'
 }
 
 export enum AuditStatus {
