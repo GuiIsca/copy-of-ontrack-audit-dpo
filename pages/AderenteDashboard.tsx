@@ -48,7 +48,7 @@ export const AderenteDashboard: React.FC = () => {
       const allAudits = await db.getAudits(); // Sem parâmetro = retorna todas
       console.log('🔍 All audits loaded:', allAudits.length, allAudits.map(a => ({ id: a.id, store_id: a.store_id, status: a.status })));
       
-      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT Operacional ou DOT Team Leader, excluindo Admin)
+      // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT Operacional ou DOT Team Leader, excluindo Admin e AMONT)
       const enriched = allAudits
         .filter(a => {
           const isMyStore = myStoreIds.includes(a.store_id);
@@ -58,6 +58,7 @@ export const AderenteDashboard: React.FC = () => {
           if (createdBy) {
             const creator = allUsers.find(u => u.id === createdBy);
             if (creator?.roles?.includes('ADMIN' as any)) return false;
+            if (creator?.roles?.includes('AMONT' as any)) return false; // Aderente não vê auditorias AMONT
           }
           return isMyStore && isSubmittedOrReplaced;
         })
@@ -177,7 +178,7 @@ export const AderenteDashboard: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
           <div className="p-4 border-b border-gray-100">
             <h3 className="font-semibold text-gray-700">Visitas Recentes</h3>
-            <p className="text-xs text-gray-500 mt-1">Visitas realizadas por DOTs às suas lojas</p>
+            <p className="text-xs text-gray-500 mt-1">Visitas realizadas por DOTs/Aderentes às suas lojas</p>
           </div>
           <div className="divide-y divide-gray-100">
             {loading ? (

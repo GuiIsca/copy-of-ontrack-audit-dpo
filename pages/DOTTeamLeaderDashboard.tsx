@@ -68,7 +68,11 @@ export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ admi
           .map(u => u.id);
         console.log('DOT Team Leader:', currentUser?.userId, 'My DOTs:', myDots);
         console.log('All audits:', allAuditsData.length);
-        auditsToShow = allAuditsData.filter(a => myDots.includes(a.dot_operacional_id));
+        auditsToShow = allAuditsData.filter(a => {
+          const createdBy = (a as any).createdBy ?? (a as any).created_by;
+          const isAderenteVisit = (a as any).visit_source_type === 'ADERENTE_VISIT' || (a as any).visitSourceType === 'ADERENTE_VISIT';
+          return isAderenteVisit || myDots.includes(a.dot_operacional_id) || createdBy === currentUser?.userId;
+        });
         console.log('Filtered audits:', auditsToShow.length);
       }
       

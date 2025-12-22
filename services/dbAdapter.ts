@@ -132,7 +132,8 @@ class DatabaseAdapter {
         // For Aderente visits (visit_source_type = ADERENTE_VISIT), use createdBy as user_id
         // For DOT audits, use dotUserId
         user_id: d.dotUserId || d.createdBy || d.user_id,
-        dot_operacional_id: d.dotOperacionalId || d.dotUserId,
+        // Preserve DOT operacional owner from any field name we may receive
+        dot_operacional_id: d.dotOperacionalId || d.dot_operacional_id || d.dotUserId,
         createdBy: d.createdBy || d.created_by,
         store_id: d.storeId || d.store_id,
         checklist_id: d.checklistId || d.checklist_id,
