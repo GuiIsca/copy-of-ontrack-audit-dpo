@@ -150,19 +150,24 @@ router.post('/import-visitas', upload.single('file'), async (req, res) => {
 
         // For AUDITORIA: only dtstart, no titulo/texto/dtend
         if (tipo === 'AUDITORIA') {
-          // Check for duplicates (same store, same DOT, same day)
+          // Check for existing audits (same store, same day) - mark them as REPLACED
           const dtDate = new Date(dtstart);
           const startOfDay = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate()).toISOString();
           const endOfDay = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate() + 1).toISOString();
 
-          const dupAudit = await query(
-            `SELECT id FROM audits WHERE store_id = $1 AND dot_operacional_id = $2 AND dtstart >= $3 AND dtstart < $4`,
-            [storeId, userId, startOfDay, endOfDay]
+          // Mark existing SCHEDULED audits for same store/day as REPLACED
+          const existingAudits = await query(
+            `SELECT id FROM audits WHERE store_id = $1 AND dtstart >= $2 AND dtstart < $3 AND status = 'SCHEDULED'`,
+            [storeId, startOfDay, endOfDay]
           );
-          if (dupAudit.rows.length > 0) {
-            const erro = `Duplicado: já existe Auditoria para DOT ${dot} na loja ${numeroLoja} em ${dataStr}`;
-            results.errors.push({ line: r.__line, message: erro });
-            continue;
+          
+          if (existingAudits.rows.length > 0) {
+            const idsToReplace = existingAudits.rows.map(r => r.id);
+            await query(
+              `UPDATE audits SET status = 'REPLACED' WHERE id = ANY($1)`,
+              [idsToReplace]
+            );
+            console.log(`  ⚠️ Auditorias substituídas: ${idsToReplace.join(', ')}`);
           }
 
           const insAudit = await query(

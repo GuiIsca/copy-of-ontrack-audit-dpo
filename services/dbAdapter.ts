@@ -118,6 +118,7 @@ class DatabaseAdapter {
           case 'IN_PROGRESS': statusNum = AuditStatus.IN_PROGRESS; break;
           case 'COMPLETED': statusNum = AuditStatus.SUBMITTED; break;
           case 'CANCELLED': statusNum = AuditStatus.CANCELLED; break;
+          case 'REPLACED': statusNum = AuditStatus.REPLACED; break;
           default: statusNum = AuditStatus.NEW;
         }
       } else {

@@ -116,6 +116,12 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
     }
   };
 
+  // Verificar se auditoria foi substituída
+  const isReplaced = (audit: Audit & { store: Store }) => {
+    const status = (audit as any).status;
+    return status === 'REPLACED' || status === 7;
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header */}
@@ -232,29 +238,31 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
 
                 {/* Audits for this day */}
                 <div className="space-y-1">
-                  {dayAudits.slice(0, 1).map((audit) => (
+                  {dayAudits.slice(0, 2).map((audit) => {
+                    const replaced = isReplaced(audit);
+                    return (
                     <button
                       key={audit.id}
                       onClick={() => onAuditClick(audit.id, (audit as any).isAudit)}
-                      className="w-full text-left p-1 rounded bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-mousquetaires transition-all group"
-                      title={`${audit.store.nome} - ${audit.store.city} às ${new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`}
+                      className={`w-full text-left p-1 rounded bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-mousquetaires transition-all group ${replaced ? 'opacity-60' : ''}`}
+                      title={`${audit.store.nome} - ${audit.store.city} às ${new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}${replaced ? ' (Substituída)' : ''}`}
                     >
                       <div className="flex items-center gap-1">
                         <div
-                          className={`w-1 h-6 ${getVisitTypeColor(audit)} rounded-full flex-shrink-0`}
+                          className={`w-1 h-6 ${getVisitTypeColor(audit)} rounded-full flex-shrink-0 ${replaced ? 'opacity-50' : ''}`}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires">
+                          <div className={`text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires ${replaced ? 'line-through text-gray-500' : ''}`}>
                               {audit.store.nome}
                             </div>
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <div className={`flex items-center gap-1 text-xs text-gray-500 ${replaced ? 'line-through' : ''}`}>
                             <span className="truncate">{new Date(audit.dtstart).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                         </div>
                       </div>
                     </button>
-                  ))}
-                  {dayAudits.length > 1 && (
+                  )})}
+                  {dayAudits.length > 2 && (
                     <div className="text-xs text-center text-gray-600 font-medium">
                       <button
                         type="button"
@@ -262,7 +270,7 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
                         onClick={() => onShowWeek && onShowWeek(date)}
                         title="Ver mais desta semana"
                       >
-                        + {dayAudits.length - 1} mais
+                        + {dayAudits.length - 2} mais
                       </button>
                     </div>
                   )}

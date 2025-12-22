@@ -96,7 +96,9 @@ export const DOTTeamLeaderImportTasksCSV: React.FC = () => {
         if (!hora_inicio || !/^\d{2}:\d{2}$/.test(hora_inicio)) {
           errors.push({ row, field: 'hora_inicio', message: 'Hora de início inválida (use HH:MM)' });
         }
-        if (!hora_fim || !/^\d{2}:\d{2}$/.test(hora_fim)) {
+        // Para auditorias, hora_fim, titulo e texto não são obrigatórios
+        const isAuditoria = tipo?.toLowerCase() === 'auditoria';
+        if (!isAuditoria && (!hora_fim || !/^\d{2}:\d{2}$/.test(hora_fim))) {
           errors.push({ row, field: 'hora_fim', message: 'Hora de fim inválida (use HH:MM)' });
         }
         parsed.push({ tipo, dot_email, numero_loja, data, hora_inicio, hora_fim, titulo, texto });

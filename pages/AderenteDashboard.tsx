@@ -19,20 +19,24 @@ export const AderenteDashboard: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       const currentUser = getCurrentUser();
+      console.log('🔍 AderenteDashboard - currentUser:', currentUser);
       if (!currentUser) {
+        console.log('🔍 No current user, setting loading false');
         setLoading(false);
         return;
       }
 
       const stores = await db.getStores();
       const allUsers = await db.getUsers();
+      console.log('🔍 Stores loaded:', stores.length, 'Users loaded:', allUsers.length);
       
       // Encontrar TODAS as lojas do Aderente (pode ter múltiplas)
       const myStores = stores.filter(s => (s.aderente_id || (s as any).aderenteId) === currentUser.userId);
+      console.log('🔍 My stores:', myStores.map(s => ({ id: s.id, nome: s.nome, aderente_id: s.aderente_id })));
       setAderenteStores(myStores);
       
       if (myStores.length === 0) {
-        console.warn('Aderente não tem loja atribuída');
+        console.warn('🔍 Aderente não tem loja atribuída');
         setLoading(false);
         return;
       }
@@ -42,12 +46,13 @@ export const AderenteDashboard: React.FC = () => {
 
       // Carregar TODAS as auditorias (sem filtrar por userId)
       const allAudits = await db.getAudits(); // Sem parâmetro = retorna todas
+      console.log('🔍 All audits loaded:', allAudits.length, allAudits.map(a => ({ id: a.id, store_id: a.store_id, status: a.status })));
       
       // Filtrar auditorias das lojas do Aderente que foram submetidas (de DOT Operacional ou DOT Team Leader, excluindo Admin)
       const enriched = allAudits
         .filter(a => {
           const isMyStore = myStoreIds.includes(a.store_id);
-          const isSubmitted = a.status >= AuditStatus.SUBMITTED;
+          const isSubmitted = a.status >= AuditStatus.SUBMITTED && a.status !== AuditStatus.REPLACED;
           // Exclude admin-created audits
           const createdBy = (a as any).createdBy ?? (a as any).created_by;
           if (createdBy) {
@@ -201,7 +206,7 @@ export const AderenteDashboard: React.FC = () => {
                           year: 'numeric'
                         })}
                       </div>
-                      {audit.score !== undefined && (
+                      {audit.score != null && (
                         <div className="mt-2">
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-medium text-gray-700">
@@ -277,7 +282,7 @@ export const AderenteDashboard: React.FC = () => {
                             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Concluída</span>
                           )}
                         </div>
-                        {audit.score !== undefined && (
+                        {audit.score != null && (
                           <span className="text-sm font-bold text-gray-900">{audit.score.toFixed(0)}%</span>
                         )}
                       </div>
@@ -320,7 +325,7 @@ export const AderenteDashboard: React.FC = () => {
                           year: 'numeric'
                         })}
                       </div>
-                      {visit.score !== undefined && (
+                      {visit.score != null && (
                         <div className="mt-2">
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-medium text-gray-700">

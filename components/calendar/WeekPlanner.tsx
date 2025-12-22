@@ -86,6 +86,12 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
     }
   };
 
+  // Verificar se auditoria foi substituída
+  const isReplaced = (audit: Audit & { store: Store }) => {
+    const status = (audit as any).status;
+    return status === 'REPLACED' || status === 7;
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header - unified theme with MonthPlanner */}
@@ -154,25 +160,29 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
                 {dayAudits.length === 0 ? (
                   <div className="text-xs text-gray-400 italic">Sem visitas</div>
                 ) : (
-                  dayAudits.map((audit) => (
+                  dayAudits.map((audit) => {
+                    const replaced = isReplaced(audit);
+                    return (
                     <button
                       key={audit.id}
                       onClick={() => onAuditClick(audit.id, (audit as any).isAudit)}
-                      className="w-full text-left p-2 rounded-lg bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-mousquetaires hover:shadow-md transition-all group"
+                      className={`w-full text-left p-2 rounded-lg bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-mousquetaires hover:shadow-md transition-all group ${replaced ? 'opacity-60' : ''}`}
+                      title={replaced ? 'Substituída' : undefined}
                     >
                       <div className="flex items-start gap-2">
                         <div
-                          className={`w-1.5 h-16 ${getVisitTypeColor(audit)} rounded-full flex-shrink-0`}
+                          className={`w-1.5 h-16 ${getVisitTypeColor(audit)} rounded-full flex-shrink-0 ${replaced ? 'opacity-50' : ''}`}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires">
+                          <div className={`text-xs font-semibold text-gray-900 truncate group-hover:text-mousquetaires ${replaced ? 'line-through text-gray-500' : ''}`}>
                             {audit.store.nome}
+                            {replaced && <span className="ml-1 text-orange-600 no-underline">(Substituída)</span>}
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                          <div className={`flex items-center gap-1 text-xs text-gray-500 mt-0.5 ${replaced ? 'line-through' : ''}`}>
                             <MapPin size={10} className="flex-shrink-0" />
                             <span className="truncate">{audit.store.city}</span>
                           </div>
-                          <div className="text-xs font-medium text-gray-700 mt-1">
+                          <div className={`text-xs font-medium text-gray-700 mt-1 ${replaced ? 'line-through' : ''}`}>
                             {new Date(audit.dtstart).toLocaleTimeString('pt-PT', {
                               hour: '2-digit',
                               minute: '2-digit'
@@ -181,7 +191,7 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
                         </div>
                       </div>
                     </button>
-                  ))
+                  );})
                 )}
               </div>
 

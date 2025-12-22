@@ -16,7 +16,8 @@ export enum AuditStatus {
   SUBMITTED = 3, // Submetido ao Aderente
   ENDED = 4, // Validado/Fechado
   CLOSED = 5,
-  CANCELLED = 6
+  CANCELLED = 6,
+  REPLACED = 7 // Substituída por outra auditoria
 }
 
 export enum VisitType {

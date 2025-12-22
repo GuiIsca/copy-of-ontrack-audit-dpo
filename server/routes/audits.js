@@ -44,6 +44,26 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { storeId, dotUserId, checklistId, dtstart, status, createdBy, visitSourceType } = req.body;
+    
+    // Mark existing SCHEDULED audits for same store/day as REPLACED
+    const dtDate = new Date(dtstart);
+    const startOfDay = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate()).toISOString();
+    const endOfDay = new Date(dtDate.getFullYear(), dtDate.getMonth(), dtDate.getDate() + 1).toISOString();
+    
+    const existingAudits = await query(
+      `SELECT id FROM audits WHERE store_id = $1 AND dtstart >= $2 AND dtstart < $3 AND status = 'SCHEDULED'`,
+      [storeId, startOfDay, endOfDay]
+    );
+    
+    if (existingAudits.rows.length > 0) {
+      const idsToReplace = existingAudits.rows.map(r => r.id);
+      await query(
+        `UPDATE audits SET status = 'REPLACED' WHERE id = ANY($1)`,
+        [idsToReplace]
+      );
+      console.log(`Auditorias substituídas: ${idsToReplace.join(', ')}`);
+    }
+    
     // Insert with visit_source_type if provided
     const result = await query(
       `INSERT INTO audits (store_id, dot_operacional_id, checklist_id, dtstart, status, created_by, visit_source_type) 
