@@ -4,7 +4,7 @@ import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { PlusCircle, Calendar, List } from 'lucide-react';
 import { db } from '../services/dbAdapter';
-import { Audit, Store, UserRole } from '../types';
+import { Audit, Store, UserRole, AuditStatus } from '../types';
 import { getCurrentUser } from '../utils/auth';
 import { MonthPlanner } from '../components/calendar/MonthPlanner';
 
@@ -65,10 +65,8 @@ export const AmontDashboard: React.FC = () => {
     const audit = audits.find(a => a.id === id);
     if (!audit) return;
     
-    // Se está em progresso (NEW ou IN_PROGRESS), vai para execute (editar)
-    // Se está finalizada (COMPLETED), vai para audit (visualizar)
-    const statusNum = Number(audit.status);
-    if (statusNum === 0 || statusNum === 1) { // NEW ou IN_PROGRESS
+    // Em Curso: NEW/IN_PROGRESS -> execute; Submetida -> audit view
+    if (audit.status === AuditStatus.NEW || audit.status === AuditStatus.IN_PROGRESS) {
       navigate(`/amont/execute/${id}`);
     } else {
       navigate(`/amont/audit/${id}`);
@@ -80,27 +78,15 @@ export const AmontDashboard: React.FC = () => {
   };
 
   const getStatusText = (status: number): string => {
-    switch (status) {
-      case 0: return 'Nova';
-      case 1: return 'Em Progresso';
-      case 2: return 'Submetida';
-      case 3: return 'Finalizada';
-      case 4: return 'Fechada';
-      case 5: return 'Cancelada';
-      default: return 'Desconhecido';
-    }
+    // Only two states: Em Curso (NEW/IN_PROGRESS) and Submetida (SUBMITTED)
+    if (status === AuditStatus.SUBMITTED) return 'Submetida';
+    if (status === AuditStatus.NEW || status === AuditStatus.IN_PROGRESS) return 'Em Curso';
+    return 'Em Curso';
   };
 
   const getStatusColor = (status: number): string => {
-    switch (status) {
-      case 0: return 'bg-gray-100 text-gray-800';
-      case 1: return 'bg-blue-100 text-blue-800';
-      case 2: return 'bg-yellow-100 text-yellow-800';
-      case 3: return 'bg-green-100 text-green-800';
-      case 4: return 'bg-purple-100 text-purple-800';
-      case 5: return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    if (status === AuditStatus.SUBMITTED) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-blue-100 text-blue-800';
   };
 
   if (loading) {
@@ -141,35 +127,25 @@ export const AmontDashboard: React.FC = () => {
                 </>
               )}
             </Button>
-            <Button onClick={handleNewAudit}>
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Nova Auditoria
-            </Button>
           </div>
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm font-medium text-gray-600">Total</div>
             <div className="text-3xl font-bold text-gray-900 mt-2">{audits.length}</div>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600">Em Progresso</div>
+            <div className="text-sm font-medium text-gray-600">Em Curso</div>
             <div className="text-3xl font-bold text-blue-600 mt-2">
-              {audits.filter(a => a.status === 1).length}
+              {audits.filter(a => a.status === AuditStatus.NEW || a.status === AuditStatus.IN_PROGRESS).length}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm font-medium text-gray-600">Submetidas</div>
             <div className="text-3xl font-bold text-yellow-600 mt-2">
-              {audits.filter(a => a.status === 2).length}
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm font-medium text-gray-600">Finalizadas</div>
-            <div className="text-3xl font-bold text-green-600 mt-2">
-              {audits.filter(a => a.status === 3).length}
+              {audits.filter(a => a.status === AuditStatus.SUBMITTED).length}
             </div>
           </div>
         </div>
@@ -191,10 +167,6 @@ export const AmontDashboard: React.FC = () => {
             {audits.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">Nenhuma auditoria criada ainda.</p>
-                <Button onClick={handleNewAudit} className="mt-4">
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  Criar primeira auditoria
-                </Button>
               </div>
             ) : (
               <div className="divide-y divide-gray-200">

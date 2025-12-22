@@ -16,6 +16,7 @@ export const Header: React.FC = () => {
   const userIsAdmin = isAdmin();
   const userIsDotTeamLeader = isDotTeamLeader();
   const userIsAderente = isAderente();
+  const userIsAmont = !!currentUser?.roles?.includes(UserRole.AMONT);
 
   const handleLogout = () => {
     localStorage.removeItem('ontrack_auth');
@@ -44,6 +45,7 @@ export const Header: React.FC = () => {
     currentUser.roles.includes(UserRole.DOT_TEAM_LEADER) ? 'DOT Team Leader' :
     currentUser.roles.includes(UserRole.DOT_OPERACIONAL) ? 'DOT Operacional' :
     currentUser.roles.includes(UserRole.ADERENTE) ? 'Aderente' :
+    currentUser.roles.includes(UserRole.AMONT) ? 'Amont' :
     'Utilizador'
   ) : '';
 
@@ -52,6 +54,7 @@ export const Header: React.FC = () => {
     currentUser.roles.includes(UserRole.DOT_TEAM_LEADER) ? '👔' :
     currentUser.roles.includes(UserRole.DOT_OPERACIONAL) ? '👨‍💼' :
     currentUser.roles.includes(UserRole.ADERENTE) ? '🏪' :
+    currentUser.roles.includes(UserRole.AMONT) ? '🔍' :
     '👤'
   ) : '👤';
 
@@ -144,13 +147,6 @@ export const Header: React.FC = () => {
                     <Upload size={18} />
                     Importar CSV
                   </button>
-                  <button 
-                    onClick={() => { window.location.href = '/admin/reports'; setIsMenuOpen(false); }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                    Indicadores
-                  </button>
                 </>
               )}
               {userIsDotTeamLeader && (
@@ -186,13 +182,6 @@ export const Header: React.FC = () => {
                     <Upload size={18} />
                     Importar CSV
                   </button>
-                  <button 
-                    onClick={() => { window.location.href = '/dot-team-leader/reports'; setIsMenuOpen(false); }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                    Indicadores
-                  </button>
                 </>
               )}
               {userIsAderente && (
@@ -212,13 +201,7 @@ export const Header: React.FC = () => {
                     <Users size={18} />
                     Nova Visita
                   </button>
-                  <button 
-                    onClick={() => { window.location.href = '/aderente/history'; setIsMenuOpen(false); }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 10"/></svg>
-                    Histórico
-                  </button>
+                  {/* Histórico removido */}
                   <button 
                     onClick={() => { window.location.href = '/aderente/actions'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -228,7 +211,26 @@ export const Header: React.FC = () => {
                   </button>
                 </>
               )}
-              {!userIsAdmin && !userIsDotTeamLeader && !userIsAderente && (
+              {userIsAmont && (
+                <>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Auditorias AMONT</div>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/dashboard'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <LayoutDashboard size={18} />
+                    Dashboard
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/new-audit'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    Nova Visita (Auditoria)
+                  </button>
+                </>
+              )}
+              {!userIsAdmin && !userIsDotTeamLeader && !userIsAderente && !userIsAmont && (
                 <>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Auditorias DOT Operacional</div>
                   <button 
@@ -245,21 +247,7 @@ export const Header: React.FC = () => {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                     Nova Visita
                   </button>
-                  <button 
-                    onClick={() => { window.location.href = '/dot-operacional/history'; setIsMenuOpen(false); }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 10"/></svg>
-                    Histórico
-                  </button>
-                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
-                  <button 
-                    onClick={() => { window.location.href = '/dot-operacional/reports'; setIsMenuOpen(false); }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                    Indicadores
-                  </button>
+                  {/* Histórico e Indicadores removidos */}
                 </>
               )}
               <button

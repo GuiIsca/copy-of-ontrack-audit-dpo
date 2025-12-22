@@ -7,7 +7,7 @@ import { db } from '../services/dbAdapter';
 import { Audit, AuditScore, AuditStatus, Store, Section, Criteria, Checklist, EvaluationType } from '../types';
 import { ArrowLeft, ChevronLeft, ChevronRight, Camera, Save, CheckCircle, AlertTriangle, Send, X, ListTodo, MessageSquare } from 'lucide-react';
 import { ScoreGauge } from '../components/charts/ScoreGauge';
-import { canEditAudit, canDeleteAudit, canSubmitAudit } from '../utils/permissions';
+import { canEditAudit, canDeleteAudit, canSubmitAudit, getDefaultDashboard } from '../utils/permissions';
 import { getCurrentUser } from '../utils/auth';
 import { UserRole } from '../types';
 
@@ -61,16 +61,7 @@ export const AuditExecution: React.FC = () => {
         
         if (!aud) {
           console.log('AuditExecution: Audit not found, redirecting');
-          // Redirecionar para o dashboard correto baseado no role
-          if (currentUser?.roles.includes(UserRole.ADERENTE)) {
-            navigate('/aderente/dashboard');
-          } else if (currentUser?.roles.includes(UserRole.ADMIN)) {
-            navigate('/admin/visitas');
-          } else if (currentUser?.roles.includes(UserRole.DOT_TEAM_LEADER)) {
-            navigate('/dot-team-leader/dashboard');
-          } else {
-            navigate('/dashboard');
-          }
+          navigate(getDefaultDashboard());
           return;
         }
         // Ensure user_id is set for DOT audits
@@ -536,16 +527,8 @@ export const AuditExecution: React.FC = () => {
           setToastMsg('Progresso guardado com sucesso');
           setTimeout(() => {
               setToastMsg(null);
-              // Redirecionar para o dashboard
-                if (currentUser?.roles.includes(UserRole.ADMIN)) {
-                  navigate('/admin/visitas');
-                } else if (currentUser?.roles.includes(UserRole.DOT_TEAM_LEADER)) {
-                  navigate('/dot-team-leader/dashboard');
-              } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
-                  navigate('/aderente/dashboard');
-              } else {
-                  navigate('/dashboard');
-              }
+              // Redirect to default dashboard
+              navigate(getDefaultDashboard());
           }, 1500);
       } catch (err) {
           console.error('Save error:', err);
@@ -598,16 +581,8 @@ export const AuditExecution: React.FC = () => {
                 setToastMsg('Visita submetida');
                 setTimeout(() => setToastMsg(null), 1500);
         
-                // Redirecionar para o dashboard correto
-                if (currentUser?.roles.includes(UserRole.ADMIN)) {
-                  navigate('/admin/visitas');
-                } else if (currentUser?.roles.includes(UserRole.DOT_TEAM_LEADER)) {
-                  navigate('/dot-team-leader/dashboard');
-                } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
-                    navigate('/aderente/dashboard');
-                } else {
-                    navigate('/dashboard');
-                }
+                // Redirect to default dashboard
+                navigate(getDefaultDashboard());
             } catch (err) {
                 console.error('Submit error:', err);
                 setToastType('error');
@@ -731,7 +706,7 @@ export const AuditExecution: React.FC = () => {
             } else if (currentUser?.roles.includes(UserRole.ADERENTE)) {
               navigate('/aderente/dashboard');
             } else {
-              navigate('/dashboard');
+              navigate(getDefaultDashboard());
             }
           }} className="text-gray-600 hover:text-black">
               <ArrowLeft />

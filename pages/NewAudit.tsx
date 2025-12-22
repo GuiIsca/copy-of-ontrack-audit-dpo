@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { db } from '../services/dbAdapter';
 import { AuditStatus, Store, UserRole } from '../types';
 import { getCurrentUser } from '../utils/auth';
-import { canCreateAudit } from '../utils/permissions';
+import { canCreateAudit, getDefaultDashboard } from '../utils/permissions';
 import { ArrowLeft, AlertCircle, Calendar, MapPin, Users, Save } from 'lucide-react';
 
 export const NewAudit: React.FC = () => {
@@ -76,7 +76,7 @@ export const NewAudit: React.FC = () => {
           createdBy: user?.id || 0,
       });
 
-      navigate('/dashboard');
+      navigate(getDefaultDashboard());
   };
 
   return (
