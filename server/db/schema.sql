@@ -167,6 +167,25 @@ CREATE TABLE section_evaluations (
     UNIQUE(audit_id, section_id)
 );
 
+-- Admin Contact Departments Parametrizable Table
+CREATE TABLE admin_contact_departments (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Aderente Contact Admin Messages Table
+CREATE TABLE aderente_contact_messages (
+    id SERIAL PRIMARY KEY,
+    aderente_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    department_id INTEGER NOT NULL REFERENCES admin_contact_departments(id) ON DELETE RESTRICT,
+    message TEXT NOT NULL,
+    read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_roles ON users USING GIN(roles);
@@ -186,6 +205,8 @@ CREATE INDEX idx_action_plans_audit_id ON action_plans(audit_id);
 CREATE INDEX idx_action_plans_status ON action_plans(status);
 CREATE INDEX idx_audit_comments_audit_id ON audit_comments(audit_id);
 CREATE INDEX idx_section_evaluations_audit_id ON section_evaluations(audit_id);
+CREATE INDEX idx_aderente_contact_messages_aderente_id ON aderente_contact_messages(aderente_id);
+CREATE INDEX idx_aderente_contact_messages_read ON aderente_contact_messages(read);
 
 -- Triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -214,7 +235,23 @@ CREATE TRIGGER update_action_plans_updated_at BEFORE UPDATE ON action_plans
 CREATE TRIGGER update_section_evaluations_updated_at BEFORE UPDATE ON section_evaluations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_admin_contact_departments_updated_at BEFORE UPDATE ON admin_contact_departments
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_aderente_contact_messages_updated_at BEFORE UPDATE ON aderente_contact_messages
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ADMIN user seed with password '123456'
 --INSERT INTO users (id, email, fullname, roles) VALUES
 --(1, 'admin@intermarche.pt', 'Master Administrator', ARRAY['ADMIN']::user_role[]);
 --UPDATE users SET password_hash = '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS' WHERE email = 'admin@intermarche.pt';
+
+-- Seed default departments
+INSERT INTO admin_contact_departments (name) VALUES
+('Marketing'),
+('Comércio'),
+('Compras'),
+('Transformação e Processos'),
+('Conceito'),
+('Gestão Aval')
+ON CONFLICT (name) DO NOTHING;

@@ -32,11 +32,13 @@ export const Login: React.FC = () => {
       };
       localStorage.setItem('ontrack_auth', JSON.stringify(authData));
       
-      // Redirect based on role (prioridade: ADMIN > DOT TEAM LEADER > ADERENTE > AMONT > DOT Operacional)
+      // Redirect based on role (prioridade: ADMIN > DOT TEAM LEADER > DOT OPERACIONAL > ADERENTE > AMONT)
       if (userRoles.includes(UserRole.ADMIN)) {
         navigate('/admin/dashboard');
       } else if (userRoles.includes(UserRole.DOT_TEAM_LEADER)) {
         navigate('/dot-team-leader/dashboard');
+      } else if (userRoles.includes(UserRole.DOT_OPERACIONAL)) {
+        navigate('/dot-operacional/dashboard');
       } else if (userRoles.includes(UserRole.ADERENTE)) {
         navigate('/aderente/dashboard');
       } else if (userRoles.includes(UserRole.AMONT)) {

@@ -16,6 +16,7 @@ import commentsRoutes from './routes/comments.js';
 import checklistsRoutes from './routes/checklists.js';
 import dotTeamLeaderRoutes from './routes/dot-team-leader.js';
 import sectionEvaluationsRoutes from './routes/section-evaluations.js';
+import adminContactsRoutes from './routes/admin-contacts.js';
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use('/api/scores', scoresRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/checklists', checklistsRoutes);
 app.use('/api/section-evaluations', sectionEvaluationsRoutes);
+app.use('/api/admin-contacts', adminContactsRoutes);
 // Non-API legacy route migrated to DOT Team Leader integrations
 app.use('/dot-team-leader', dotTeamLeaderRoutes);
 

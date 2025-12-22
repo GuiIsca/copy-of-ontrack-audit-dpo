@@ -15,6 +15,7 @@ import { ActionPlans } from './pages/ActionPlans';
 import { AderenteAuditView } from './pages/AderenteAuditView';
 import { AderenteDashboard } from './pages/AderenteDashboard';
 import { AderenteNewVisit } from './pages/AderenteNewVisit';
+import { AderenteContactAdmin } from './pages/AderenteContactAdmin';
 import { DOTTeamLeaderDashboard } from './pages/DOTTeamLeaderDashboard';
 import { DOTTeamLeaderAuditView } from './pages/DOTTeamLeaderAuditView';
 import { DOTTeamLeaderImportTasksCSV } from './pages/DOTTeamLeaderImportTasksCSV';
@@ -28,6 +29,7 @@ import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
 import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard, canAccessAmontDashboard } from './utils/permissions';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminContactMessages } from './pages/AdminContactMessages';
 import { AmontDashboard } from './pages/AmontDashboard';
 
 // Role-based protected route wrapper
@@ -124,6 +126,11 @@ const App: React.FC = () => {
                 <Reports />
             </ProtectedRoute>
         } />
+        <Route path="/dot-operacional/import-visitas" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <DOTTeamLeaderImportTasksCSV />
+            </ProtectedRoute>
+        } />
         <Route path="/dot/new-audit" element={
             <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <Navigate to="/dot-operacional/new-audit" replace />
@@ -217,6 +224,11 @@ const App: React.FC = () => {
                 <AderenteVisitPage />
             </ProtectedRoute>
         } />
+        <Route path="/aderente/contact-admin" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <AderenteContactAdmin />
+            </ProtectedRoute>
+        } />
         <Route path="/dot-team-leader/dashboard" element={
             <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
                 <DOTTeamLeaderDashboard />
@@ -307,6 +319,16 @@ const App: React.FC = () => {
         <Route path="/admin/reports" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
                 <Reports />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/contact-messages" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminContactMessages />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/contact-messages/:messageId" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminContactMessages />
             </ProtectedRoute>
         } />
         {/* AMONT Routes */}

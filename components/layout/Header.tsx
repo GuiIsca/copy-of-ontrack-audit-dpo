@@ -17,6 +17,7 @@ export const Header: React.FC = () => {
   const userIsDotTeamLeader = isDotTeamLeader();
   const userIsAderente = isAderente();
   const userIsAmont = !!currentUser?.roles?.includes(UserRole.AMONT);
+  const userIsDotOperacional = !!currentUser?.roles?.includes(UserRole.DOT_OPERACIONAL);
 
   const handleLogout = () => {
     localStorage.removeItem('ontrack_auth');
@@ -32,8 +33,12 @@ export const Header: React.FC = () => {
       navigate('/admin/dashboard');
     } else if (userIsDotTeamLeader) {
       navigate('/dot-team-leader/dashboard');
+    } else if (userIsDotOperacional) {
+      navigate('/dot-operacional/dashboard');
     } else if (userIsAderente) {
       navigate('/aderente/dashboard');
+    } else if (userIsAmont) {
+      navigate('/amont/dashboard');
     } else {
       navigate('/dashboard');
     }
@@ -88,7 +93,7 @@ export const Header: React.FC = () => {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="absolute top-16 right-0 w-64 bg-white shadow-lg border-l border-gray-100 h-screen z-40">
+        <div className="absolute top-16 right-0 w-64 bg-white shadow-lg border-l border-gray-100 max-h-[calc(100vh-4rem)] z-40 overflow-y-auto">
             <div className="pt-4 pb-3 border-b border-gray-100">
               <div className="flex items-center px-5">
                 <div className="flex-shrink-0">
@@ -123,6 +128,13 @@ export const Header: React.FC = () => {
                   >
                     <LayoutDashboard size={18} />
                     Visitas
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/contact-messages'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Contacto
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
                   <button 
@@ -189,6 +201,7 @@ export const Header: React.FC = () => {
                     <Upload size={18} />
                     Importar CSV
                   </button>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -228,6 +241,14 @@ export const Header: React.FC = () => {
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     Plano de Ação
+                  </button>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Contacto</div>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/contact-admin'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Contacto Admin
                   </button>
                 </>
               )}
@@ -273,6 +294,14 @@ export const Header: React.FC = () => {
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 10"/></svg>
                     Histórico
+                  </button>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/import-visitas'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <Upload size={18} />
+                    Importar CSV
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
