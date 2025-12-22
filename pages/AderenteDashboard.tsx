@@ -52,14 +52,14 @@ export const AderenteDashboard: React.FC = () => {
       const enriched = allAudits
         .filter(a => {
           const isMyStore = myStoreIds.includes(a.store_id);
-          const isSubmitted = a.status >= AuditStatus.SUBMITTED && a.status !== AuditStatus.REPLACED;
+          const isSubmittedOrReplaced = a.status >= AuditStatus.SUBMITTED;
           // Exclude admin-created audits
           const createdBy = (a as any).createdBy ?? (a as any).created_by;
           if (createdBy) {
             const creator = allUsers.find(u => u.id === createdBy);
             if (creator?.roles?.includes('ADMIN' as any)) return false;
           }
-          return isMyStore && isSubmitted;
+          return isMyStore && isSubmittedOrReplaced;
         })
         .map(a => {
           const auditStore = myStores.find(s => s.id === a.store_id);
@@ -108,6 +108,8 @@ export const AderenteDashboard: React.FC = () => {
         return <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded font-medium">Submetida</span>;
       case AuditStatus.ENDED:
         return <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-medium">Concluída</span>;
+      case AuditStatus.REPLACED:
+        return <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded font-medium">Sobreposto</span>;
       default:
         return null;
     }

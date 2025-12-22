@@ -672,39 +672,48 @@ export const AuditList: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedAudits.map(audit => (
-                    <tr
-                      key={audit.id}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleAuditClick(audit)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(
-                          audit.dtstart
-                        ).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {audit.store.city}{' '}
-                        <span className="text-gray-500 text-xs">
-                          ({audit.store.codehex})
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                            audit.status
-                          )}`}
-                        >
-                          {getStatusLabel(audit.status)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
-                        {audit.score
-                          ? `${audit.score.toFixed(1)}%`
-                          : '-'}
-                      </td>
-                    </tr>
-                  ))}
+                  {paginatedAudits.map(audit => {
+                    const isReplaced = audit.status === AuditStatus.REPLACED || audit.status === 7;
+                    return (
+                      <tr
+                        key={audit.id}
+                        className={`hover:bg-gray-50 cursor-pointer ${isReplaced ? 'opacity-60' : ''}`}
+                        onClick={() => handleAuditClick(audit)}
+                        style={isReplaced ? { textDecoration: 'line-through' } : {}}
+                      >
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${isReplaced ? 'line-through' : ''}`}>
+                          {new Date(
+                            audit.dtstart
+                          ).toLocaleDateString()}
+                        </td>
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${isReplaced ? 'line-through' : ''}`}>
+                          {audit.store.city}{' '}
+                          <span className="text-gray-500 text-xs">
+                            ({audit.store.codehex})
+                          </span>
+                          {audit.store.nome && (
+                            <span className="text-gray-500 text-xs ml-1">
+                              - {audit.store.nome}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
+                              audit.status
+                            )}`}
+                          >
+                            {isReplaced ? 'Sobreposto' : getStatusLabel(audit.status)}
+                          </span>
+                        </td>
+                        <td className={`px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900 ${isReplaced ? 'line-through' : ''}`}>
+                          {audit.score
+                            ? `${audit.score.toFixed(1)}%`
+                            : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {paginatedAudits.length === 0 && (
                     <tr>
                       <td
