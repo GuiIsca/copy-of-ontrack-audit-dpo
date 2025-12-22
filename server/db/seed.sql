@@ -22,6 +22,10 @@ INSERT INTO users (id, email, fullname, roles, dot_team_leader_id, assigned_stor
 (5, 'dot3@mousquetaires.com', 'Sofia Almeida', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[7,8], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
 (6, 'dot4@mousquetaires.com', 'Rui Santos', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[9,10], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
+-- Insert AMONT User (Independent Auditor)
+INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
+(7, 'amont@mousquetaires.com', 'Fernando Amont', ARRAY['AMONT']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
+
 -- Insert Aderente Users 
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
 (11, 'aderente1@intermarche.pt', 'Maria Santos', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),

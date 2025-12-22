@@ -8,8 +8,9 @@ import { getCurrentUser, hasRole } from './auth';
 export const canCreateAudit = (): boolean => {
   // DOT Operacional pode criar auditorias nas suas próprias lojas
   // DOT Team Leader pode criar via CSV
+  // AMONT pode criar auditorias em qualquer loja
   // ADMIN pode criar sempre
-  return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN);
+  return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.AMONT) || hasRole(UserRole.ADMIN);
 };
 
 // Accept both numeric and string statuses to support mixed sources
@@ -53,6 +54,18 @@ export const canEditAudit = (auditStatus: number | string, auditUserId?: number,
     }
     return isEditable;
   }
+
+  // AMONT pode editar suas próprias auditorias enquanto não estão submetidas
+  if (hasRole(UserRole.AMONT) && createdBy && createdBy === currentUser.userId) {
+    let isEditable = false;
+    if (typeof auditStatus === 'number') {
+      isEditable = auditStatus < 3;
+    } else {
+      const statusStr = String(auditStatus).toUpperCase();
+      isEditable = statusStr === 'NEW' || statusStr === 'SCHEDULED' || statusStr === 'IN_PROGRESS';
+    }
+    return isEditable;
+  }
   
   return false;
 };
@@ -73,6 +86,11 @@ export const canEditAuditDate = (createdBy?: number): boolean => {
     return currentUser.userId === createdBy;
   }
   
+  // AMONT pode alterar datas apenas de suas próprias auditorias
+  if (hasRole(UserRole.AMONT) && createdBy) {
+    return currentUser.userId === createdBy;
+  }
+  
   return false;
 };
 
@@ -86,6 +104,11 @@ export const canDeleteAudit = (createdBy?: number): boolean => {
   // DOT Operacional pode apagar APENAS auditorias que ele próprio criou manualmente
   // NÃO pode apagar auditorias criadas pelo DOT Team Leader via CSV
   if (hasRole(UserRole.DOT_OPERACIONAL) && createdBy) {
+    return currentUser.userId === createdBy;
+  }
+  
+  // AMONT pode apagar apenas suas próprias auditorias
+  if (hasRole(UserRole.AMONT) && createdBy) {
     return currentUser.userId === createdBy;
   }
   
@@ -121,6 +144,22 @@ export const canViewAuditAsAderente = (
   return false;
 };
 
+// Helper para verificar se um usuário pode ver uma auditoria AMONT
+export const canViewAmontAudit = (auditCreatedBy: number | undefined): boolean => {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return false;
+
+  // ADMIN pode ver todas as auditorias AMONT
+  if (hasRole(UserRole.ADMIN)) return true;
+
+  // AMONT pode ver apenas suas próprias auditorias
+  if (hasRole(UserRole.AMONT)) {
+    return currentUser.userId === auditCreatedBy;
+  }
+
+  return false;
+};
+
 export const canSubmitAudit = (auditUserId: number | undefined, auditStatus?: number | string): boolean => {
   const currentUser = getCurrentUser();
   if (!currentUser) return false;
@@ -140,6 +179,21 @@ export const canSubmitAudit = (auditUserId: number | undefined, auditStatus?: nu
       }
     }
     return isCreatorOrAssigned && isSubmittable;
+  }
+
+  // AMONT pode submeter suas próprias auditorias
+  if (hasRole(UserRole.AMONT) && auditUserId) {
+    const isCreator = currentUser.userId === auditUserId;
+    let isSubmittable = true;
+    if (auditStatus !== undefined) {
+      if (typeof auditStatus === 'number') {
+        isSubmittable = auditStatus < 3;
+      } else {
+        const statusStr = String(auditStatus).toUpperCase();
+        isSubmittable = statusStr === 'NEW' || statusStr === 'SCHEDULED' || statusStr === 'IN_PROGRESS';
+      }
+    }
+    return isCreator && isSubmittable;
   }
   
   // DOT Team Leader and ADMIN can also manage submission in broader workflows
@@ -215,6 +269,10 @@ export const canAccessDOTDashboard = (): boolean => {
   return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.ADMIN);
 };
 
+export const canAccessAmontDashboard = (): boolean => {
+  return hasRole(UserRole.AMONT);
+};
+
 export const canAddInternalComments = (): boolean => {
   // Apenas DOT Operacional pode adicionar comentários internos
   return hasRole(UserRole.DOT_OPERACIONAL) || hasRole(UserRole.ADMIN);
@@ -273,5 +331,6 @@ export const getDefaultDashboard = (): string => {
   if (hasRole(UserRole.DOT_TEAM_LEADER)) return '/dot-team-leader/dashboard';
   if (hasRole(UserRole.ADERENTE)) return '/aderente/dashboard';
   if (hasRole(UserRole.DOT_OPERACIONAL)) return '/dot-operacional/dashboard';
+  if (hasRole(UserRole.AMONT)) return '/amont/dashboard';
   return '/';
 };

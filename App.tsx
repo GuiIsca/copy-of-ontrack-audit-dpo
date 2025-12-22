@@ -26,8 +26,9 @@ import { DotOperacionalAuditView } from './pages/DotOperacionalAuditView';
 import { AderenteVisitPage } from './pages/AderenteVisitPage';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
-import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard } from './utils/permissions';
+import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard, canAccessAmontDashboard } from './utils/permissions';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { AmontDashboard } from './pages/AmontDashboard';
 
 // Role-based protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireRole?: () => boolean }> = ({ children, requireRole }) => {
@@ -306,6 +307,27 @@ const App: React.FC = () => {
         <Route path="/admin/reports" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
                 <Reports />
+            </ProtectedRoute>
+        } />
+        {/* AMONT Routes */}
+        <Route path="/amont/dashboard" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <AmontDashboard />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/new-audit" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <NewAudit />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/execute/:id" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <AuditExecution />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/audit/:id" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <DotOperacionalAuditView />
             </ProtectedRoute>
         } />
                 {/* Fallback for unknown routes */}
