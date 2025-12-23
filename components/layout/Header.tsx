@@ -361,8 +361,31 @@ export const Header: React.FC = () => {
                 </>
               )}
               <button
+                onClick={() => {
+                  localStorage.setItem('layoutMode', '2');
+                  if (userIsDotTeamLeader) {
+                    window.location.href = '/dot-team-leader/menu';
+                  } else if (userIsAderente) {
+                    window.location.href = '/dot-aderente/layout-menu';
+                  } else if (userIsDotOperacional) {
+                    window.location.href = '/dot-operacional/menu';
+                  } else if (userIsAdmin) {
+                    window.location.href = '/admin/dashboard';
+                  } else if (userIsAmont) {
+                    window.location.href = '/amont/dashboard';
+                  } else {
+                    window.location.href = '/dashboard';
+                  }
+                  setIsMenuOpen(false);
+                }}
+                className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 mt-4 border-t border-gray-100 pt-4"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Mudar Layout
+              </button>
+              <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50 mt-4 border-t border-gray-100 pt-4"
+                className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50 border-t border-gray-100 pt-4"
               >
                 <LogOut size={18} />
                 Sair

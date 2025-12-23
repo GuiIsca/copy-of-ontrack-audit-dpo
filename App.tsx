@@ -1,6 +1,35 @@
+import DOTTeamLeaderCalendarPage from './pages/DOTTeamLeaderCalendarPage';
+
+import { getCurrentUser, hasRole } from './utils/auth';
+import { UserRole } from './types';
+console.log('DEBUG getCurrentUser:', getCurrentUser());
+import DotAderenteLayoutMenu from './pages/DotAderenteLayoutMenu';
+import DOTTeamLeaderMenu from './pages/DOTTeamLeaderMenu';
+import DotOperacionalMenu from './pages/DotOperacionalMenu';
+import DotOperacionalCalendarPage from './pages/DotOperacionalCalendarPage';
 import React from 'react';
 import { ToastProvider } from './components/ui/Toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Login } from './pages/Login';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
+import { Dashboard } from './pages/Dashboard';
+import { NewAudit } from './pages/NewAudit';
+import { NewVisit } from './pages/NewVisit';
+import { SelectVisitType } from './pages/SelectVisitType';
+import { AuditExecution } from './pages/AuditExecution';
+import { AuditList } from './pages/AuditList';
+import { ActionsList } from './pages/ActionsList';
+import { ActionPlans } from './pages/ActionPlans';
+import { AderenteAuditView } from './pages/AderenteAuditView';
+import { AderenteDashboard } from './pages/AderenteDashboard';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminContactMessages } from './pages/AdminContactMessages';
+import { AmontDashboard } from './pages/AmontDashboard';
+import { SpecialistManuals } from './pages/SpecialistManuals';
+import { AdminSpecialistManuals } from './pages/AdminSpecialistManuals';
+import MenuDashboard from './pages/MenuDashboard';
+import { Analytics } from './pages/Analytics';
 import { Login } from './pages/Login';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
@@ -28,11 +57,32 @@ import { AderenteVisitPage } from './pages/AderenteVisitPage';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
 import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard, canAccessAmontDashboard, canViewAnalytics } from './utils/permissions';
-import { AdminDashboard } from './pages/AdminDashboard';
+import { AderenteNewVisit } from './pages/AderenteNewVisit';
+import { AderenteContactAdmin } from './pages/AderenteContactAdmin';
+import { DOTTeamLeaderDashboard } from './pages/DOTTeamLeaderDashboard';
+import { DOTTeamLeaderAuditView } from './pages/DOTTeamLeaderAuditView';
+import { DOTTeamLeaderImportTasksCSV } from './pages/DOTTeamLeaderImportTasksCSV';
+import { DOTTeamLeaderNewVisit } from './pages/DOTTeamLeaderNewVisit';
+import { DOTTeamLeaderNewVisitDOT } from './pages/DOTTeamLeaderNewVisitDOT';
+import { DOTTeamLeaderSelectNewVisit } from './pages/DOTTeamLeaderSelectNewVisit';
+import { DotOperacionalAuditPage } from './pages/DotOperacionalAuditPage';
+import { DotOperacionalAuditView } from './pages/DotOperacionalAuditView';
+import { AderenteVisitPage } from './pages/AderenteVisitPage';
+import { VisitDetail } from './pages/VisitDetail';
+import { Reports } from './pages/Reports';
+import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard, canAccessAmontDashboard, canViewAnalytics } from './utils/permissions';
+
 import { AdminContactMessages } from './pages/AdminContactMessages';
+
 import { AmontDashboard } from './pages/AmontDashboard';
+
 import { SpecialistManuals } from './pages/SpecialistManuals';
+
 import { AdminSpecialistManuals } from './pages/AdminSpecialistManuals';
+
+import MenuDashboard from './pages/MenuDashboard';
+
+
 import { Analytics } from './pages/Analytics';
 
 // Role-based protected route wrapper
@@ -71,7 +121,18 @@ const App: React.FC = () => {
     return (
         <ToastProvider>
                 <Router>
-            <Routes>
+                      <Routes>
+                                        <Route path="/dot-team-leader/menu" element={
+                                            <ProtectedRoute requireRole={() => hasRole(UserRole.DOT_TEAM_LEADER)}>
+                                                <DOTTeamLeaderMenu />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="/dot-operacional/menu" element={
+                                            <ProtectedRoute requireRole={() => hasRole(UserRole.DOT_OPERACIONAL)}>
+                                                <DotOperacionalMenu />
+                                            </ProtectedRoute>
+                                        } />
+            <Route path="/menu-geral" element={<MenuDashboard />} />
         <Route path="/" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -117,6 +178,11 @@ const App: React.FC = () => {
         <Route path="/dot-operacional/select-visit-type" element={
             <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <SelectVisitType />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/calendar" element={
+            <ProtectedRoute requireRole={() => hasRole(UserRole.DOT_OPERACIONAL)}>
+                <DotOperacionalCalendarPage />
             </ProtectedRoute>
         } />
         <Route path="/dot-operacional/history" element={
@@ -234,12 +300,23 @@ const App: React.FC = () => {
         } />
         <Route path="/dot-team-leader/dashboard" element={
             <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
-                <DOTTeamLeaderDashboard />
+                {localStorage.getItem('layoutMode') === '2' ? <DOTTeamLeaderMenu /> : <DOTTeamLeaderDashboard />}
             </ProtectedRoute>
         } />
+        <Route path="/dot-operacional/dashboard" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                {localStorage.getItem('layoutMode') === '2' ? <DotOperacionalMenu /> : <Dashboard />}
+            </ProtectedRoute>
+        } />
+        
         <Route path="/dot-team-leader/import-visitas" element={
             <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
                 <DOTTeamLeaderImportTasksCSV />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/calendar" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DOTTeamLeaderCalendarPage />
             </ProtectedRoute>
         } />
         <Route path="/dot-team-leader/audit/:id" element={

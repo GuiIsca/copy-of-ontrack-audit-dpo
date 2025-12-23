@@ -36,7 +36,15 @@ export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ admi
   // View state
   type ViewMode = 'list' | 'calendar' | 'store' | 'dot';
   type PageSize = 5 | 15 | 25;
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const stored = localStorage.getItem('dashboardViewMode');
+    return stored === 'calendar' ? 'calendar' : 'list';
+  });
+    React.useEffect(() => {
+      if (localStorage.getItem('dashboardViewMode')) {
+        localStorage.removeItem('dashboardViewMode');
+      }
+    }, []);
   type CalendarScope = 'month' | 'week' | 'custom';
   const [calendarScope, setCalendarScope] = useState<CalendarScope>('month');
   const [weekFocusDate, setWeekFocusDate] = useState<Date | undefined>(undefined);

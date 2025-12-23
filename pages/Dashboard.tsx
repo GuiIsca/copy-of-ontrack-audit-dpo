@@ -14,6 +14,13 @@ import { CustomDateRangePlanner } from '../components/calendar/CustomDateRangePl
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  // Redireciona DOT Operacional para o menu avançado se layoutMode=2
+  React.useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (currentUser?.roles?.includes('DOT_OPERACIONAL') && localStorage.getItem('layoutMode') === '2') {
+      window.location.href = '/dot-operacional/menu';
+    }
+  }, []);
   const [audits, setAudits] = useState<(Audit & { store: Store; visitType?: VisitType; isAudit?: boolean })[]>([]);
   const [assignedStores, setAssignedStores] = useState<Store[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
