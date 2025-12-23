@@ -191,6 +191,44 @@ export interface AuditComment {
   isInternal?: boolean; // true = apenas DOT vê
 }
 
+export enum AnalyticsPeriod {
+  DAILY = 'DAILY',
+  MONTHLY = 'MONTHLY'
+}
+
+export interface AnalyticsKpi {
+  id: number;
+  period_type: AnalyticsPeriod;
+  period_date: string; // ISO Date
+  store_id?: number | null;
+  vendas_total?: number | null;
+  vendas_evolucao_pct?: number | null;
+  variacao_absoluta_eur?: number | null;
+  seca_pct?: number | null;
+  fresca_pct?: number | null;
+  cesto_medio?: number | null;
+  clientes_total?: number | null;
+  margem_pct?: number | null;
+  stock_total?: number | null;
+  produtividade?: number | null;
+  custos_pessoal?: number | null;
+  margem_seminet_pct?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AnalyticsResponse {
+  series: AnalyticsKpi[];
+  summary: Record<string, number | null>;
+  lastSnapshot?: AnalyticsKpi | null;
+  meta: {
+    periodType: AnalyticsPeriod;
+    startDate: string;
+    endDate: string;
+    storeId: number | null;
+  };
+}
+
 // Helper types for UI
 export interface AuditWithStore extends Audit {
   store: Store;

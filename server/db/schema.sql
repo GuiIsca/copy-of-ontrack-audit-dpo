@@ -24,6 +24,9 @@ CREATE TYPE action_responsible AS ENUM ('DOT_OPERACIONAL', 'ADERENTE', 'BOTH');
 -- Evaluation Type Enum
 CREATE TYPE evaluation_type AS ENUM ('SCALE_1_5', 'OK_KO');
 
+-- Analytics Period Enum
+CREATE TYPE analytics_period AS ENUM ('DAILY', 'MONTHLY');
+
 -- Users Table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -238,6 +241,45 @@ CREATE INDEX idx_specialist_manuals_area ON specialist_manuals(area);
 CREATE INDEX idx_specialist_manuals_uploaded_by ON specialist_manuals(uploaded_by);
 CREATE INDEX idx_specialist_manual_permissions_area ON specialist_manual_permissions(area);
 
+-- Analytics KPIs Table (daily and monthly snapshots)
+CREATE TABLE analytics_kpis (
+    id SERIAL PRIMARY KEY,
+    period_type analytics_period NOT NULL,
+    period_date DATE NOT NULL,
+    store_id INTEGER REFERENCES stores(id) ON DELETE CASCADE,
+    vendas_total NUMERIC(18, 2),
+    vendas_evolucao_pct NUMERIC(7, 2),
+    variacao_absoluta_eur NUMERIC(18, 2),
+    seca_pct NUMERIC(7, 2),
+    fresca_pct NUMERIC(7, 2),
+    cesto_medio NUMERIC(18, 2),
+    clientes_total INTEGER,
+    margem_pct NUMERIC(7, 2),
+    stock_total NUMERIC(18, 2),
+    produtividade NUMERIC(18, 4),
+    custos_pessoal NUMERIC(18, 2),
+    margem_seminet_pct NUMERIC(7, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (period_type, period_date, store_id)
+);
+
+CREATE TABLE analytics_imports (
+    id SERIAL PRIMARY KEY,
+    period_type analytics_period NOT NULL,
+    period_start DATE NOT NULL,
+    period_end DATE NOT NULL,
+    source VARCHAR(100),
+    uploaded_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    payload JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_analytics_kpis_period ON analytics_kpis(period_type, period_date);
+CREATE INDEX idx_analytics_kpis_store ON analytics_kpis(store_id);
+CREATE INDEX idx_analytics_imports_period ON analytics_imports(period_type, period_start, period_end);
+
 -- Triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -275,6 +317,12 @@ CREATE TRIGGER update_specialist_manuals_updated_at BEFORE UPDATE ON specialist_
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_specialist_manual_permissions_updated_at BEFORE UPDATE ON specialist_manual_permissions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_analytics_kpis_updated_at BEFORE UPDATE ON analytics_kpis
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_analytics_imports_updated_at BEFORE UPDATE ON analytics_imports
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ADMIN user seed with password '123456'

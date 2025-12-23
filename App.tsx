@@ -27,12 +27,13 @@ import { DotOperacionalAuditView } from './pages/DotOperacionalAuditView';
 import { AderenteVisitPage } from './pages/AderenteVisitPage';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
-import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard, canAccessAmontDashboard } from './utils/permissions';
+import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard, canAccessAmontDashboard, canViewAnalytics } from './utils/permissions';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminContactMessages } from './pages/AdminContactMessages';
 import { AmontDashboard } from './pages/AmontDashboard';
 import { SpecialistManuals } from './pages/SpecialistManuals';
 import { AdminSpecialistManuals } from './pages/AdminSpecialistManuals';
+import { Analytics } from './pages/Analytics';
 
 // Role-based protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireRole?: () => boolean }> = ({ children, requireRole }) => {
@@ -259,6 +260,11 @@ const App: React.FC = () => {
         <Route path="/dot-team-leader/reports" element={
             <ProtectedRoute requireRole={canViewReports}>
                 <Reports />
+            </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+            <ProtectedRoute requireRole={canViewAnalytics}>
+                <Analytics />
             </ProtectedRoute>
         } />
         <Route path="/dot-team-leader/new-visit-leader" element={

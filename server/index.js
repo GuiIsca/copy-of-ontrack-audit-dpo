@@ -18,6 +18,7 @@ import dotTeamLeaderRoutes from './routes/dot-team-leader.js';
 import sectionEvaluationsRoutes from './routes/section-evaluations.js';
 import adminContactsRoutes from './routes/admin-contacts.js';
 import specialistManualsRoutes from './routes/specialist-manuals.js';
+import analyticsRoutes from './routes/analytics.js';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use('/api/checklists', checklistsRoutes);
 app.use('/api/section-evaluations', sectionEvaluationsRoutes);
 app.use('/api/admin-contacts', adminContactsRoutes);
 app.use('/api/specialist-manuals', specialistManualsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 // Non-API legacy route migrated to DOT Team Leader integrations
 app.use('/dot-team-leader', dotTeamLeaderRoutes);
 

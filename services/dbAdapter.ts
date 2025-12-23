@@ -397,6 +397,19 @@ class DatabaseAdapter {
     await api.deleteVisit(visitId);
   }
 
+  // ============ ANALYTICS ============
+  async getAnalytics(params?: { startDate?: string; endDate?: string; periodType?: string; storeId?: number }) {
+    return api.getAnalytics(params);
+  }
+
+  async saveAnalyticsSnapshot(payload: any) {
+    return api.saveAnalyticsSnapshot(payload);
+  }
+
+  async saveAnalyticsBatch(payload: any) {
+    return api.saveAnalyticsBatch(payload);
+  }
+
   // ============ SCORES ============
   async getScores(auditId: number): Promise<AuditScore[]> {
     return api.getScores(auditId);

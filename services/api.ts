@@ -331,6 +331,31 @@ class ApiClient {
       body: JSON.stringify({ masterUserManual }),
     });
   }
+
+  // Analytics
+  async getAnalytics(params?: { startDate?: string; endDate?: string; periodType?: string; storeId?: number }) {
+    const search = new URLSearchParams();
+    if (params?.startDate) search.append('startDate', params.startDate);
+    if (params?.endDate) search.append('endDate', params.endDate);
+    if (params?.periodType) search.append('periodType', params.periodType);
+    if (params?.storeId !== undefined) search.append('storeId', String(params.storeId));
+    const qs = search.toString() ? `?${search.toString()}` : '';
+    return this.request(`/analytics${qs}`);
+  }
+
+  async saveAnalyticsSnapshot(payload: any) {
+    return this.request('/analytics', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async saveAnalyticsBatch(payload: any) {
+    return this.request('/analytics/batch', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
 }
 
 export const api = new ApiClient();
