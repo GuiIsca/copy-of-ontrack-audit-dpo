@@ -1,6 +1,11 @@
 export const APP_NAME = "OnTrack";
 export const APP_SUBTITLE = "by Intermarché";
 
+// API Base URL - adapta-se ao ambiente
+export const API_BASE_URL = import.meta.env.MODE === 'production' 
+  ? '/api' 
+  : 'http://localhost:3001/api';
+
 export const COLORS = {
   primary: '#FF2822', // Rouge Mousquetaires
   secondary: '#82072A', // Rouge Cavalier

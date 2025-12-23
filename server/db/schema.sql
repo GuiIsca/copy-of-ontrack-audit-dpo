@@ -186,6 +186,33 @@ CREATE TABLE aderente_contact_messages (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Specialist Areas Enum
+CREATE TYPE specialist_area AS ENUM ('Frutas e Legumes', 'Padaria Pastelaria LS', 'Charcutaria e Queijos', 'Talho', 'Peixaria', 'Pronto a Comer');
+
+-- Specialist Manuals Table
+CREATE TABLE specialist_manuals (
+    id SERIAL PRIMARY KEY,
+    area specialist_area NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size INTEGER NOT NULL,
+    master_user_manual BOOLEAN DEFAULT FALSE,
+    uploaded_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Specialist Manual Access Permissions (tracks which roles can access which areas)
+CREATE TABLE specialist_manual_permissions (
+    id SERIAL PRIMARY KEY,
+    area specialist_area NOT NULL,
+    roles user_role[] NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(area)
+);
+
 -- Indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_roles ON users USING GIN(roles);
@@ -207,6 +234,9 @@ CREATE INDEX idx_audit_comments_audit_id ON audit_comments(audit_id);
 CREATE INDEX idx_section_evaluations_audit_id ON section_evaluations(audit_id);
 CREATE INDEX idx_aderente_contact_messages_aderente_id ON aderente_contact_messages(aderente_id);
 CREATE INDEX idx_aderente_contact_messages_read ON aderente_contact_messages(read);
+CREATE INDEX idx_specialist_manuals_area ON specialist_manuals(area);
+CREATE INDEX idx_specialist_manuals_uploaded_by ON specialist_manuals(uploaded_by);
+CREATE INDEX idx_specialist_manual_permissions_area ON specialist_manual_permissions(area);
 
 -- Triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -241,6 +271,12 @@ CREATE TRIGGER update_admin_contact_departments_updated_at BEFORE UPDATE ON admi
 CREATE TRIGGER update_aderente_contact_messages_updated_at BEFORE UPDATE ON aderente_contact_messages
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_specialist_manuals_updated_at BEFORE UPDATE ON specialist_manuals
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_specialist_manual_permissions_updated_at BEFORE UPDATE ON specialist_manual_permissions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ADMIN user seed with password '123456'
 --INSERT INTO users (id, email, fullname, roles) VALUES
 --(1, 'admin@intermarche.pt', 'Master Administrator', ARRAY['ADMIN']::user_role[]);
@@ -255,3 +291,13 @@ INSERT INTO admin_contact_departments (name) VALUES
 ('Conceito'),
 ('Gestão Aval')
 ON CONFLICT (name) DO NOTHING;
+
+-- Seed specialist manual permissions (all areas available to all roles except AMONT)
+INSERT INTO specialist_manual_permissions (area, roles) VALUES
+('Frutas e Legumes', ARRAY['ADMIN', 'DOT_TEAM_LEADER', 'DOT_OPERACIONAL', 'ADERENTE']::user_role[]),
+('Padaria Pastelaria LS', ARRAY['ADMIN', 'DOT_TEAM_LEADER', 'DOT_OPERACIONAL', 'ADERENTE']::user_role[]),
+('Charcutaria e Queijos', ARRAY['ADMIN', 'DOT_TEAM_LEADER', 'DOT_OPERACIONAL', 'ADERENTE']::user_role[]),
+('Talho', ARRAY['ADMIN', 'DOT_TEAM_LEADER', 'DOT_OPERACIONAL', 'ADERENTE']::user_role[]),
+('Peixaria', ARRAY['ADMIN', 'DOT_TEAM_LEADER', 'DOT_OPERACIONAL', 'ADERENTE']::user_role[]),
+('Pronto a Comer', ARRAY['ADMIN', 'DOT_TEAM_LEADER', 'DOT_OPERACIONAL', 'ADERENTE']::user_role[])
+ON CONFLICT (area) DO NOTHING;

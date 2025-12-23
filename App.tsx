@@ -31,6 +31,8 @@ import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard,
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminContactMessages } from './pages/AdminContactMessages';
 import { AmontDashboard } from './pages/AmontDashboard';
+import { SpecialistManuals } from './pages/SpecialistManuals';
+import { AdminSpecialistManuals } from './pages/AdminSpecialistManuals';
 
 // Role-based protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireRole?: () => boolean }> = ({ children, requireRole }) => {
@@ -329,6 +331,16 @@ const App: React.FC = () => {
         <Route path="/admin/contact-messages/:messageId" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
                 <AdminContactMessages />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/specialist-manuals" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminSpecialistManuals />
+            </ProtectedRoute>
+        } />
+        <Route path="/specialist-manuals" element={
+            <ProtectedRoute>
+                <SpecialistManuals />
             </ProtectedRoute>
         } />
         {/* AMONT Routes */}

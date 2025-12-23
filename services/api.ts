@@ -281,6 +281,56 @@ class ApiClient {
     }
     return response.json();
   }
+
+  // Specialist Manuals
+  async getSpecialistAreas() {
+    return this.request('/specialist-manuals/areas');
+  }
+
+  async getSpecialistManualsByArea(area: string) {
+    return this.request(`/specialist-manuals/area/${encodeURIComponent(area)}`);
+  }
+
+  async getAllSpecialistManuals() {
+    return this.request('/specialist-manuals');
+  }
+
+  async uploadSpecialistManual(file: File, area: string, masterUserManual: boolean) {
+    const auth = localStorage.getItem('ontrack_auth');
+    const user = auth ? JSON.parse(auth) : null;
+    const userId = user?.userId || user?.id;
+
+    const form = new FormData();
+    form.append('file', file);
+    form.append('area', area);
+    form.append('masterUserManual', String(masterUserManual));
+
+    const response = await fetch(`${API_URL}/specialist-manuals/upload`, {
+      method: 'POST',
+      body: form,
+      headers: {
+        'x-user-id': String(userId || ''),
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async deleteSpecialistManual(id: number) {
+    return this.request(`/specialist-manuals/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async updateSpecialistManual(id: number, masterUserManual: boolean) {
+    return this.request(`/specialist-manuals/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ masterUserManual }),
+    });
+  }
 }
 
 export const api = new ApiClient();

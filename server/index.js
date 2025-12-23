@@ -17,6 +17,7 @@ import checklistsRoutes from './routes/checklists.js';
 import dotTeamLeaderRoutes from './routes/dot-team-leader.js';
 import sectionEvaluationsRoutes from './routes/section-evaluations.js';
 import adminContactsRoutes from './routes/admin-contacts.js';
+import specialistManualsRoutes from './routes/specialist-manuals.js';
 
 dotenv.config();
 
@@ -30,6 +31,8 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Serve static files for specialist manuals
+app.use('/specialist-manuals', express.static(join(__dirname, '../public/specialist-manuals')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -43,6 +46,7 @@ app.use('/api/comments', commentsRoutes);
 app.use('/api/checklists', checklistsRoutes);
 app.use('/api/section-evaluations', sectionEvaluationsRoutes);
 app.use('/api/admin-contacts', adminContactsRoutes);
+app.use('/api/specialist-manuals', specialistManualsRoutes);
 // Non-API legacy route migrated to DOT Team Leader integrations
 app.use('/dot-team-leader', dotTeamLeaderRoutes);
 
