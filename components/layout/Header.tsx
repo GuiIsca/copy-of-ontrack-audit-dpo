@@ -159,6 +159,7 @@ export const Header: React.FC = () => {
                     <Upload size={18} />
                     Importar CSV
                   </button>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
                     onClick={() => { window.location.href = '/admin/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -173,6 +174,7 @@ export const Header: React.FC = () => {
                     <BarChart3 size={18} />
                     Analítica
                   </button>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
                     onClick={() => { window.location.href = '/admin/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
