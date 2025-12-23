@@ -340,7 +340,8 @@ class ApiClient {
     if (params?.periodType) search.append('periodType', params.periodType);
     if (params?.storeId !== undefined) search.append('storeId', String(params.storeId));
     const qs = search.toString() ? `?${search.toString()}` : '';
-    return this.request(`/analytics${qs}`);
+    const data = await this.request(`/analytics${qs}`);
+    return toCamelCase(data);
   }
 
   async saveAnalyticsSnapshot(payload: any) {
@@ -356,6 +357,11 @@ class ApiClient {
       body: JSON.stringify(payload),
     });
   }
-}
+
+  async deleteAnalyticsSnapshot(id: number) {
+    return this.request(`/analytics/${id}`, {
+      method: 'DELETE',
+    });
+  }}
 
 export const api = new ApiClient();

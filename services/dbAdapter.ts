@@ -410,6 +410,10 @@ class DatabaseAdapter {
     return api.saveAnalyticsBatch(payload);
   }
 
+  async deleteAnalyticsSnapshot(id: number) {
+    return api.deleteAnalyticsSnapshot(id);
+  }
+
   // ============ SCORES ============
   async getScores(auditId: number): Promise<AuditScore[]> {
     return api.getScores(auditId);

@@ -30,7 +30,7 @@ const parseDate = (value, fallback) => {
 // GET /api/analytics?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&periodType=DAILY|MONTHLY&storeId=123
 router.get('/', async (req, res) => {
   try {
-    const periodType = (req.query.periodType || 'DAILY').toString().toUpperCase();
+    const periodType = req.query.periodType ? req.query.periodType.toString().toUpperCase() : null;
     const storeId = req.query.storeId ? Number(req.query.storeId) : null;
 
     const defaultEnd = new Date();
@@ -40,17 +40,24 @@ router.get('/', async (req, res) => {
     const startDate = parseDate(req.query.startDate, defaultStart);
     const endDate = parseDate(req.query.endDate, defaultEnd);
 
-    const params = [periodType, startDate, endDate];
+    const params = [startDate, endDate];
+    let periodFilter = '';
     let storeFilter = '';
+    
+    if (periodType) {
+      params.push(periodType);
+      periodFilter = `AND period_type = $${params.length}`;
+    }
+    
     if (storeId) {
       params.push(storeId);
-      storeFilter = 'AND (store_id = $4)';
+      storeFilter = `AND (store_id = $${params.length})`;
     }
 
     const result = await query(
       `SELECT * FROM analytics_kpis 
-       WHERE period_type = $1
-         AND period_date BETWEEN $2 AND $3
+       WHERE period_date BETWEEN $1 AND $2
+         ${periodFilter}
          ${storeFilter}
        ORDER BY period_date ASC`,
       params
@@ -68,7 +75,9 @@ router.get('/', async (req, res) => {
 
     AVG_FIELDS.forEach((field) => {
       const values = rows
-        .map((r) => Number(r[field]))
+        .map((r) => r[field])
+        .filter((v) => v !== null && v !== undefined && v !== '')
+        .map((v) => Number(v))
         .filter((v) => Number.isFinite(v));
       summary[field] = values.length > 0
         ? values.reduce((acc, val) => acc + val, 0) / values.length
@@ -112,7 +121,7 @@ router.post('/', async (req, res) => {
     }
 
     const periodTypeUpper = periodType.toString().toUpperCase();
-    const values = NUMERIC_FIELDS.map((f) => (metrics[f] !== undefined ? metrics[f] : null));
+    const values = NUMERIC_FIELDS.map((f) => (metrics[f] !== undefined && metrics[f] !== null ? metrics[f] : null));
 
     const insertQuery = `
       INSERT INTO analytics_kpis (
@@ -123,7 +132,7 @@ router.post('/', async (req, res) => {
         ${NUMERIC_FIELDS.map((_, idx) => `$${idx + 4}`).join(', ')}
       )
       ON CONFLICT (period_type, period_date, store_id)
-      DO UPDATE SET ${NUMERIC_FIELDS.map((f, idx) => `${f} = EXCLUDED.${f}`).join(', ')}, updated_at = CURRENT_TIMESTAMP
+      DO UPDATE SET ${NUMERIC_FIELDS.map((f) => `${f} = COALESCE(EXCLUDED.${f}, analytics_kpis.${f})`).join(', ')}, updated_at = CURRENT_TIMESTAMP
       RETURNING *
     `;
 
@@ -140,7 +149,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(saved.rows[0]);
   } catch (error) {
     console.error('Analytics POST error:', error);
-    res.status(500).json({ error: 'Failed to save analytics snapshot' });
+    res.status(500).json({ error: 'Failed to save analytics snapshot', details: error.message });
   }
 });
 
@@ -188,6 +197,23 @@ router.post('/batch', async (req, res) => {
   } catch (error) {
     console.error('Analytics batch error:', error);
     res.status(500).json({ error: 'Failed to save analytics batch' });
+  }
+});
+
+// DELETE /api/analytics/:id -> delete a single KPI snapshot
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query('DELETE FROM analytics_kpis WHERE id = $1 RETURNING id', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Analytics snapshot not found' });
+    }
+    
+    res.json({ message: 'Analytics snapshot deleted successfully', id: result.rows[0].id });
+  } catch (error) {
+    console.error('Analytics delete error:', error);
+    res.status(500).json({ error: 'Failed to delete analytics snapshot' });
   }
 });
 

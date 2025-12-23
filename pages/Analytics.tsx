@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { useToast } from '../components/ui/Toast';
 import { db } from '../services/dbAdapter';
 import { AnalyticsPeriod, AnalyticsResponse, AnalyticsKpi } from '../types';
 import { getCurrentUser } from '../utils/auth';
 import { isAdmin } from '../utils/permissions';
-import { BarChart3, Calendar, RefreshCw } from 'lucide-react';
+import { BarChart3, Calendar, RefreshCw, Trash2 } from 'lucide-react';
 
 const formatPercent = (value?: number | null) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
@@ -33,14 +34,15 @@ const thirtyDaysAgoISO = () => {
 
 const parseNumberOrNull = (value: string) => {
   if (value === '') return null;
-  const n = Number(value);
+  // Replace comma with dot for decimal separator (pt-PT locale support)
+  const normalized = value.replace(',', '.');
+  const n = Number(normalized);
   return Number.isFinite(n) ? n : null;
 };
 
 export const Analytics: React.FC = () => {
   const [startDate, setStartDate] = useState(thirtyDaysAgoISO());
   const [endDate, setEndDate] = useState(todayISO());
-  const [periodType, setPeriodType] = useState<AnalyticsPeriod>(AnalyticsPeriod.DAILY);
   const [response, setResponse] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [savingDaily, setSavingDaily] = useState<boolean>(false);
@@ -48,6 +50,9 @@ export const Analytics: React.FC = () => {
   const { show } = useToast();
   const currentUser = getCurrentUser();
   const userIsAdmin = isAdmin();
+
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: number | null }>({ open: false, id: null });
+  const [deleting, setDeleting] = useState<boolean>(false);
 
   const [dailyForm, setDailyForm] = useState({
     periodDate: todayISO(),
@@ -60,10 +65,7 @@ export const Analytics: React.FC = () => {
     cesto_medio: '',
     clientes_total: '',
     margem_pct: '',
-    stock_total: '',
-    produtividade: '',
-    custos_pessoal: '',
-    margem_seminet_pct: ''
+    stock_total: ''
   });
 
   const [monthlyForm, setMonthlyForm] = useState({
@@ -76,11 +78,12 @@ export const Analytics: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const data = await db.getAnalytics({ startDate, endDate, periodType });
+      const data = await db.getAnalytics({ startDate, endDate });
+      console.log('📊 Loaded analytics data:', data);
       setResponse(data as AnalyticsResponse);
     } catch (error) {
       console.error('Analytics load error:', error);
-      show({ title: 'Erro ao carregar', description: 'Não foi possível obter os dados de analítica.', variant: 'error' });
+      show('Não foi possível obter os dados de analítica.', 'error');
     } finally {
       setLoading(false);
     }
@@ -94,6 +97,21 @@ export const Analytics: React.FC = () => {
   const handleFilter = async (event: React.FormEvent) => {
     event.preventDefault();
     await loadData();
+  };
+
+  const handleStartDateChange = (value: string) => {
+    setStartDate(value);
+    if (endDate && new Date(value) > new Date(endDate)) {
+      setEndDate(value);
+    }
+  };
+
+  const handleEndDateChange = (value: string) => {
+    if (new Date(value) < new Date(startDate)) {
+      show('Data fim não pode ser anterior à data início.', 'error');
+      return;
+    }
+    setEndDate(value);
   };
 
   const handleDailySubmit = async (event: React.FormEvent) => {
@@ -113,19 +131,31 @@ export const Analytics: React.FC = () => {
         clientes_total: parseNumberOrNull(dailyForm.clientes_total),
         margem_pct: parseNumberOrNull(dailyForm.margem_pct),
         stock_total: parseNumberOrNull(dailyForm.stock_total),
-        produtividade: parseNumberOrNull(dailyForm.produtividade),
-        custos_pessoal: parseNumberOrNull(dailyForm.custos_pessoal),
-        margem_seminet_pct: parseNumberOrNull(dailyForm.margem_seminet_pct),
         source: 'manual-ui',
         uploadedBy: currentUser?.userId || currentUser?.id || null
       };
 
       await db.saveAnalyticsSnapshot(payload);
-      show({ title: 'Guardado', description: 'Snapshot diário atualizado com sucesso.' });
+      show('Snapshot diário atualizado com sucesso.', 'success');
       await loadData();
+      
+      // Reset form
+      setDailyForm({
+        periodDate: todayISO(),
+        storeId: '',
+        vendas_total: '',
+        vendas_evolucao_pct: '',
+        variacao_absoluta_eur: '',
+        seca_pct: '',
+        fresca_pct: '',
+        cesto_medio: '',
+        clientes_total: '',
+        margem_pct: '',
+        stock_total: ''
+      });
     } catch (error) {
       console.error('Analytics daily save error:', error);
-      show({ title: 'Erro', description: 'Não foi possível gravar o snapshot diário.', variant: 'error' });
+      show('Não foi possível gravar o snapshot diário.', 'error');
     } finally {
       setSavingDaily(false);
     }
@@ -147,13 +177,38 @@ export const Analytics: React.FC = () => {
       };
 
       await db.saveAnalyticsSnapshot(payload);
-      show({ title: 'Guardado', description: 'Snapshot mensal atualizado com sucesso.' });
+      show('Snapshot mensal atualizado com sucesso.', 'success');
       await loadData();
+      
+      // Reset form
+      setMonthlyForm({
+        periodMonth: todayISO().slice(0, 7),
+        produtividade: '',
+        custos_pessoal: '',
+        margem_seminet_pct: ''
+      });
     } catch (error) {
       console.error('Analytics monthly save error:', error);
-      show({ title: 'Erro', description: 'Não foi possível gravar o snapshot mensal.', variant: 'error' });
+      show('Não foi possível gravar o snapshot mensal.', 'error');
     } finally {
       setSavingMonthly(false);
+    }
+  };
+
+  const handleDeleteSnapshot = async () => {
+    if (deleteConfirm.id === null) return;
+    setDeleting(true);
+    try {
+      console.log('🗑️ Deleting snapshot with ID:', deleteConfirm.id);
+      await db.deleteAnalyticsSnapshot(deleteConfirm.id);
+      show('Snapshot apagado com sucesso.', 'success');
+      setDeleteConfirm({ open: false, id: null });
+      await loadData();
+    } catch (error) {
+      console.error('Analytics delete error:', error);
+      show('Não foi possível apagar o snapshot.', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -167,74 +222,74 @@ export const Analytics: React.FC = () => {
   const metricCards = [
     {
       label: '% evolução de vendas',
-      value: formatPercent(response?.summary?.vendas_evolucao_pct as number | null),
+      value: formatPercent(response?.summary?.vendasEvolucaoPct as number | null),
       helper: 'Média no período (diário)',
       color: 'text-emerald-600'
     },
     {
       label: 'Variação absoluta (€)',
-      value: formatEuro(response?.summary?.variacao_absoluta_eur as number | null),
+      value: formatEuro(response?.summary?.variacaoAbsolutaEur as number | null),
       helper: 'Soma no período',
       color: 'text-blue-600'
     },
     {
       label: 'Vendas',
-      value: formatEuro(response?.summary?.vendas_total as number | null),
+      value: formatEuro(response?.summary?.vendasTotal as number | null),
       helper: 'Soma no período',
       color: 'text-gray-900'
     },
     {
       label: 'Cesto médio',
-      value: formatEuro(response?.summary?.cesto_medio as number | null),
+      value: formatEuro(response?.summary?.cestoMedio as number | null),
       helper: 'Média no período',
       color: 'text-gray-900'
     },
     {
       label: 'Nº de clientes',
-      value: formatNumber(response?.summary?.clientes_total as number | null),
+      value: formatNumber(response?.summary?.clientesTotal as number | null),
       helper: 'Soma no período',
       color: 'text-gray-900'
     },
     {
       label: 'Margem',
-      value: formatPercent(response?.summary?.margem_pct as number | null),
+      value: formatPercent(response?.summary?.margemPct as number | null),
       helper: 'Média no período',
       color: 'text-gray-900'
     },
     {
       label: '% Seca',
-      value: formatPercent(response?.summary?.seca_pct as number | null),
+      value: formatPercent(response?.summary?.secaPct as number | null),
       helper: 'Média no período',
       color: 'text-gray-900'
     },
     {
       label: '% Fresca',
-      value: formatPercent(response?.summary?.fresca_pct as number | null),
+      value: formatPercent(response?.summary?.frescaPct as number | null),
       helper: 'Média no período',
       color: 'text-gray-900'
     },
     {
       label: 'Stock',
-      value: formatEuro(response?.summary?.stock_total as number | null),
+      value: formatEuro(response?.summary?.stockTotal as number | null),
       helper: 'Soma no período',
       color: 'text-gray-900'
     },
     {
       label: 'Produtividade',
       value: formatNumber(response?.summary?.produtividade as number | null, 2),
-      helper: periodType === AnalyticsPeriod.MONTHLY ? 'Atualização mensal' : 'Média no período',
+      helper: 'Média no período',
       color: 'text-gray-900'
     },
     {
       label: 'Custos com pessoal',
-      value: formatEuro(response?.summary?.custos_pessoal as number | null),
-      helper: periodType === AnalyticsPeriod.MONTHLY ? 'Atualização mensal' : 'Soma no período',
+      value: formatEuro(response?.summary?.custosPessoal as number | null),
+      helper: 'Soma no período',
       color: 'text-gray-900'
     },
     {
       label: 'Margem seminet',
-      value: formatPercent(response?.summary?.margem_seminet_pct as number | null),
-      helper: periodType === AnalyticsPeriod.MONTHLY ? 'Atualização mensal' : 'Média no período',
+      value: formatPercent(response?.summary?.margemSeminetPct as number | null),
+      helper: 'Média no período',
       color: 'text-gray-900'
     }
   ];
@@ -255,30 +310,19 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <form onSubmit={handleFilter} className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <form onSubmit={handleFilter} className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
           <Input
             type="date"
             label="Data início"
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={(e) => handleStartDateChange(e.target.value)}
           />
           <Input
             type="date"
             label="Data fim"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            onChange={(e) => handleEndDateChange(e.target.value)}
           />
-          <div className="w-full">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Periodicidade</label>
-            <select
-              value={periodType}
-              onChange={(e) => setPeriodType(e.target.value as AnalyticsPeriod)}
-              className="block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-mousquetaires focus:border-mousquetaires sm:text-sm"
-            >
-              <option value={AnalyticsPeriod.DAILY}>Diária</option>
-              <option value={AnalyticsPeriod.MONTHLY}>Mensal</option>
-            </select>
-          </div>
           <div className="flex items-end">
             <Button type="submit" className="w-full" disabled={loading}>
               <RefreshCw size={16} className="mr-2" />
@@ -307,13 +351,14 @@ export const Analytics: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Série temporal</h2>
-                <p className="text-sm text-gray-500">{periodType === AnalyticsPeriod.DAILY ? 'Snapshots diários' : 'Snapshots mensais'}</p>
+                <p className="text-sm text-gray-500">Todos os snapshots</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-3 py-2 text-left font-semibold text-gray-600">Data</th>
+                      <th className="px-3 py-2 text-center font-semibold text-gray-600">Tipo</th>
                       <th className="px-3 py-2 text-right font-semibold text-gray-600">% evolução</th>
                       <th className="px-3 py-2 text-right font-semibold text-gray-600">Variação €</th>
                       <th className="px-3 py-2 text-right font-semibold text-gray-600">Vendas</th>
@@ -324,27 +369,44 @@ export const Analytics: React.FC = () => {
                       <th className="px-3 py-2 text-right font-semibold text-gray-600">Produtividade</th>
                       <th className="px-3 py-2 text-right font-semibold text-gray-600">Custos pessoal</th>
                       <th className="px-3 py-2 text-right font-semibold text-gray-600">Margem seminet</th>
+                      {userIsAdmin && <th className="px-3 py-2 text-center font-semibold text-gray-600">Ações</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {series.length === 0 && (
                       <tr>
-                        <td colSpan={11} className="px-3 py-4 text-center text-gray-500">Sem dados para o período selecionado.</td>
+                        <td colSpan={userIsAdmin ? 13 : 12} className="px-3 py-4 text-center text-gray-500">Sem dados para o período selecionado.</td>
                       </tr>
                     )}
                     {series.map((row: AnalyticsKpi) => (
-                      <tr key={`${row.period_type}-${row.period_date}-${row.store_id || 'all'}`} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 text-gray-700">{new Date(row.period_date).toLocaleDateString('pt-PT')}</td>
-                        <td className="px-3 py-2 text-right">{formatPercent(row.vendas_evolucao_pct)}</td>
-                        <td className="px-3 py-2 text-right">{formatEuro(row.variacao_absoluta_eur)}</td>
-                        <td className="px-3 py-2 text-right">{formatEuro(row.vendas_total)}</td>
-                        <td className="px-3 py-2 text-right">{formatEuro(row.cesto_medio)}</td>
-                        <td className="px-3 py-2 text-right">{formatNumber(row.clientes_total)}</td>
-                        <td className="px-3 py-2 text-right">{formatPercent(row.seca_pct)}</td>
-                        <td className="px-3 py-2 text-right">{formatPercent(row.fresca_pct)}</td>
+                      <tr key={`${row.periodType}-${row.periodDate}-${row.storeId || 'all'}`} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 text-gray-700">{new Date(row.periodDate).toLocaleDateString('pt-PT')}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${row.periodType === 'DAILY' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                            {row.periodType === 'DAILY' ? 'Diário' : 'Mensal'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right">{formatPercent(row.vendasEvolucaoPct)}</td>
+                        <td className="px-3 py-2 text-right">{formatEuro(row.variacaoAbsolutaEur)}</td>
+                        <td className="px-3 py-2 text-right">{formatEuro(row.vendasTotal)}</td>
+                        <td className="px-3 py-2 text-right">{formatEuro(row.cestoMedio)}</td>
+                        <td className="px-3 py-2 text-right">{formatNumber(row.clientesTotal)}</td>
+                        <td className="px-3 py-2 text-right">{formatPercent(row.secaPct)}</td>
+                        <td className="px-3 py-2 text-right">{formatPercent(row.frescaPct)}</td>
                         <td className="px-3 py-2 text-right">{formatNumber(row.produtividade, 2)}</td>
-                        <td className="px-3 py-2 text-right">{formatEuro(row.custos_pessoal)}</td>
-                        <td className="px-3 py-2 text-right">{formatPercent(row.margem_seminet_pct)}</td>
+                        <td className="px-3 py-2 text-right">{formatEuro(row.custosPessoal)}</td>
+                        <td className="px-3 py-2 text-right">{formatPercent(row.margemSeminetPct)}</td>
+                        {userIsAdmin && (
+                          <td className="px-3 py-2 text-center">
+                            <button
+                              onClick={() => setDeleteConfirm({ open: true, id: row.id })}
+                              className="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:bg-red-50 rounded"
+                              title="Apagar snapshot"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -384,9 +446,6 @@ export const Analytics: React.FC = () => {
                       <Input label="% Seca" value={dailyForm.seca_pct} onChange={(e) => setDailyForm({ ...dailyForm, seca_pct: e.target.value })} />
                       <Input label="% Fresca" value={dailyForm.fresca_pct} onChange={(e) => setDailyForm({ ...dailyForm, fresca_pct: e.target.value })} />
                       <Input label="Stock (€)" value={dailyForm.stock_total} onChange={(e) => setDailyForm({ ...dailyForm, stock_total: e.target.value })} />
-                      <Input label="Produtividade" value={dailyForm.produtividade} onChange={(e) => setDailyForm({ ...dailyForm, produtividade: e.target.value })} />
-                      <Input label="Custos com pessoal (€)" value={dailyForm.custos_pessoal} onChange={(e) => setDailyForm({ ...dailyForm, custos_pessoal: e.target.value })} />
-                      <Input label="Margem seminet (%)" value={dailyForm.margem_seminet_pct} onChange={(e) => setDailyForm({ ...dailyForm, margem_seminet_pct: e.target.value })} />
                     </div>
                     <Button type="submit" disabled={savingDaily}>
                       {savingDaily ? 'A guardar...' : 'Guardar snapshot diário'}
@@ -424,6 +483,16 @@ export const Analytics: React.FC = () => {
           </>
         )}
       </main>
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        title="Apagar snapshot"
+        message="Tem a certeza que deseja apagar este snapshot? Esta ação não pode ser desfeita."
+        confirmText="Apagar"
+        cancelText="Cancelar"
+        onConfirm={handleDeleteSnapshot}
+        onCancel={() => setDeleteConfirm({ open: false, id: null })}
+        loading={deleting}
+      />
     </div>
   );
 };
