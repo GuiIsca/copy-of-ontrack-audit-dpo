@@ -22,33 +22,69 @@ const DOTTeamLeaderCalendarPage: React.FC = () => {
       const stores = await db.getStores();
       const allUsers = await db.getUsers();
       const allAuditsData = await db.getAudits();
-      let auditsToShow = allAuditsData;
+      const allVisitsData = await db.getVisits();
+      let auditsToShow: VisitItem[] = [];
+      let visitsToShow: VisitItem[] = [];
       if (currentUser) {
         const myDots = allUsers
           .filter(u => u.roles?.includes(UserRole.DOT_OPERACIONAL) && (u as any).dotTeamLeaderId === currentUser?.userId)
           .map(u => u.id);
+        // Auditorias SUBMITTED/ENDED dos DOTs do Team Leader
         auditsToShow = allAuditsData.filter(a => {
-          const createdBy = (a as any).createdBy ?? (a as any).created_by;
-          const isAderenteVisit = (a as any).visit_source_type === 'ADERENTE_VISIT' || (a as any).visitSourceType === 'ADERENTE_VISIT';
-          return isAderenteVisit || myDots.includes(a.dot_operacional_id) || createdBy === currentUser?.userId;
+          const dotId = (a as any).dot_operacional_id || (a as any).dot_user_id;
+          const status = a.status;
+          return myDots.includes(dotId) && (status === 'SUBMITTED' || status === 'ENDED' || status === 2 || status === 3);
         });
+        // Todas as visitas dos DOTs do Team Leader
+        visitsToShow = allVisitsData.filter(v => {
+          return myDots.includes(v.user_id);
+        });
+        // Também mostrar auditorias/visitas do próprio Team Leader (caso existam)
+        auditsToShow = auditsToShow.concat(
+          allAuditsData.filter(a => {
+            const dotId = (a as any).dot_operacional_id || (a as any).dot_user_id;
+            return dotId === currentUser.userId;
+          })
+        );
+        visitsToShow = visitsToShow.concat(
+          allVisitsData.filter(v => v.user_id === currentUser.userId)
+        );
+      }
+      // Normalização de tipo
+      function normalizeVisitType(type: any): VisitType {
+        if (!type) return VisitType.OUTROS;
+        const t = String(type).toLowerCase();
+        if (t === 'auditoria') return VisitType.AUDITORIA;
+        if (t === 'formacao' || t === 'formação') return VisitType.FORMACAO;
+        if (t === 'acompanhamento') return VisitType.ACOMPANHAMENTO;
+        return VisitType.OUTROS;
       }
       const enrichedAudits: VisitItem[] = auditsToShow
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
           const createdBy = (audit as any).createdBy ?? (audit as any).created_by;
-          return store ? { ...audit, createdBy, store, visitType: VisitType.AUDITORIA, isAudit: true } as VisitItem & { isAudit: boolean } : null;
+          let visitType: VisitType = VisitType.AUDITORIA;
+          if ((audit as any).visitType) {
+            visitType = normalizeVisitType((audit as any).visitType);
+          } else if ((audit as any).type) {
+            visitType = normalizeVisitType((audit as any).type);
+          }
+          return store ? { ...audit, createdBy, store, visitType, isAudit: true } as VisitItem & { isAudit: boolean } : null;
         })
         .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null);
-      const allVisitsData = await db.getVisits();
-      const enrichedVisits: VisitItem[] = allVisitsData
+      const enrichedVisits: VisitItem[] = visitsToShow
         .map(visit => {
           const store = stores.find(s => s.id === visit.store_id);
           const createdBy = (visit as any).createdBy ?? (visit as any).created_by;
-          return store ? { ...visit, createdBy, store, visitType: visit.type as VisitType, isAudit: false } as VisitItem & { isAudit: boolean } : null;
+          let visitType: VisitType = VisitType.OUTROS;
+          if ((visit as any).visitType) {
+            visitType = normalizeVisitType((visit as any).visitType);
+          } else if ((visit as any).type) {
+            visitType = normalizeVisitType((visit as any).type);
+          }
+          return store ? { ...visit, createdBy, store, visitType, isAudit: false } as VisitItem & { isAudit: boolean } : null;
         })
         .filter((visit): visit is VisitItem & { isAudit: boolean } => visit !== null);
-
       const allItems = [...enrichedAudits, ...enrichedVisits];
       setAllAudits(allItems);
       setLoading(false);
@@ -60,6 +96,7 @@ const DOTTeamLeaderCalendarPage: React.FC = () => {
     if (!currentUser) return;
     let filtered = allAudits;
     if (minhasVisitas) {
+      // Só mostrar visitas/auditorias do próprio Team Leader
       filtered = filtered.filter(v => {
         const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
         if (isAudit) {
@@ -69,19 +106,14 @@ const DOTTeamLeaderCalendarPage: React.FC = () => {
         return v.user_id === currentUser.userId;
       });
     } else {
-      // Ocultar visitas próprias quando não está em "Minhas Visitas"
+      // Só mostrar visitas/auditorias dos DOTs (exclui as do próprio Team Leader)
       filtered = filtered.filter(v => {
         const isAudit = (v as any).isAudit === true || v.visitType === VisitType.AUDITORIA;
-        const createdBy = Number((v as any).createdBy ?? (v as any).created_by);
-        const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
-        const ownerId = isAudit ? (dotId || createdBy) : (v.user_id || createdBy);
-        // Só mostrar auditorias SUBMITTED ou ENDED
         if (isAudit) {
-          const status = v.status;
-          const isSubmitted = status === 'SUBMITTED' || status === 'ENDED' || status === 2 || status === 3;
-          return ownerId !== currentUser.userId && isSubmitted;
+          const dotId = (v as any).dot_operacional_id || (v as any).dot_user_id;
+          return dotId !== currentUser.userId;
         }
-        return ownerId !== currentUser.userId;
+        return v.user_id !== currentUser.userId;
       });
     }
     setAudits(filtered);

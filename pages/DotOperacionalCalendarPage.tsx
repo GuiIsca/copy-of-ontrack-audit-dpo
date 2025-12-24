@@ -37,18 +37,38 @@ const DotOperacionalCalendarPage: React.FC = () => {
           return v.user_id === currentUser.userId;
         });
       }
+      function normalizeVisitType(type: any): VisitType {
+        if (!type) return VisitType.OUTROS;
+        const t = String(type).toLowerCase();
+        if (t === 'auditoria') return VisitType.AUDITORIA;
+        if (t === 'formacao' || t === 'formação') return VisitType.FORMACAO;
+        if (t === 'acompanhamento') return VisitType.ACOMPANHAMENTO;
+        return VisitType.OUTROS;
+      }
       const enrichedAudits: VisitItem[] = auditsToShow
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
           const createdBy = (audit as any).createdBy ?? (audit as any).created_by;
-          return store ? { ...audit, createdBy, store, visitType: VisitType.AUDITORIA, isAudit: true } as VisitItem & { isAudit: boolean } : null;
+          let visitType: VisitType = VisitType.AUDITORIA;
+          if ((audit as any).visitType) {
+            visitType = normalizeVisitType((audit as any).visitType);
+          } else if ((audit as any).type) {
+            visitType = normalizeVisitType((audit as any).type);
+          }
+          return store ? { ...audit, createdBy, store, visitType, isAudit: true } as VisitItem & { isAudit: boolean } : null;
         })
         .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null);
       const enrichedVisits: VisitItem[] = visitsToShow
         .map(visit => {
           const store = stores.find(s => s.id === visit.store_id);
           const createdBy = (visit as any).createdBy ?? (visit as any).created_by;
-          return store ? { ...visit, createdBy, store, visitType: visit.type as VisitType, isAudit: false } as VisitItem & { isAudit: boolean } : null;
+          let visitType: VisitType = VisitType.OUTROS;
+          if ((visit as any).visitType) {
+            visitType = normalizeVisitType((visit as any).visitType);
+          } else if ((visit as any).type) {
+            visitType = normalizeVisitType((visit as any).type);
+          }
+          return store ? { ...visit, createdBy, store, visitType, isAudit: false } as VisitItem & { isAudit: boolean } : null;
         })
         .filter((visit): visit is VisitItem & { isAudit: boolean } => visit !== null);
       const allItems = [...enrichedAudits, ...enrichedVisits];
@@ -75,14 +95,7 @@ const DotOperacionalCalendarPage: React.FC = () => {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           Voltar
         </button>
-        <button
-          type="button"
-          onClick={() => setMinhasVisitas(v => !v)}
-          className={`px-4 py-1 rounded font-medium transition-colors ${minhasVisitas ? 'bg-mousquetaires text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
-          style={{ marginLeft: 8 }}
-        >
-          Minhas Visitas
-        </button>
+        {/* Botão 'Minhas Visitas' removido, pois não é necessário para DOT Operacional */}
       </div>
       <h2 style={{textAlign: 'center', fontWeight: 700, fontSize: 28, margin: '2rem 0 1rem'}}>Calendário DOT Operacional</h2>
       <div className="flex justify-center gap-2 mb-4">

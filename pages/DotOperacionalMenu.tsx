@@ -14,7 +14,7 @@ export const DotOperacionalMenu: React.FC = () => {
     {
       title: 'Nova Visita',
       icon: <Plus size={48} />,
-      onClick: () => window.location.href = '/dot-operacional/new-visit'
+      onClick: () => window.location.href = '/dot-operacional/select-visit-type'
     },
     {
       title: 'Histórico',

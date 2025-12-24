@@ -144,13 +144,13 @@ const App: React.FC = () => {
         {/* Alias route for DOT dashboard to avoid navigation mismatches */}
         <Route path="/dot/dashboard" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
-                <Dashboard />
+                {localStorage.getItem('layoutMode') === '2' ? <DotOperacionalMenu /> : <Dashboard />}
             </ProtectedRoute>
         } />
         {/* NEW: DOT Operacional specific routes */}
         <Route path="/dot-operacional/dashboard" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
-                <Dashboard />
+                {localStorage.getItem('layoutMode') === '2' ? <DotOperacionalMenu /> : <Dashboard />}
             </ProtectedRoute>
         } />
         <Route path="/dot-operacional/new-audit" element={
@@ -301,11 +301,6 @@ const App: React.FC = () => {
         <Route path="/dot-team-leader/dashboard" element={
             <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
                 {localStorage.getItem('layoutMode') === '2' ? <DOTTeamLeaderMenu /> : <DOTTeamLeaderDashboard />}
-            </ProtectedRoute>
-        } />
-        <Route path="/dot-operacional/dashboard" element={
-            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
-                {localStorage.getItem('layoutMode') === '2' ? <DotOperacionalMenu /> : <Dashboard />}
             </ProtectedRoute>
         } />
         
