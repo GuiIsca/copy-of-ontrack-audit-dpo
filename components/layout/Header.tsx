@@ -176,11 +176,32 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
+                    onClick={() => { window.location.href = '/admin/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
+                  <button 
                     onClick={() => { window.location.href = '/admin/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <BookOpen size={18} />
                     Manuais de Especialista
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/folhetos'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
+                    Folhetos
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/estudo-mercado'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
+                    Estudo de Mercado
                   </button>
                 </>
               )}
@@ -234,11 +255,32 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
-                    onClick={() => { window.location.href = '/specialist-manuals'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <BookOpen size={18} />
                     Manuais de Especialista
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/folhetos'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
+                    Folhetos
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/estudo-mercado'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
+                    Estudo de Mercado
                   </button>
                 </>
               )}
@@ -283,11 +325,32 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
-                    onClick={() => { window.location.href = '/specialist-manuals'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/aderente/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <BookOpen size={18} />
                     Manuais de Especialista
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/folhetos'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
+                    Folhetos
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/estudo-mercado'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
+                    Estudo de Mercado
                   </button>
                 </>
               )}
@@ -307,6 +370,21 @@ export const Header: React.FC = () => {
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                     Nova Visita (Auditoria)
+                  </button>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/folhetos'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
+                    Folhetos
                   </button>
                 </>
               )}
@@ -352,11 +430,32 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
-                    onClick={() => { window.location.href = '/specialist-manuals'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-operacional/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <BookOpen size={18} />
                     Manuais de Especialista
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/folhetos'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
+                    Folhetos
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/estudo-mercado'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
+                    Estudo de Mercado
                   </button>
                 </>
               )}

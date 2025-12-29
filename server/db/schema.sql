@@ -216,6 +216,48 @@ CREATE TABLE specialist_manual_permissions (
     UNIQUE(area)
 );
 
+-- Folhetos (Leaflets) Table
+CREATE TABLE folhetos (
+    id SERIAL PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size INTEGER NOT NULL,
+    uploaded_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Estudo de Mercado (Market Study) Table
+CREATE TABLE estudo_mercado (
+    id SERIAL PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size INTEGER NOT NULL,
+    uploaded_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Store Layout Types Enum
+CREATE TYPE store_layout_type AS ENUM ('PLANTA_LOJA', 'LAYOUT_FORMATO');
+
+-- Store Layouts Table (Planta da Loja / Layout do Formato)
+CREATE TABLE store_layouts (
+    id SERIAL PRIMARY KEY,
+    store_id INTEGER NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    layout_type store_layout_type NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size INTEGER NOT NULL,
+    mime_type VARCHAR(100),
+    uploaded_by INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_roles ON users USING GIN(roles);
@@ -240,6 +282,11 @@ CREATE INDEX idx_aderente_contact_messages_read ON aderente_contact_messages(rea
 CREATE INDEX idx_specialist_manuals_area ON specialist_manuals(area);
 CREATE INDEX idx_specialist_manuals_uploaded_by ON specialist_manuals(uploaded_by);
 CREATE INDEX idx_specialist_manual_permissions_area ON specialist_manual_permissions(area);
+CREATE INDEX idx_folhetos_uploaded_by ON folhetos(uploaded_by);
+CREATE INDEX idx_estudo_mercado_uploaded_by ON estudo_mercado(uploaded_by);
+CREATE INDEX idx_store_layouts_store_id ON store_layouts(store_id);
+CREATE INDEX idx_store_layouts_type ON store_layouts(layout_type);
+CREATE INDEX idx_store_layouts_uploaded_by ON store_layouts(uploaded_by);
 
 -- Analytics KPIs Table (daily and monthly snapshots)
 CREATE TABLE analytics_kpis (
@@ -317,6 +364,15 @@ CREATE TRIGGER update_specialist_manuals_updated_at BEFORE UPDATE ON specialist_
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_specialist_manual_permissions_updated_at BEFORE UPDATE ON specialist_manual_permissions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_folhetos_updated_at BEFORE UPDATE ON folhetos
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_estudo_mercado_updated_at BEFORE UPDATE ON estudo_mercado
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_store_layouts_updated_at BEFORE UPDATE ON store_layouts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_analytics_kpis_updated_at BEFORE UPDATE ON analytics_kpis

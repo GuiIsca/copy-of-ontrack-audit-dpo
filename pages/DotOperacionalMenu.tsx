@@ -39,6 +39,11 @@ export const DotOperacionalMenu: React.FC = () => {
       onClick: () => window.location.href = '/dot-operacional/history'
     },
     {
+      title: 'Planta Layout',
+      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      onClick: () => window.location.href = '/dot-operacional/planta-layout'
+    },
+    {
       title: 'Nova Visita',
       icon: <Plus size={48} />,
       onClick: () => window.location.href = '/dot-operacional/select-visit-type'
@@ -61,7 +66,17 @@ export const DotOperacionalMenu: React.FC = () => {
     {
       title: 'Manual de Especialista',
       icon: <BookOpen size={48} />, 
-      onClick: () => window.location.href = '/specialist-manuals'
+      onClick: () => window.location.href = '/dot-operacional/specialist-manuals'
+    },
+    {
+      title: 'Folhetos',
+      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      onClick: () => window.location.href = '/dot-operacional/folhetos'
+    },
+    {
+      title: 'Estudo de Mercado',
+      icon: <span role="img" aria-label="Globo" style={{fontSize: 48}}>🌐</span>, 
+      onClick: () => window.location.href = '/dot-operacional/estudo-mercado'
     },
     {
       title: 'Indicadores',
