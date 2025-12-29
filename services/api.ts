@@ -332,6 +332,72 @@ class ApiClient {
     });
   }
 
+  // Folhetos
+  async getAllFolhetos() {
+    return this.request('/folhetos');
+  }
+
+  async uploadFolheto(file: File) {
+    const auth = localStorage.getItem('ontrack_auth');
+    const user = auth ? JSON.parse(auth) : null;
+    const userId = user?.userId || user?.id;
+
+    const form = new FormData();
+    form.append('file', file);
+
+    const response = await fetch(`${API_URL}/folhetos/upload`, {
+      method: 'POST',
+      body: form,
+      headers: {
+        'x-user-id': String(userId || ''),
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async deleteFolheto(id: number) {
+    return this.request(`/folhetos/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Estudo de Mercado
+  async getAllEstudoMercado() {
+    return this.request('/estudo-mercado');
+  }
+
+  async uploadEstudoMercado(file: File) {
+    const auth = localStorage.getItem('ontrack_auth');
+    const user = auth ? JSON.parse(auth) : null;
+    const userId = user?.userId || user?.id;
+
+    const form = new FormData();
+    form.append('file', file);
+
+    const response = await fetch(`${API_URL}/estudo-mercado/upload`, {
+      method: 'POST',
+      body: form,
+      headers: {
+        'x-user-id': String(userId || ''),
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async deleteEstudoMercado(id: number) {
+    return this.request(`/estudo-mercado/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Analytics
   async getAnalytics(params?: { startDate?: string; endDate?: string; periodType?: string; storeId?: number }) {
     const search = new URLSearchParams();

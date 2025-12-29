@@ -18,6 +18,8 @@ import dotTeamLeaderRoutes from './routes/dot-team-leader.js';
 import sectionEvaluationsRoutes from './routes/section-evaluations.js';
 import adminContactsRoutes from './routes/admin-contacts.js';
 import specialistManualsRoutes from './routes/specialist-manuals.js';
+import folhetosRoutes from './routes/folhetos.js';
+import estudoMercadoRoutes from './routes/estudo-mercado.js';
 import analyticsRoutes from './routes/analytics.js';
 
 dotenv.config();
@@ -34,6 +36,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Serve static files for specialist manuals
 app.use('/specialist-manuals', express.static(join(__dirname, '../public/specialist-manuals')));
+// Serve static files for folhetos
+app.use('/folhetos', express.static(join(__dirname, '../public/folhetos')));
+// Serve static files for estudo-mercado
+app.use('/estudo-mercado', express.static(join(__dirname, '../public/estudo-mercado')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -48,6 +54,8 @@ app.use('/api/checklists', checklistsRoutes);
 app.use('/api/section-evaluations', sectionEvaluationsRoutes);
 app.use('/api/admin-contacts', adminContactsRoutes);
 app.use('/api/specialist-manuals', specialistManualsRoutes);
+app.use('/api/folhetos', folhetosRoutes);
+app.use('/api/estudo-mercado', estudoMercadoRoutes);
 app.use('/api/analytics', analyticsRoutes);
 // Non-API legacy route migrated to DOT Team Leader integrations
 app.use('/dot-team-leader', dotTeamLeaderRoutes);

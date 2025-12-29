@@ -28,6 +28,10 @@ import { AdminContactMessages } from './pages/AdminContactMessages';
 import { AmontDashboard } from './pages/AmontDashboard';
 import { SpecialistManuals } from './pages/SpecialistManuals';
 import { AdminSpecialistManuals } from './pages/AdminSpecialistManuals';
+import { Folhetos } from './pages/Folhetos';
+import { AdminFolhetos } from './pages/AdminFolhetos';
+import { EstudoMercado } from './pages/EstudoMercado';
+import { AdminEstudoMercado } from './pages/AdminEstudoMercado';
 import MenuDashboard from './pages/MenuDashboard';
 import { Analytics } from './pages/Analytics';
 import { Login } from './pages/Login';
@@ -419,6 +423,26 @@ const App: React.FC = () => {
         <Route path="/specialist-manuals" element={
             <ProtectedRoute>
                 <SpecialistManuals />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/folhetos" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminFolhetos />
+            </ProtectedRoute>
+        } />
+        <Route path="/folhetos" element={
+            <ProtectedRoute>
+                <Folhetos />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/estudo-mercado" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminEstudoMercado />
+            </ProtectedRoute>
+        } />
+        <Route path="/estudo-mercado" element={
+            <ProtectedRoute>
+                <EstudoMercado />
             </ProtectedRoute>
         } />
         {/* AMONT Routes */}

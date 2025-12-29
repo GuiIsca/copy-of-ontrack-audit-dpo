@@ -43,6 +43,16 @@ export const DOTTeamLeaderMenu: React.FC = () => {
       onClick: () => window.location.href = '/specialist-manuals'
     },
     {
+      title: 'Folhetos',
+      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      onClick: () => window.location.href = '/folhetos'
+    },
+    {
+      title: 'Estudo de Mercado',
+      icon: <span role="img" aria-label="Globo" style={{fontSize: 48}}>🌐</span>, 
+      onClick: () => window.location.href = '/estudo-mercado'
+    },
+    {
       title: 'Mudar para Layout Base',
       icon: <LayoutDashboard size={48} />, 
       onClick: () => {
