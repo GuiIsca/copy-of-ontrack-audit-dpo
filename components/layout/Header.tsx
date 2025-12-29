@@ -248,21 +248,21 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
-                    onClick={() => { window.location.href = '/specialist-manuals'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <BookOpen size={18} />
                     Manuais de Especialista
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/folhetos'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/folhetos'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
                     Folhetos
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/estudo-mercado'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/estudo-mercado'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
@@ -311,21 +311,21 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
-                    onClick={() => { window.location.href = '/specialist-manuals'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/aderente/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <BookOpen size={18} />
                     Manuais de Especialista
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/folhetos'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/aderente/folhetos'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
                     Folhetos
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/estudo-mercado'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/aderente/estudo-mercado'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
@@ -352,7 +352,7 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
-                    onClick={() => { window.location.href = '/folhetos'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/amont/folhetos'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
@@ -402,21 +402,21 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
-                    onClick={() => { window.location.href = '/specialist-manuals'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-operacional/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <BookOpen size={18} />
                     Manuais de Especialista
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/folhetos'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-operacional/folhetos'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
                     Folhetos
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/estudo-mercado'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-operacional/estudo-mercado'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>

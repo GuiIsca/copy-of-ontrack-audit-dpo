@@ -34,17 +34,17 @@ export const DotOperacionalMenu: React.FC = () => {
     {
       title: 'Manual de Especialista',
       icon: <BookOpen size={48} />, 
-      onClick: () => window.location.href = '/specialist-manuals'
+      onClick: () => window.location.href = '/dot-operacional/specialist-manuals'
     },
     {
       title: 'Folhetos',
       icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
-      onClick: () => window.location.href = '/folhetos'
+      onClick: () => window.location.href = '/dot-operacional/folhetos'
     },
     {
       title: 'Estudo de Mercado',
       icon: <span role="img" aria-label="Globo" style={{fontSize: 48}}>🌐</span>, 
-      onClick: () => window.location.href = '/estudo-mercado'
+      onClick: () => window.location.href = '/dot-operacional/estudo-mercado'
     },
     {
       title: 'Indicadores',

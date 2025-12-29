@@ -420,24 +420,84 @@ const App: React.FC = () => {
                 <AdminSpecialistManuals />
             </ProtectedRoute>
         } />
-        <Route path="/specialist-manuals" element={
-            <ProtectedRoute>
-                <SpecialistManuals />
-            </ProtectedRoute>
-        } />
         <Route path="/admin/folhetos" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
                 <AdminFolhetos />
             </ProtectedRoute>
         } />
-        <Route path="/folhetos" element={
-            <ProtectedRoute>
-                <Folhetos />
-            </ProtectedRoute>
-        } />
         <Route path="/admin/estudo-mercado" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
                 <AdminEstudoMercado />
+            </ProtectedRoute>
+        } />
+        
+        {/* DOT Team Leader Routes */}
+        <Route path="/dot-team-leader/specialist-manuals" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <SpecialistManuals />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/folhetos" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <Folhetos />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/estudo-mercado" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <EstudoMercado />
+            </ProtectedRoute>
+        } />
+        
+        {/* DOT Operacional Routes */}
+        <Route path="/dot-operacional/specialist-manuals" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <SpecialistManuals />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/folhetos" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <Folhetos />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/estudo-mercado" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <EstudoMercado />
+            </ProtectedRoute>
+        } />
+        
+        {/* Aderente Routes */}
+        <Route path="/aderente/specialist-manuals" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <SpecialistManuals />
+            </ProtectedRoute>
+        } />
+        <Route path="/aderente/folhetos" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <Folhetos />
+            </ProtectedRoute>
+        } />
+        <Route path="/aderente/estudo-mercado" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <EstudoMercado />
+            </ProtectedRoute>
+        } />
+        
+        {/* Amont Routes */}
+        <Route path="/amont/folhetos" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <Folhetos />
+            </ProtectedRoute>
+        } />
+        
+        {/* Legacy Routes for backward compatibility */}
+        <Route path="/specialist-manuals" element={
+            <ProtectedRoute>
+                <SpecialistManuals />
+            </ProtectedRoute>
+        } />
+        <Route path="/folhetos" element={
+            <ProtectedRoute>
+                <Folhetos />
             </ProtectedRoute>
         } />
         <Route path="/estudo-mercado" element={

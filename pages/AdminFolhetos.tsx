@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Trash2, Loader, X } from 'lucide-react';
+import { Header } from '../components/layout/Header';
 import { api } from '../services/api';
 import { useToast } from '../components/ui/Toast';
 
@@ -114,12 +115,14 @@ export const AdminFolhetos: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestão de Folhetos</h1>
-          <p className="text-gray-600">Faça upload e gerencie os folhetos disponíveis para todos os perfis</p>
-        </div>
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestão de Folhetos</h1>
+            <p className="text-gray-600">Faça upload e gerencie os folhetos disponíveis para todos os perfis</p>
+          </div>
 
         {/* Upload Form */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
@@ -214,5 +217,6 @@ export const AdminFolhetos: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
