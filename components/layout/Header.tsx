@@ -366,7 +366,7 @@ export const Header: React.FC = () => {
                   if (userIsDotTeamLeader) {
                     window.location.href = '/dot-team-leader/menu';
                   } else if (userIsAderente) {
-                    window.location.href = '/dot-aderente/layout-menu';
+                    window.location.href = '/aderente/menu';
                   } else if (userIsDotOperacional) {
                     window.location.href = '/dot-operacional/menu';
                   } else if (userIsAdmin) {

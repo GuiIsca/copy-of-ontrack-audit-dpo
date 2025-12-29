@@ -3,13 +3,12 @@ import { getCurrentUser } from '../utils/auth';
 import { UserRole } from '../types';
 import { User } from 'lucide-react';
 import { MenuGrid, MenuGridItem } from '../components/ui/MenuGrid';
-import { Calendar, LayoutDashboard, Upload, BookOpen, Users, BarChart3, Plus, History, RefreshCw } from 'lucide-react';
+import { Calendar, LayoutDashboard, BookOpen, Users, BarChart3, Plus, History, RefreshCw } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';  
 
-
-export const DOTTeamLeaderMenu: React.FC = () => {
-      const navigate = useNavigate();
+export const AderenteMenu: React.FC = () => {
+    const navigate = useNavigate();
     const handleLogout = () => {
       localStorage.removeItem('ontrack_auth');
       navigate('/');
@@ -32,70 +31,72 @@ export const DOTTeamLeaderMenu: React.FC = () => {
     '👤'
   ) : '👤';
   const items: MenuGridItem[] = [
+
+
     {
-      title: 'Calendário',
+      title: 'Nova visita',
       icon: <Calendar size={48} />, 
-      onClick: () => {
-        window.location.href = '/dot-team-leader/calendar';
-      }
+      onClick: () => window.location.href = '/aderente/new-visit'
+    },
+    {
+      title: 'Visitas recentes',
+      icon: <Plus size={48} />,
+      onClick: () => window.location.href = '/aderente/visitas-recentes'
+    },
+    {
+      title: 'Histórico de visitas',
+      icon: <Plus size={48} />,
+      onClick: () => window.location.href = '/aderente/history'
+    },
+    {
+      title: 'Plano de ação',
+      icon: <History size={48} />,
+      onClick: () => window.location.href = '/aderente/actions'
+    },
+    {
+      title: 'Contacto Admin',
+      icon: <Calendar size={48} />,
+      onClick: () => window.location.href = '/aderente/contact-admin'
     },
     {
       title: 'Dashboard',
       icon: <LayoutDashboard size={48} />, 
-      onClick: () => window.location.href = '/dot-team-leader/dashboard'
-    },
-    {
-      title: 'Importar CSV',
-      icon: <Upload size={48} />, 
-      onClick: () => window.location.href = '/dot-team-leader/import-visitas'
-    },
-    {
-      title: 'Selecionar Nova Visita',
-      icon: <Users size={48} />, 
-      onClick: () => window.location.href = '/dot-team-leader/select-new-visit'
-    },
-    {
-      title: 'Indicadores',
-      icon: <BarChart3 size={48} />, 
-      onClick: () => window.location.href = '/dot-team-leader/reports'
-    },
-    {
-      title: 'Analítica',
-      icon: <BarChart3 size={48} />, 
-      onClick: () => window.location.href = '/analytics'
+      onClick: () => window.location.href = '/aderente/dashboard'
     },
     {
       title: 'Manual de Especialista',
       icon: <BookOpen size={48} />, 
       onClick: () => window.location.href = '/specialist-manuals'
     },
-    {
-      title: 'Mudar para Layout Base',
-      icon: <LayoutDashboard size={48} />, 
-      onClick: () => {
-        localStorage.setItem('layoutMode', '1');
-        window.location.href = '/dot-team-leader/dashboard';
-      }
-    },
-                    {
-              title: 'Logout',
-              icon: <LogOut size={48} color="#dc2626" />, 
-              onClick: () => {
-                handleLogout();
-              }
-            },
+        {
+          title: 'Mudar para Layout Base',
+          icon: <LayoutDashboard size={48} />, 
+          onClick: () => {
+            localStorage.setItem('layoutMode', '1');
+            window.location.href = '/aderente/dashboard';
+          }
+        },
+        {
+          title: 'Logout',
+          icon: <LogOut size={48} color="#dc2626" />, 
+          onClick: () => {
+            handleLogout();
+          }
+        },
   ];
   return (
     <div>
       <div style={{ position: 'relative', margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu Dot Aderente</h2>
+        <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu Aderente</h2>
         <div style={{ position: 'absolute', right: '15%', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 8, minWidth: 160 }}>
           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
             <User size={20} />
           </div>
-          <div style={{ marginLeft: 8 }}>
-            <div style={{ fontWeight: 600, color: '#222', fontSize: 15 }}>{currentUser?.name || 'Utilizador'}</div>
-            <div style={{ fontSize: 13, color: '#888' }}>{displayIcon} {displayRole}</div>
+          <div style={{ marginLeft: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div>
+              <div style={{ fontWeight: 600, color: '#222', fontSize: 15 }}>{currentUser?.name || 'Utilizador'}</div>
+              <div style={{ fontSize: 13, color: '#888' }}>{displayIcon} {displayRole}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -104,4 +105,4 @@ export const DOTTeamLeaderMenu: React.FC = () => {
   );
 };
 
-export default DOTTeamLeaderMenu;
+export default AderenteMenu;

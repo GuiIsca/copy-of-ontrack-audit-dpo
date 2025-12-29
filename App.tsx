@@ -1,9 +1,9 @@
 import DOTTeamLeaderCalendarPage from './pages/DOTTeamLeaderCalendarPage';
-
+import AderenteVisitasrecentes from './pages/AderenteVisitasrecentes';
 import { getCurrentUser, hasRole } from './utils/auth';
 import { UserRole } from './types';
 console.log('DEBUG getCurrentUser:', getCurrentUser());
-import DotAderenteLayoutMenu from './pages/DotAderenteLayoutMenu';
+import AderenteMenu from './pages/AderenteMenu';
 import DOTTeamLeaderMenu from './pages/DOTTeamLeaderMenu';
 import DotOperacionalMenu from './pages/DotOperacionalMenu';
 import DotOperacionalCalendarPage from './pages/DotOperacionalCalendarPage';
@@ -130,6 +130,11 @@ const App: React.FC = () => {
                                         <Route path="/dot-operacional/menu" element={
                                             <ProtectedRoute requireRole={() => hasRole(UserRole.DOT_OPERACIONAL)}>
                                                 <DotOperacionalMenu />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="/aderente/menu" element={
+                                            <ProtectedRoute requireRole={() => hasRole(UserRole.ADERENTE)}>
+                                                <AderenteMenu />
                                             </ProtectedRoute>
                                         } />
             <Route path="/menu-geral" element={<MenuDashboard />} />
@@ -263,14 +268,21 @@ const App: React.FC = () => {
                 <AuditList />
             </ProtectedRoute>
         } />
+        
         <Route path="/aderente/dashboard" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
-                <AderenteDashboard />
+                {localStorage.getItem('layoutMode') === '2' ? <AderenteMenu /> : <AderenteDashboard />}
+
             </ProtectedRoute>
-        } />
+        } />        
         <Route path="/aderente/audit/:id" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
                 <AderenteAuditView />
+            </ProtectedRoute>
+        } />
+        <Route path="/aderente/visitas-recentes" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <AderenteVisitasrecentes />
             </ProtectedRoute>
         } />
         <Route path="/aderente/actions" element={
