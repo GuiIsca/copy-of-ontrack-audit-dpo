@@ -469,9 +469,9 @@ export const Header: React.FC = () => {
                   } else if (userIsDotOperacional) {
                     window.location.href = '/dot-operacional/menu';
                   } else if (userIsAdmin) {
-                    window.location.href = '/admin/dashboard';
+                    window.location.href = '/admin/menu';
                   } else if (userIsAmont) {
-                    window.location.href = '/amont/dashboard';
+                    window.location.href = '/amont/menu';
                   } else {
                     window.location.href = '/dashboard';
                   }

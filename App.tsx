@@ -1,8 +1,14 @@
 import DOTTeamLeaderCalendarPage from './pages/DOTTeamLeaderCalendarPage';
 import AderenteVisitasrecentes from './pages/AderenteVisitasrecentes';
+import AdminUtilizadores from './pages/AdminUtilizadores';
+import AdminLojas from './pages/AdminLojas';
+import AdminImport from './pages/AdminImport';
+import { AmontCalendario } from './pages/AmontCalendario';
 import { getCurrentUser, hasRole } from './utils/auth';
 import { UserRole } from './types';
 console.log('DEBUG getCurrentUser:', getCurrentUser());
+import AdminMenu from './pages/AdminMenu';
+import AmontMenu from './pages/AmontMenu';
 import AderenteMenu from './pages/AderenteMenu';
 import DOTTeamLeaderMenu from './pages/DOTTeamLeaderMenu';
 import DotOperacionalMenu from './pages/DotOperacionalMenu';
@@ -128,6 +134,11 @@ const App: React.FC = () => {
         <ToastProvider>
                 <Router>
                       <Routes>
+                                        <Route path="/admin/menu" element={
+                                            <ProtectedRoute requireRole={() => hasRole(UserRole.ADMIN)}>
+                                                <AdminMenu />
+                                            </ProtectedRoute>
+                                        } />
                                         <Route path="/dot-team-leader/menu" element={
                                             <ProtectedRoute requireRole={() => hasRole(UserRole.DOT_TEAM_LEADER)}>
                                                 <DOTTeamLeaderMenu />
@@ -143,6 +154,11 @@ const App: React.FC = () => {
                                                 <AderenteMenu />
                                             </ProtectedRoute>
                                         } />
+                                            <Route path="/amont/menu" element={
+                                                <ProtectedRoute requireRole={() => hasRole(UserRole.AMONT)}>
+                                                    <AmontMenu />
+                                                </ProtectedRoute>
+                                            } />
             <Route path="/menu-geral" element={<MenuDashboard />} />
         <Route path="/" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -311,6 +327,7 @@ const App: React.FC = () => {
                 <AderenteVisitPage />
             </ProtectedRoute>
         } />
+        
         <Route path="/aderente/contact-admin" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
                 <AderenteContactAdmin />
@@ -374,7 +391,22 @@ const App: React.FC = () => {
         } />
         <Route path="/admin/dashboard" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AdminDashboard />
+                {localStorage.getItem('layoutMode') === '2' ? <AdminMenu /> : <AdminDashboard />}
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/import" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminImport />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/lojas" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminLojas />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/utilizadores" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminUtilizadores />
             </ProtectedRoute>
         } />
         <Route path="/admin/visitas" element={
@@ -517,6 +549,16 @@ const App: React.FC = () => {
         } />
         
         {/* Amont Routes */}
+        <Route path="/amont/dashboard" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                {localStorage.getItem('layoutMode') === '2' ? <AmontMenu /> : <AmontDashboard />}
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/calendario" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <AmontCalendario />
+            </ProtectedRoute>
+        } />
         <Route path="/amont/folhetos" element={
             <ProtectedRoute requireRole={canAccessAmontDashboard}>
                 <Folhetos />

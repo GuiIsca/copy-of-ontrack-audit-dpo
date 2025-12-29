@@ -1,0 +1,139 @@
+import React from 'react';
+import { getCurrentUser } from '../utils/auth';
+import { UserRole } from '../types';
+import { User } from 'lucide-react';
+import { MenuGrid, MenuGridItem } from '../components/ui/MenuGrid';
+import { Calendar, LayoutDashboard, BookOpen, Users, BarChart3, Plus, History, RefreshCw } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+export const AdminMenu: React.FC = () => {
+    const navigate = useNavigate();
+    const handleLogout = () => {
+      localStorage.removeItem('ontrack_auth');
+      navigate('/');
+    };
+  const currentUser = getCurrentUser();
+  const displayRole = currentUser ? (
+    currentUser.roles.includes(UserRole.ADMIN) ? 'Administrador' :
+    currentUser.roles.includes(UserRole.DOT_TEAM_LEADER) ? 'DOT Team Leader' :
+    currentUser.roles.includes(UserRole.DOT_OPERACIONAL) ? 'DOT Operacional' :
+    currentUser.roles.includes(UserRole.ADERENTE) ? 'Aderente' :
+    currentUser.roles.includes(UserRole.AMONT) ? 'Amont' :
+    'Utilizador'
+  ) : '';
+  const displayIcon = currentUser ? (
+    currentUser.roles.includes(UserRole.ADMIN) ? '⚙️' :
+    currentUser.roles.includes(UserRole.DOT_TEAM_LEADER) ? '👔' :
+    currentUser.roles.includes(UserRole.DOT_OPERACIONAL) ? '👨‍💼' :
+    currentUser.roles.includes(UserRole.ADERENTE) ? '🏪' :
+    currentUser.roles.includes(UserRole.AMONT) ? '🔍' :
+    '👤'
+  ) : '👤';
+  const items: MenuGridItem[] = [
+
+    {
+      title: 'Dashboard',
+      icon: <LayoutDashboard size={48} />, 
+      onClick: () => window.location.href = '/amont/dashboard'
+    },
+    {
+      title: 'Gerir utilizadores',
+      icon: <Calendar size={48} />, 
+      onClick: () => {
+        window.location.href = '/admin/utilizadores';
+      }
+    },    
+    {
+      title: 'Gerir Lojas',
+      icon: <Calendar size={48} />, 
+      onClick: () => window.location.href = '/admin/lojas'
+    },
+        {
+      title: 'Importar CSV',
+      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      onClick: () => window.location.href = '/admin/import'
+    },
+    {
+      title: 'Contacto',
+      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      onClick: () => window.location.href = '/admin/contact-messages'
+    },
+    {
+      title: 'Nova visita',
+      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      onClick: () => window.location.href = '/admin/new-visit-admin'
+    },  
+    {
+      title: 'Nova visita Dot Operacional',
+      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      onClick: () => window.location.href = '/admin/new-visit-dot'
+    },  
+    {
+      title: 'Indicadores',
+      icon: <Calendar size={48} />, 
+      onClick: () => window.location.href = '/admin/reports'
+    },
+    {
+      title: 'Analítica',
+      icon: <Calendar size={48} />, 
+      onClick: () => window.location.href = '/analytics'
+    },
+        {
+      title: 'Planta Layout',
+      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      onClick: () => window.location.href = '/admin/planta-layout'
+    },
+        {
+      title: 'Manual de Especialista',
+      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      onClick: () => window.location.href = '/admin/specialist-manuals'
+    },
+    {
+      title: 'Folhetos',
+      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      onClick: () => window.location.href = '/admin/folhetos'
+    },  
+    {
+      title: 'Estudeo de mercado',
+      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      onClick: () => window.location.href = '/admin/estudo-mercado'
+    },          
+        {
+          title: 'Mudar para Layout Base',
+          icon: <LayoutDashboard size={48} />, 
+          onClick: () => {
+            localStorage.setItem('layoutMode', '1');
+            window.location.href = '/amont/dashboard';
+          }
+        },
+        {
+          title: 'Logout',
+          icon: <LogOut size={48} color="#dc2626" />, 
+          onClick: () => {
+            handleLogout();
+          }
+        },
+  ];
+  return (
+    <div>
+      <div style={{ position: 'relative', margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu Aderente</h2>
+        <div style={{ position: 'absolute', right: '15%', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 8, minWidth: 160 }}>
+          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+            <User size={20} />
+          </div>
+          <div style={{ marginLeft: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div>
+              <div style={{ fontWeight: 600, color: '#222', fontSize: 15 }}>{currentUser?.name || 'Utilizador'}</div>
+              <div style={{ fontSize: 13, color: '#888' }}>{displayIcon} {displayRole}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <MenuGrid items={items} />
+    </div>
+  );
+};
+
+export default AdminMenu;
