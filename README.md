@@ -69,6 +69,7 @@ Backend API: http://localhost:3001
 | dot1@mousquetaires.com | DOT |
 | aderente1@intermarche.pt | ADERENTE |
 
+
 ## 📝 Licença
 
 Proprietário - Mousquetaires Portugal
