@@ -12,6 +12,11 @@ export const DotOperacionalMenu: React.FC = () => {
       onClick: () => window.location.href = '/dot-operacional/history'
     },
     {
+      title: 'Planta Layout',
+      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      onClick: () => window.location.href = '/dot-operacional/planta-layout'
+    },
+    {
       title: 'Nova Visita',
       icon: <Plus size={48} />,
       onClick: () => window.location.href = '/dot-operacional/select-visit-type'

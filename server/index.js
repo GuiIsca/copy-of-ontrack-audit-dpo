@@ -21,6 +21,7 @@ import specialistManualsRoutes from './routes/specialist-manuals.js';
 import folhetosRoutes from './routes/folhetos.js';
 import estudoMercadoRoutes from './routes/estudo-mercado.js';
 import analyticsRoutes from './routes/analytics.js';
+import storeLayoutsRoutes from './routes/store-layouts.js';
 
 dotenv.config();
 
@@ -40,6 +41,12 @@ app.use('/specialist-manuals', express.static(join(__dirname, '../public/special
 app.use('/folhetos', express.static(join(__dirname, '../public/folhetos')));
 // Serve static files for estudo-mercado
 app.use('/estudo-mercado', express.static(join(__dirname, '../public/estudo-mercado')));
+// Serve static files for store layouts (per-store subfolders)
+app.use('/store-layouts', express.static(join(__dirname, '../public/store-layouts')));
+// Important: if a /store-layouts file is missing, respond 404 to avoid SPA index.html fallback
+app.get('/store-layouts/*', (req, res) => {
+  res.status(404).send('Not Found');
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -57,6 +64,7 @@ app.use('/api/specialist-manuals', specialistManualsRoutes);
 app.use('/api/folhetos', folhetosRoutes);
 app.use('/api/estudo-mercado', estudoMercadoRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/store-layouts', storeLayoutsRoutes);
 // Non-API legacy route migrated to DOT Team Leader integrations
 app.use('/dot-team-leader', dotTeamLeaderRoutes);
 

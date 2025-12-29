@@ -33,6 +33,8 @@ import { AdminFolhetos } from './pages/AdminFolhetos';
 import { EstudoMercado } from './pages/EstudoMercado';
 import { AdminEstudoMercado } from './pages/AdminEstudoMercado';
 import MenuDashboard from './pages/MenuDashboard';
+import PlantaLayout from './pages/PlantaLayout';
+import AdminPlantaLayout from './pages/AdminPlantaLayout';
 import { Analytics } from './pages/Analytics';
 import { Login } from './pages/Login';
 import { ForgotPassword } from './pages/ForgotPassword';
@@ -430,6 +432,11 @@ const App: React.FC = () => {
                 <AdminEstudoMercado />
             </ProtectedRoute>
         } />
+        <Route path="/admin/planta-layout" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AdminPlantaLayout />
+            </ProtectedRoute>
+        } />
         
         {/* DOT Team Leader Routes */}
         <Route path="/dot-team-leader/specialist-manuals" element={
@@ -445,6 +452,11 @@ const App: React.FC = () => {
         <Route path="/dot-team-leader/estudo-mercado" element={
             <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
                 <EstudoMercado />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/planta-layout" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <PlantaLayout />
             </ProtectedRoute>
         } />
         
@@ -464,6 +476,11 @@ const App: React.FC = () => {
                 <EstudoMercado />
             </ProtectedRoute>
         } />
+        <Route path="/dot-operacional/planta-layout" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <PlantaLayout />
+            </ProtectedRoute>
+        } />
         
         {/* Aderente Routes */}
         <Route path="/aderente/specialist-manuals" element={
@@ -481,11 +498,21 @@ const App: React.FC = () => {
                 <EstudoMercado />
             </ProtectedRoute>
         } />
+        <Route path="/aderente/planta-layout" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <PlantaLayout />
+            </ProtectedRoute>
+        } />
         
         {/* Amont Routes */}
         <Route path="/amont/folhetos" element={
             <ProtectedRoute requireRole={canAccessAmontDashboard}>
                 <Folhetos />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/planta-layout" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <PlantaLayout />
             </ProtectedRoute>
         } />
         
@@ -503,6 +530,11 @@ const App: React.FC = () => {
         <Route path="/estudo-mercado" element={
             <ProtectedRoute>
                 <EstudoMercado />
+            </ProtectedRoute>
+        } />
+        <Route path="/planta-layout" element={
+            <ProtectedRoute>
+                <PlantaLayout />
             </ProtectedRoute>
         } />
         {/* AMONT Routes */}

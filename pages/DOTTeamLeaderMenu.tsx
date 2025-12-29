@@ -13,6 +13,11 @@ export const DOTTeamLeaderMenu: React.FC = () => {
       }
     },
     {
+      title: 'Planta Layout',
+      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/planta-layout'
+    },
+    {
       title: 'Dashboard',
       icon: <LayoutDashboard size={48} />, 
       onClick: () => window.location.href = '/dot-team-leader/dashboard'

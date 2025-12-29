@@ -176,6 +176,13 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
+                    onClick={() => { window.location.href = '/admin/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
+                  <button 
                     onClick={() => { window.location.href = '/admin/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
@@ -248,6 +255,13 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
+                  <button 
                     onClick={() => { window.location.href = '/dot-team-leader/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
@@ -311,6 +325,13 @@ export const Header: React.FC = () => {
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
+                    onClick={() => { window.location.href = '/aderente/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
+                  <button 
                     onClick={() => { window.location.href = '/aderente/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
@@ -351,6 +372,13 @@ export const Header: React.FC = () => {
                     Nova Visita (Auditoria)
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
                   <button 
                     onClick={() => { window.location.href = '/amont/folhetos'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -401,6 +429,13 @@ export const Header: React.FC = () => {
                     Indicadores
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/planta-layout'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
+                    Planta Layout
+                  </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"

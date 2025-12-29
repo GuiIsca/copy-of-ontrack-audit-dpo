@@ -11,6 +11,11 @@ export const DotAderenteLayoutMenu: React.FC = () => {
       onClick: () => window.location.href = '/dot-aderente/calendar'
     },
     {
+      title: 'Planta Layout',
+      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      onClick: () => window.location.href = '/aderente/planta-layout'
+    },
+    {
       title: 'Minhas Lojas',
       icon: <LayoutDashboard size={48} />, 
       onClick: () => window.location.href = '/dot-aderente/lojas'

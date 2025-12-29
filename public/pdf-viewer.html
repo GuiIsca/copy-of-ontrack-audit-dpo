@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF Viewer</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #f8f9fb; }
+    #container { padding: 8px; }
+    .page { margin: 12px auto; box-shadow: 0 1px 3px rgba(0,0,0,0.08); background: #fff; }
+    .loading { display:flex; align-items:center; justify-content:center; height: 100%; color:#666; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; }
+  </style>
+  <!-- PDF.js via unpkg (no SRI to avoid integrity mismatch) -->
+  <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+</head>
+<body>
+  <div id="container"><div id="loading" class="loading">A carregar PDF…</div></div>
+  <script>
+    (function(){
+      const params = new URLSearchParams(location.search);
+      const file = params.get('file');
+      if (!file) {
+        document.getElementById('loading').textContent = 'Ficheiro não especificado';
+        return;
+      }
+      // Configure worker via CDN
+      if (window['pdfjsLib']) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      } else {
+        document.getElementById('loading').textContent = 'Erro ao carregar biblioteca PDF';
+        console.error('pdfjsLib not loaded');
+        return;
+      }
+      const container = document.getElementById('container');
+      function renderPage(pdf, num){
+        return pdf.getPage(num).then(function(page){
+          // Compute a scale that fits the container width, then reduce by 20% for less zoom
+          const containerWidth = container.clientWidth || window.innerWidth || 800;
+          const baseViewport = page.getViewport({ scale: 1 });
+          const fitScale = Math.min(containerWidth / baseViewport.width, 1.0) * 0.8;
+          const viewport = page.getViewport({ scale: fitScale });
+          const canvas = document.createElement('canvas');
+          canvas.className = 'page';
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          const renderCtx = { canvasContext: ctx, viewport: viewport };
+          container.appendChild(canvas);
+          return page.render(renderCtx).promise;
+        });
+      }
+
+      // Pre-fetch the file to ensure we don't feed HTML into pdf.js
+      const fileUrl = file.startsWith('http') ? file : (new URL(file, window.location.origin)).toString();
+      fetch(fileUrl, { headers: { 'Accept': 'application/pdf,*/*' } })
+        .then(async (resp) => {
+          const ct = resp.headers.get('content-type') || '';
+          if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+          }
+          // Avoid rendering HTML catch-all responses
+          if (ct.includes('text/html')) {
+            throw new Error('Conteúdo HTML recebido em vez de PDF');
+          }
+          const buf = await resp.arrayBuffer();
+          const data = new Uint8Array(buf);
+          return pdfjsLib.getDocument({ data }).promise;
+        })
+        .then(function(pdf){
+          const loading = document.getElementById('loading');
+          if (loading) loading.remove();
+          const tasks = [];
+          for (let num = 1; num <= pdf.numPages; num++) {
+            tasks.push(renderPage(pdf, num));
+          }
+          return Promise.all(tasks);
+        })
+        .catch(function(err){
+          const loading = document.getElementById('loading');
+          if (loading) loading.textContent = 'Erro ao carregar PDF';
+          console.error('PDF viewer error:', err);
+        });
+    })();
+  </script>
+</body>
+</html>
