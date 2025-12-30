@@ -64,6 +64,21 @@ export const AmontMenu: React.FC = () => {
       icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
       onClick: () => window.location.href = '/amont/folhetos'
     },
+    {
+      title: 'Book Negócio',
+      icon: <span role="img" aria-label="Negócio" style={{fontSize: 48}}>📊</span>, 
+      onClick: () => window.location.href = '/amont/book-negocio'
+    },
+    {
+      title: 'Inventário',
+      icon: <span role="img" aria-label="Inventário" style={{fontSize: 48}}>📦</span>, 
+      onClick: () => window.location.href = '/amont/inventario'
+    },
+    {
+      title: 'Dados da Concorrência',
+      icon: <span role="img" aria-label="Concorrência" style={{fontSize: 48}}>🔍</span>, 
+      onClick: () => window.location.href = '/amont/dados-concorrencia'
+    },
         {
           title: 'Mudar para Layout Base',
           icon: <LayoutDashboard size={48} />, 

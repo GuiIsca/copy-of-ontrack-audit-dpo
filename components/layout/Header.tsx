@@ -210,6 +210,34 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
                     Estudo de Mercado
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/book-negocio'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Negócio" style={{fontSize: 18}}>📊</span>
+                    Book Negócio
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/analises-importantes'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>📈</span>
+                    Análises Importantes
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/inventario'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Inventário" style={{fontSize: 18}}>📦</span>
+                    Inventário
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/dados-concorrencia'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
+                    Dados da Concorrência
+                  </button>
                 </>
               )}
               {userIsDotTeamLeader && (
@@ -296,6 +324,34 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
                     Estudo de Mercado
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/book-negocio'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Negócio" style={{fontSize: 18}}>📊</span>
+                    Book Negócio
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/analises-importantes'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>📈</span>
+                    Análises Importantes
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/inventario'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Inventário" style={{fontSize: 18}}>📦</span>
+                    Inventário
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/dados-concorrencia'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
+                    Dados da Concorrência
+                  </button>
                 </>
               )}
               {userIsAderente && (
@@ -366,6 +422,20 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
                     Estudo de Mercado
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/book-negocio'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Negócio" style={{fontSize: 18}}>📊</span>
+                    Book Negócio
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/dados-concorrencia'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
+                    Dados da Concorrência
+                  </button>
                 </>
               )}
               {userIsAmont && (
@@ -406,6 +476,27 @@ export const Header: React.FC = () => {
                   >
                     <span role="img" aria-label="Etiqueta" style={{fontSize: 18}}>🏷️</span>
                     Folhetos
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/book-negocio'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Negócio" style={{fontSize: 18}}>📊</span>
+                    Book Negócio
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/inventario'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Inventário" style={{fontSize: 18}}>📦</span>
+                    Inventário
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/dados-concorrencia'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
+                    Dados da Concorrência
                   </button>
                 </>
               )}
@@ -484,6 +575,34 @@ export const Header: React.FC = () => {
                   >
                     <span role="img" aria-label="Globo" style={{fontSize: 18}}>🌐</span>
                     Estudo de Mercado
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/book-negocio'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Negócio" style={{fontSize: 18}}>📊</span>
+                    Book Negócio
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/analises-importantes'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>📈</span>
+                    Análises Importantes
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/inventario'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Inventário" style={{fontSize: 18}}>📦</span>
+                    Inventário
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/dados-concorrencia'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
+                    Dados da Concorrência
                   </button>
                 </>
               )}

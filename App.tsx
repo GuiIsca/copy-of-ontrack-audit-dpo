@@ -43,6 +43,10 @@ import MenuDashboard from './pages/MenuDashboard';
 import PlantaLayout from './pages/PlantaLayout';
 import AdminPlantaLayout from './pages/AdminPlantaLayout';
 import { Analytics } from './pages/Analytics';
+import { BookNegocio } from './pages/BookNegocio';
+import { AnalisesImportantes } from './pages/AnalisesImportantes';
+import { Inventario } from './pages/Inventario';
+import { DadosConcorrencia } from './pages/DadosConcorrencia';
 import { Login } from './pages/Login';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
@@ -633,6 +637,100 @@ const App: React.FC = () => {
                 <DotOperacionalAuditView />
             </ProtectedRoute>
         } />
+        
+        {/* Book Negócio - Todos */}
+        <Route path="/admin/book-negocio" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <BookNegocio />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/book-negocio" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <BookNegocio />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/book-negocio" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <BookNegocio />
+            </ProtectedRoute>
+        } />
+        <Route path="/aderente/book-negocio" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <BookNegocio />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/book-negocio" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <BookNegocio />
+            </ProtectedRoute>
+        } />
+
+        {/* Análises Importantes - Admin, DOT Team Leader e DOT Operacional */}
+        <Route path="/admin/analises-importantes" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AnalisesImportantes />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/analises-importantes" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <AnalisesImportantes />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/analises-importantes" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <AnalisesImportantes />
+            </ProtectedRoute>
+        } />
+
+        {/* Inventário - Todos menos Aderente */}
+        <Route path="/admin/inventario" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <Inventario />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/inventario" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <Inventario />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/inventario" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <Inventario />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/inventario" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <Inventario />
+            </ProtectedRoute>
+        } />
+
+        {/* Dados da Concorrência - Todos */}
+        <Route path="/admin/dados-concorrencia" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <DadosConcorrencia />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/dados-concorrencia" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DadosConcorrencia />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/dados-concorrencia" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <DadosConcorrencia />
+            </ProtectedRoute>
+        } />
+        <Route path="/aderente/dados-concorrencia" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <DadosConcorrencia />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/dados-concorrencia" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <DadosConcorrencia />
+            </ProtectedRoute>
+        } />
+
                 {/* Fallback for unknown routes */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

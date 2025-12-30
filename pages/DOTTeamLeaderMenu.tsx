@@ -90,6 +90,26 @@ export const DOTTeamLeaderMenu: React.FC = () => {
       onClick: () => window.location.href = '/dot-team-leader/estudo-mercado'
     },
     {
+      title: 'Book Negócio',
+      icon: <span role="img" aria-label="Negócio" style={{fontSize: 48}}>📊</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/book-negocio'
+    },
+    {
+      title: 'Análises Importantes',
+      icon: <span role="img" aria-label="Análises" style={{fontSize: 48}}>📈</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/analises-importantes'
+    },
+    {
+      title: 'Inventário',
+      icon: <span role="img" aria-label="Inventário" style={{fontSize: 48}}>📦</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/inventario'
+    },
+    {
+      title: 'Dados da Concorrência',
+      icon: <span role="img" aria-label="Concorrência" style={{fontSize: 48}}>🔍</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/dados-concorrencia'
+    },
+    {
       title: 'Mudar para Layout Base',
       icon: <LayoutDashboard size={48} />, 
       onClick: () => {

@@ -88,6 +88,26 @@ export const DotOperacionalMenu: React.FC = () => {
       icon: <BarChart3 size={48} />, 
       onClick: () => window.location.href = '/dot-operacional/reports'
     },
+    {
+      title: 'Book Negócio',
+      icon: <span role="img" aria-label="Negócio" style={{fontSize: 48}}>📊</span>, 
+      onClick: () => window.location.href = '/dot-operacional/book-negocio'
+    },
+    {
+      title: 'Análises Importantes',
+      icon: <span role="img" aria-label="Análises" style={{fontSize: 48}}>📈</span>, 
+      onClick: () => window.location.href = '/dot-operacional/analises-importantes'
+    },
+    {
+      title: 'Inventário',
+      icon: <span role="img" aria-label="Inventário" style={{fontSize: 48}}>📦</span>, 
+      onClick: () => window.location.href = '/dot-operacional/inventario'
+    },
+    {
+      title: 'Dados da Concorrência',
+      icon: <span role="img" aria-label="Concorrência" style={{fontSize: 48}}>🔍</span>, 
+      onClick: () => window.location.href = '/dot-operacional/dados-concorrencia'
+    },
         {
           title: 'Mudar para Layout Base',
           icon: <LayoutDashboard size={48} />, 

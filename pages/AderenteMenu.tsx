@@ -68,6 +68,16 @@ export const AderenteMenu: React.FC = () => {
       icon: <BookOpen size={48} />, 
       onClick: () => window.location.href = '/specialist-manuals'
     },
+    {
+      title: 'Book Negócio',
+      icon: <span role="img" aria-label="Negócio" style={{fontSize: 48}}>📊</span>, 
+      onClick: () => window.location.href = '/aderente/book-negocio'
+    },
+    {
+      title: 'Dados da Concorrência',
+      icon: <span role="img" aria-label="Concorrência" style={{fontSize: 48}}>🔍</span>, 
+      onClick: () => window.location.href = '/aderente/dados-concorrencia'
+    },
         {
           title: 'Mudar para Layout Base',
           icon: <LayoutDashboard size={48} />, 
