@@ -17,40 +17,31 @@ INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
 
 -- Insert DOT Operacional Users
 INSERT INTO users (id, email, fullname, roles, dot_team_leader_id, assigned_stores, password_hash) VALUES
-(3, 'dot1@mousquetaires.com', 'João Silva', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[1,2,3], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(4, 'dot2@mousquetaires.com', 'Pedro Martins', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[4,5,6], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(5, 'dot3@mousquetaires.com', 'Sofia Almeida', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[7,8], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(6, 'dot4@mousquetaires.com', 'Rui Santos', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[9,10], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
+(3, 'dot1@mousquetaires.com', 'Dina Tojeira', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[1], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(4, 'dot2@mousquetaires.com', 'José Vieira', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[2,3,4], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(5, 'dot3@mousquetaires.com', 'Luis Filipe', ARRAY['DOT_OPERACIONAL']::user_role[], 2, ARRAY[5], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
+
 
 -- Insert AMONT User (Independent Auditor)
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
-(7, 'amont@mousquetaires.com', 'Fernando Barbosa', ARRAY['AMONT']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
+(6, 'amont@mousquetaires.com', 'Fernando Barbosa', ARRAY['AMONT']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
 -- Insert Aderente Users 
 INSERT INTO users (id, email, fullname, roles, password_hash) VALUES
-(11, 'aderente1@intermarche.pt', 'Maria Santos', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(12, 'aderente2@intermarche.pt', 'José Oliveira', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(13, 'aderente3@intermarche.pt', 'Teresa Lima', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(14, 'aderente4@intermarche.pt', 'Carlos Nunes', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(15, 'aderente5@intermarche.pt', 'Ana Lopes', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(16, 'aderente6@intermarche.pt', 'Miguel Tavares', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(17, 'aderente7@intermarche.pt', 'Joana Pinto', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(18, 'aderente8@intermarche.pt', 'Bruno Correia', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(19, 'aderente9@intermarche.pt', 'Carla Gomes', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
-(20, 'aderente10@intermarche.pt', 'Vasco Ribeiro', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
+(11, 'aderente1@intermarche.pt', 'José Robalo', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(12, 'aderente2@intermarche.pt', 'Miguel Alves', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(13, 'aderente3@intermarche.pt', 'Carla Rodrigues', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(14, 'aderente4@intermarche.pt', 'Helena Cordeiro', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS'),
+(15, 'aderente5@intermarche.pt', 'Martine Vila Chã', ARRAY['ADERENTE']::user_role[], '$2b$10$EoAOkNbEtoxIapQZIJK/guxAiyf7UBeawr7SRAyU9vnVEGntNxQhS');
 
 -- Insert Stores
 INSERT INTO stores (numero, nome, formato, area, telefone, dot_operacional_id, aderente_id, situacao_pdv, data_abertura, ultima_retoma, distrito, amplitude_horaria, morada, codigo_postal, conjugue_adh) VALUES
-('06347', 'A DOS CUNHADOS', 'Super 1500', 1489.92, '241980190', 3, 11, 'Exploração', '2009-05-19', '2024-11-20', 'Lisboa', '09:00-21:00', 'Vale da Saúda', '2560-562', 'CECÍLIA ROBALO'),
-('03622', 'ABRANTÉS', 'Super 2500', 3335.00, '241340810', 3, 12, 'Exploração', '1998-11-11', '2024-11-20', 'Santarém', '09:00-21:00', 'Rua das Escolas', '2200-061', 'ALDINA HENRIQUES'),
-('03012', 'ABRIGADA', 'Super 1900', 976.00, '241736096', 3, 13, 'Exploração', '1999-01-25', '2024-11-20', 'Lisboa', '09:00-21:00', 'Lugar do Pinheiral', '2580-631', 'RICARDO DOMINGUES'),
-('07502', 'ALUSTREL', 'Contact 600', 726.60, '284602030', 4, 14, 'Exploração', '1998-04-07', '2024-11-20', 'Beja', '09:00-21:00', 'Painel de Beja', '7600-073', NULL),
-('06571', 'AREOSA', 'Super 2000', 1990.00, '258898090', 4, 15, 'Exploração', '2010-08-02', '2024-11-20', 'Viana Do Castelo', '09:00-21:00', 'BOUÇA DO ESPAÇO', '4800-580', NULL),
-('07283', 'Loja Porto', 'Categoria 2', 2100.50, '223456789', 4, 16, 'Exploração', '2012-03-15', '2024-11-20', 'Porto', '08:30-21:30', 'Avenida da República, 1250', '4000-064', NULL),
-('00119', 'Loja Coimbra', 'Categoria 3', 1650.00, '239876543', 5, 17, 'Exploração', '2014-07-22', '2024-11-20', 'Coimbra', '09:00-21:00', 'Rua Ferreira Borges, 890', '3000-180', NULL),
-('01123', 'Loja Faro', 'Categoria 1', 1200.75, '289765432', 5, 18, 'Exploração', '2011-11-05', '2024-11-20', 'Faro', '08:00-22:00', 'Rua de Santo António, 456', '8000-271', NULL),
-('00654', 'Loja Setúbal', 'Categoria 4', 2500.00, '265432198', 6, 19, 'Exploração', '2008-09-30', '2024-11-20', 'Setúbal', '09:00-21:00', 'Avenida Luísa Todi, 789', '2900-321', NULL),
-('01100', 'Loja Guarda', 'Categoria 1', 950.50, '271234567', 6, 20, 'Exploração', '2013-01-10', '2024-11-20', 'Guarda', '08:30-20:30', 'Rua João de Deus, 320', '6300-751', NULL);
+('06347', 'A DOS CUNHADOS', 'Super 1500', 1490.92, '261980190', 3, 11, 'Exploração', '2009-05-19', NULL, 'Lisboa', '09:00-21:00', 'Vale da Murta', '2560-562', 'Cecilia Robalo'),
+('03622', 'ABRANTES', 'Super 2500', 3735.00, '241360830', 4, 12, 'Exploração', '1998-11-11', '2000-08-01', 'Santarém', '09:00-21:00', 'Rua das Escolas - Alferrarede', '2200-042', 'Aldina Henriques'),
+('03012', 'ABRIGADA', 'Super 1000', 976.00, '263798080', 4, 13, 'Exploração', '1999-03-24', '2016-01-01', 'Lisboa', '09:00-21:00', 'Lugar do Funileira', '2580-031', 'Ricardo Rodrigues'),
+('07502', 'ALJUSTREL', 'Contact 600', 726.60, '284602050', 4, 14, 'Exploração', '1998-04-07', '2017-09-01', 'Beja', '09:00-20:00', 'Ramal de Beja', '7600-073', NULL),
+('06571', 'AREOSA', 'Super 2000', 1990.00, '258808090', 5, 15, 'Exploração', '2010-06-02', '2022-04-30', 'Viana Do Castelo', '09:00-21:00', 'Bouça do Empaio', '4900-580', NULL);
+
 
 -- Insert Checklists
 INSERT INTO checklists (id, name, target_role, sections) VALUES
