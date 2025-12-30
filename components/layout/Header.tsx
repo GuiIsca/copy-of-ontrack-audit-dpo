@@ -119,21 +119,21 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/admin/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Settings size={18} />
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>⚙️</span>
                     Gestão do Sistema
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/admin/visitas'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <LayoutDashboard size={18} />
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📋</span>
                     Visitas
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/admin/contact-messages'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>💬</span>
                     Contacto
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
@@ -141,14 +141,14 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/admin/new-visit-admin'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Plus size={18} />
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>➕</span>
                     Nova Visita
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/admin/new-visit-dot'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Users size={18} />
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>👥</span>
                     Visita DOT Operacional
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
@@ -156,7 +156,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/admin/import-visitas'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Upload size={18} />
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📤</span>
                     Importar CSV
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
@@ -164,14 +164,14 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/admin/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📊</span>
                     Indicadores
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/analytics'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <BarChart3 size={18} />
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📊</span>
                     Analítica
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
@@ -186,14 +186,14 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/admin/dados-da-loja'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Store size={18} />
+                    <span role="img" aria-label="Loja" style={{fontSize: 18}}>🏬</span>
                     Dados da Loja
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/admin/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <BookOpen size={18} />
+                    <span role="img" aria-label="Manuais" style={{fontSize: 18}}>📚</span>
                     Manuais de Especialista
                   </button>
                   <button 
@@ -247,7 +247,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-team-leader/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <LayoutDashboard size={18} />
+                    <span role="img" aria-label="Dashboard" style={{fontSize: 18}}>🏠</span>
                     Dashboard
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
@@ -255,14 +255,14 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-team-leader/new-visit-leader'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Plus size={18} />
+                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>👥</span>
                     Nova visita
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/new-visit-dot'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Users size={18} />
+                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>👥</span>
                     Visita DOT Operacional
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
@@ -270,7 +270,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-team-leader/import-visitas'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Upload size={18} />
+                    <span role="img" aria-label="Importar CSV" style={{fontSize: 18}}>📤</span>
                     Importar CSV
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
@@ -278,14 +278,14 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-team-leader/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <span role="img" aria-label="Importar CSV" style={{fontSize: 18}}>📊</span>
                     Indicadores
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/analytics'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <BarChart3 size={18} />
+                    <span role="img" aria-label="Analítica" style={{fontSize: 18}}>📊</span>
                     Analítica
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
@@ -300,14 +300,14 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-team-leader/dados-da-loja'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Store size={18} />
+                    <span role="img" aria-label="Loja" style={{fontSize: 18}}>🏬</span>
                     Dados da Loja
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <BookOpen size={18} />
+                    <span role="img" aria-label="Manuais" style={{fontSize: 18}}>📚</span>
                     Manuais de Especialista
                   </button>
                   <button 
@@ -361,28 +361,28 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/aderente/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <LayoutDashboard size={18} />
+                    <span role="img" aria-label="Dashboard" style={{fontSize: 18}}>🏠</span>
                     Dashboard
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/aderente/new-visit'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Users size={18} />
+                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>👥</span>
                     Nova Visita
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/aderente/history'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 10"/></svg>
+                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>📋</span>
                     Histórico
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/aderente/actions'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span role="img" aria-label="Plano de Ação" style={{fontSize: 18}}>📝</span>
                     Plano de Ação
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Contacto</div>
@@ -390,7 +390,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/aderente/contact-admin'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span role="img" aria-label="Contacto Admin" style={{fontSize: 18}}>💬</span>
                     Contacto Admin
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
@@ -405,7 +405,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/aderente/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <BookOpen size={18} />
+                    <span role="img" aria-label="Manuais" style={{fontSize: 18}}>📚</span>
                     Manuais de Especialista
                   </button>
                   <button 
@@ -445,14 +445,14 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/amont/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <LayoutDashboard size={18} />
+                    <span role="img" aria-label="Dashboard" style={{fontSize: 18}}>🏠</span>
                     Dashboard
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/amont/new-audit'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>📋</span>
                     Nova Visita (Auditoria)
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
@@ -467,7 +467,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/amont/dados-da-loja'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Store size={18} />
+                    <span role="img" aria-label="Loja" style={{fontSize: 18}}>🏬</span>
                     Dados da Loja
                   </button>
                   <button 
@@ -507,21 +507,21 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-operacional/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <LayoutDashboard size={18} />
+                    <span role="img" aria-label="Dashboard" style={{fontSize: 18}}>🏠</span>
                     Dashboard
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/select-visit-type'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>📋</span>
                     Nova Visita
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/history'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 10"/></svg>
+                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>📋</span>
                     Histórico
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
@@ -529,7 +529,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-operacional/import-visitas'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Upload size={18} />
+                    <span role="img" aria-label="Importar CSV" style={{fontSize: 18}}>📤</span>
                     Importar CSV
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
@@ -537,7 +537,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-operacional/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <span role="img" aria-label="Indicadores" style={{fontSize: 18}}>📊</span>
                     Indicadores
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
@@ -552,14 +552,14 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-operacional/dados-da-loja'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <Store size={18} />
+                    <span role="img" aria-label="Loja" style={{fontSize: 18}}>🏬</span>
                     Dados da Loja
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <BookOpen size={18} />
+                    <span role="img" aria-label="Manuais" style={{fontSize: 18}}>📚</span>
                     Manuais de Especialista
                   </button>
                   <button 
