@@ -310,14 +310,6 @@ class DatabaseAdapter {
         case 'AUDITORIA':
           typeStr = 'AUDITORIA';
           break;
-        case 'Formacao':
-        case 'FORMACAO':
-          typeStr = 'FORMACAO';
-          break;
-        case 'Acompanhamento':
-        case 'ACOMPANHAMENTO':
-          typeStr = 'ACOMPANHAMENTO';
-          break;
         default:
           typeStr = 'OUTROS';
       }

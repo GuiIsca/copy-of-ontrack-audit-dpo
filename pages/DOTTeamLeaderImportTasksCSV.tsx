@@ -7,7 +7,7 @@ import { api } from '../services/api';
 import { VisitType } from '../types';
 
 interface CSVRow {
-  tipo: string; // Auditoria|Formacao|Acompanhamento|Outros
+  tipo: string; // Auditoria|Outros
   dot_email: string;
   numero_loja: string;
   data: string; // DD/MM/YYYY
@@ -76,8 +76,8 @@ export const DOTTeamLeaderImportTasksCSV: React.FC = () => {
         }
         
         const [tipo, dot_email, numero_loja, data, hora_inicio, hora_fim, titulo, texto] = columns;
-        if (!tipo || !['auditoria','formacao','acompanhamento','outros'].includes(tipo.toLowerCase())) {
-          errors.push({ row, field: 'tipo', message: 'Tipo inválido (use: Auditoria, Formacao, Acompanhamento ou Outros)' });
+        if (!tipo || !['auditoria','outros'].includes(tipo.toLowerCase())) {
+          errors.push({ row, field: 'tipo', message: 'Tipo inválido (use: Auditoria ou Outros)' });
         }
         if (!dot_email || !dot_email.includes('@')) {
           errors.push({ row, field: 'dot_email', message: 'Email do DOT Operacional inválido' });
@@ -134,8 +134,8 @@ export const DOTTeamLeaderImportTasksCSV: React.FC = () => {
   const downloadTemplate = () => {
     const template = `tipo;dot;numero_loja;data;hora_inicio;hora_fim;titulo;texto\n`+
       `Auditoria;dot1@mousquetaires.com;06347;15/01/2026;09:00;11:30;Auditoria Qualidade Q1;Auditoria trimestral\n`+
-      `Formacao;dot1@mousquetaires.com;06347;20/01/2026;10:00;12:00;Formação HACCP;Sessão inicial\n`+
-      `Acompanhamento;dot1@mousquetaires.com;06347;25/01/2026;14:00;15:30;Acompanhamento Pós-Auditoria;Follow-up\n`+
+      `Auditoria;dot1@mousquetaires.com;06347;15/01/2026;09:00;17:00;Auditoria Loja;Checklist completo\n`+
+      `Outros;dot1@mousquetaires.com;06347;25/01/2026;14:00;15:30;Visita Especial;Inspeção rápida\n`+
       `Outros;dot1@mousquetaires.com;06347;30/01/2026;16:00;17:00;Visita Protocolar;Visita de cortesia`;
     const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

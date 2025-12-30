@@ -109,8 +109,6 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
     // Outros tipos de visita
     switch(visitType) {
       case 'Auditoria': return 'bg-red-600'; // Auditoria - vermelho
-      case 'Formacao': return 'bg-blue-600'; // Formação - azul
-      case 'Acompanhamento': return 'bg-emerald-600'; // Acompanhamento - verde
       case 'Outros': return 'bg-gray-600'; // Outros - cinza
       default: return 'bg-red-600'; // Default auditoria
     }
@@ -288,14 +286,6 @@ export const MonthPlanner: React.FC<MonthPlannerProps> = ({ audits, onAuditClick
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 bg-red-600 rounded-full"></div>
             <span className="text-gray-600">Auditoria</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-            <span className="text-gray-600">Formação</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-emerald-600 rounded-full"></div>
-            <span className="text-gray-600">Acompanhamento</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 bg-gray-600 rounded-full"></div>

@@ -8,8 +8,6 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 // Map CSV tipo to DB enum (case-insensitive)
 const tipoMap = {
   'auditoria': 'AUDITORIA',
-  'formacao': 'FORMACAO',
-  'acompanhamento': 'ACOMPANHAMENTO',
   'outros': 'OUTROS'
 };
 
@@ -107,7 +105,7 @@ router.post('/import-visitas', upload.single('file'), async (req, res) => {
         const tipo = tipoMap[tipoRaw.toLowerCase()] || tipoRaw.toUpperCase();
         
         // Validate tipo
-        if (!['AUDITORIA', 'FORMACAO', 'ACOMPANHAMENTO', 'OUTROS'].includes(tipo)) {
+        if (!['AUDITORIA', 'OUTROS'].includes(tipo)) {
           const erro = `Invalid tipo: ${tipoRaw}`;
           results.errors.push({ line: r.__line, message: erro });
           continue;

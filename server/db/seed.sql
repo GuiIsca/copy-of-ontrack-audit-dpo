@@ -557,8 +557,7 @@ INSERT INTO audits (id, store_id, dot_user_id, checklist_id, dtstart, status, cr
 
 -- Insert Sample Visits
 INSERT INTO visits (id, store_id, user_id, type, title, description, dtstart, dtend, status, created_by) VALUES
-(1, 5, 4, 'FORMACAO', 'Formação Segurança Alimentar', 'Sessão de formação sobre boas práticas', '2025-12-15 09:00:00', '2025-12-15 12:00:00', 'SCHEDULED', 2),
-(2, 7, 5, 'ACOMPANHAMENTO', 'Acompanhamento Pós-Auditoria', 'Verificação de implementação de ações', '2025-12-20 10:00:00', '2025-12-20 16:00:00', 'SCHEDULED', 2);
+(1, 5, 4, 'OUTROS', 'Visita Outros', 'Visita genérica', '2025-12-15 09:00:00', '2025-12-15 12:00:00', 'SCHEDULED', 2);
 */
 
 -- Reset sequences

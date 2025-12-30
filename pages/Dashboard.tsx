@@ -101,10 +101,6 @@ export const Dashboard: React.FC = () => {
         const u = String(t).toUpperCase();
         switch(u) {
           case 'AUDITORIA': return VisitType.AUDITORIA;
-          case 'FORMACAO':
-          case 'FORMAÇÃO': return VisitType.FORMACAO;
-          case 'ACOMPANHAMENTO': return VisitType.ACOMPANHAMENTO;
-          case 'OUTROS': return VisitType.OUTROS;
           default: return VisitType.OUTROS;
         }
       };

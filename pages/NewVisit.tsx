@@ -13,7 +13,7 @@ export const NewVisit: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  const visitType = searchParams.get('type') as 'Formacao' | 'Acompanhamento' | 'Outros' || 'Outros';
+  const visitType = searchParams.get('type') as 'Outros' || 'Outros';
   
   // Get pre-selected date from navigation state if available
   const preSelectedDate = location.state?.selectedDate;
@@ -28,6 +28,7 @@ export const NewVisit: React.FC = () => {
   const [text, setText] = useState('');
   const [date, setDate] = useState(initialDate);
   const [time, setTime] = useState('09:00');
+  const [timeEnd, setTimeEnd] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,19 +46,11 @@ export const NewVisit: React.FC = () => {
   }, []); // Empty dependency array - only run once on mount
 
   const getVisitTypeEnum = (type: string): VisitType => {
-    switch(type) {
-      case 'Formacao': return VisitType.FORMACAO;
-      case 'Acompanhamento': return VisitType.ACOMPANHAMENTO;
-      default: return VisitType.OUTROS;
-    }
+    return VisitType.OUTROS;
   };
 
   const getVisitTypeLabel = (type: string): string => {
-    switch(type) {
-      case 'Formacao': return 'Formação';
-      case 'Acompanhamento': return 'Acompanhamento';
-      default: return 'Outros';
-    }
+    return 'Outros';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +67,7 @@ export const NewVisit: React.FC = () => {
     setError('');
     try {
       const datetime = new Date(`${date}T${time}`);
+      const datetimeEnd = timeEnd ? new Date(`${date}T${timeEnd}`) : undefined;
       
       const createdVisit = await db.createVisit({
         type: getVisitTypeEnum(visitType),
@@ -82,6 +76,7 @@ export const NewVisit: React.FC = () => {
         user_id: currentUser.userId,
         store_id: selectedStoreId as number,
         dtstart: datetime.toISOString(),
+        dtend: datetimeEnd?.toISOString(),
         status: AuditStatus.NEW,
         created_by: currentUser.userId
       });
@@ -97,11 +92,7 @@ export const NewVisit: React.FC = () => {
   };
 
   const getTypeColor = (type: string) => {
-    switch(type) {
-      case 'Formacao': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Acompanhamento': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+    return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   return (
@@ -184,12 +175,21 @@ export const NewVisit: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Hora</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Hora de Início</label>
                 <input
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
                   required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Hora de Fim (opcional)</label>
+                <input
+                  type="time"
+                  value={timeEnd}
+                  onChange={(e) => setTimeEnd(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
                 />
               </div>
