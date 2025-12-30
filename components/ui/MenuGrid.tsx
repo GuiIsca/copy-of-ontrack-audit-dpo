@@ -17,7 +17,7 @@ export const MenuGrid: React.FC<MenuGridProps> = ({ items }) => (
     gap: '1.5rem',
     padding: '2rem',
     justifyItems: 'center',
-    alignItems: 'center',
+    alignItems: 'stretch',
   }}>
     {items.map((item, idx) => (
       <button
@@ -28,8 +28,9 @@ export const MenuGrid: React.FC<MenuGridProps> = ({ items }) => (
           border: '2px solid #e5e7eb',
           borderRadius: '16px',
           padding: '1.5rem 1rem',
+          width: '100%',
           minWidth: 150,
-          minHeight: 150,
+          height: 170,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -41,8 +42,8 @@ export const MenuGrid: React.FC<MenuGridProps> = ({ items }) => (
         onMouseOver={e => (e.currentTarget.style.boxShadow = '0 4px 16px #0002')}
         onMouseOut={e => (e.currentTarget.style.boxShadow = '0 2px 8px #0001')}
       >
-        <div style={{ fontSize: 48, marginBottom: 12 }}>{item.icon}</div>
-        <div style={{ fontWeight: 700, fontSize: 16, textAlign: 'center' }}>{item.title}</div>
+        <div style={{ fontSize: 48, marginBottom: 12, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</div>
+        <div style={{ fontWeight: 700, fontSize: 16, textAlign: 'center', lineHeight: 1.3 }}>{item.title}</div>
       </button>
     ))}
   </div>

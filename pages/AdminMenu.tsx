@@ -3,9 +3,10 @@ import { getCurrentUser } from '../utils/auth';
 import { UserRole } from '../types';
 import { User } from 'lucide-react';
 import { MenuGrid, MenuGridItem } from '../components/ui/MenuGrid';
-import { Calendar, LayoutDashboard, BookOpen, Users, BarChart3, Plus, History, RefreshCw, Store } from 'lucide-react';
+import { Calendar, LayoutDashboard, BookOpen, Users, BarChart3, Plus, History, RefreshCw, Store, Upload, Settings } from 'lucide-react';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Header } from '../components/layout/Header';
 
 export const AdminMenu: React.FC = () => {
     const navigate = useNavigate();
@@ -31,77 +32,72 @@ export const AdminMenu: React.FC = () => {
     '👤'
   ) : '👤';
   const items: MenuGridItem[] = [
-
     {
-      title: 'Dashboard',
-      icon: <LayoutDashboard size={48} />, 
-      onClick: () => window.location.href = '/amont/dashboard'
-    },
-    {
-      title: 'Gerir utilizadores',
-      icon: <Calendar size={48} />, 
+      title: 'Gestão do Sistema',
+      icon: <span role="img" aria-label="Sistema" style={{fontSize: 48}}>⚙️</span>, 
       onClick: () => {
-        window.location.href = '/admin/utilizadores';
+        localStorage.setItem('layoutMode', '1');
+        window.location.href = '/admin/dashboard';
       }
-    },    
-    {
-      title: 'Gerir Lojas',
-      icon: <Calendar size={48} />, 
-      onClick: () => window.location.href = '/admin/lojas'
     },
-        {
+    {
+      title: 'Visitas',
+      icon: <span role="img" aria-label="Visitas" style={{fontSize: 48}}>📋</span>, 
+      onClick: () => window.location.href = '/admin/visitas'
+    },
+    {
       title: 'Importar CSV',
-      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      icon: <span role="img" aria-label="Upload" style={{fontSize: 48}}>📤</span>, 
       onClick: () => window.location.href = '/admin/import'
     },
     {
       title: 'Contacto',
-      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      icon: <span role="img" aria-label="Mensagem" style={{fontSize: 48}}>💬</span>, 
       onClick: () => window.location.href = '/admin/contact-messages'
     },
     {
       title: 'Nova visita',
-      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      icon: <span role="img" aria-label="Nova" style={{fontSize: 48}}>➕</span>, 
       onClick: () => window.location.href = '/admin/new-visit-admin'
     },  
     {
       title: 'Nova visita Dot Operacional',
-      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      icon: <span role="img" aria-label="Utilizadores" style={{fontSize: 48}}>👥</span>, 
       onClick: () => window.location.href = '/admin/new-visit-dot'
     },  
     {
       title: 'Indicadores',
-      icon: <Calendar size={48} />, 
+      icon: <span role="img" aria-label="Indicadores" style={{fontSize: 48}}>📊</span>, 
       onClick: () => window.location.href = '/admin/reports'
     },
     {
       title: 'Analítica',
-      icon: <Calendar size={48} />, 
+      icon: <span role="img" aria-label="Analítica" style={{fontSize: 48}}>📈</span>, 
       onClick: () => window.location.href = '/analytics'
     },
-        {
+    {
       title: 'Planta Layout',
       icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
       onClick: () => window.location.href = '/admin/planta-layout'
     },
     {
       title: 'Dados da Loja',
-      icon: <Store size={48} />,
+      icon: <span role="img" aria-label="Loja" style={{fontSize: 48}}>🏬</span>,
       onClick: () => window.location.href = '/admin/dados-da-loja'
     },
-        {
+    {
       title: 'Manual de Especialista',
-      icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
+      icon: <span role="img" aria-label="Manual" style={{fontSize: 48}}>📚</span>, 
       onClick: () => window.location.href = '/admin/specialist-manuals'
     },
     {
       title: 'Folhetos',
-      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      icon: <span role="img" aria-label="Folhetos" style={{fontSize: 48}}>🏷️</span>, 
       onClick: () => window.location.href = '/admin/folhetos'
     },  
     {
-      title: 'Estudeo de mercado',
-      icon: <span role="img" aria-label="Etiqueta" style={{fontSize: 48}}>🏷️</span>, 
+      title: 'Estudo de mercado',
+      icon: <span role="img" aria-label="Globo" style={{fontSize: 48}}>🌐</span>, 
       onClick: () => window.location.href = '/admin/estudo-mercado'
     },
     {
@@ -124,26 +120,28 @@ export const AdminMenu: React.FC = () => {
       icon: <span role="img" aria-label="Concorrência" style={{fontSize: 48}}>🔍</span>, 
       onClick: () => window.location.href = '/admin/dados-concorrencia'
     },          
-        {
-          title: 'Mudar para Layout Base',
-          icon: <LayoutDashboard size={48} />, 
-          onClick: () => {
-            localStorage.setItem('layoutMode', '1');
-            window.location.href = '/amont/dashboard';
-          }
-        },
-        {
-          title: 'Logout',
-          icon: <LogOut size={48} color="#dc2626" />, 
-          onClick: () => {
-            handleLogout();
-          }
-        },
+    {
+      title: 'Mudar para Layout Base',
+      icon: <span role="img" aria-label="Layout" style={{fontSize: 48}}>📱</span>, 
+      onClick: () => {
+        localStorage.setItem('layoutMode', '1');
+        window.location.href = '/admin/dashboard';
+      }
+    },
+    {
+      title: 'Logout',
+      icon: <span role="img" aria-label="Sair" style={{fontSize: 48}}>🚺</span>, 
+      onClick: () => {
+        handleLogout();
+      }
+    },
   ];
   return (
-    <div>
-      <div style={{ position: 'relative', margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu Aderente</h2>
+    <>
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div style={{ position: 'relative', margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu Administrador</h2>
         <div style={{ position: 'absolute', right: '15%', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 8, minWidth: 160 }}>
           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
             <User size={20} />
@@ -155,9 +153,10 @@ export const AdminMenu: React.FC = () => {
             </div>
           </div>
         </div>
+        </div>
+        <MenuGrid items={items} />
       </div>
-      <MenuGrid items={items} />
-    </div>
+    </>
   );
 };
 

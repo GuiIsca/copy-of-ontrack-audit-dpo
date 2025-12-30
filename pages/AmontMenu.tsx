@@ -6,6 +6,7 @@ import { MenuGrid, MenuGridItem } from '../components/ui/MenuGrid';
 import { Calendar, LayoutDashboard, BookOpen, Users, BarChart3, Plus, History, RefreshCw, Store } from 'lucide-react';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Header } from '../components/layout/Header';
 
 export const AmontMenu: React.FC = () => {
     const navigate = useNavigate();
@@ -31,32 +32,27 @@ export const AmontMenu: React.FC = () => {
     '👤'
   ) : '👤';
   const items: MenuGridItem[] = [
-
     {
       title: 'Dashboard',
-      icon: <LayoutDashboard size={48} />, 
-      onClick: () => window.location.href = '/amont/dashboard'
-    },
-    {
-      title: 'Calendário',
-      icon: <Calendar size={48} />, 
+      icon: <span role="img" aria-label="Dashboard" style={{fontSize: 48}}>🏠</span>, 
       onClick: () => {
-        window.location.href = '/amont/calendario';
+        localStorage.setItem('layoutMode', '1');
+        window.location.href = '/amont/dashboard';
       }
-    },    
+    },
     {
       title: 'Nova Auditoria',
-      icon: <Calendar size={48} />, 
+      icon: <span role="img" aria-label="Nova" style={{fontSize: 48}}>➕</span>, 
       onClick: () => window.location.href = '/amont/new-audit'
     },
-        {
+    {
       title: 'Planta Layout',
       icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
       onClick: () => window.location.href = '/amont/planta-layout'
     },
     {
       title: 'Dados da Loja',
-      icon: <Store size={48} />,
+      icon: <span role="img" aria-label="Loja" style={{fontSize: 48}}>🏬</span>,
       onClick: () => window.location.href = '/amont/dados-da-loja'
     },
     {
@@ -81,7 +77,7 @@ export const AmontMenu: React.FC = () => {
     },
         {
           title: 'Mudar para Layout Base',
-          icon: <LayoutDashboard size={48} />, 
+          icon: <span role="img" aria-label="Layout" style={{fontSize: 48}}>📱</span>, 
           onClick: () => {
             localStorage.setItem('layoutMode', '1');
             window.location.href = '/amont/dashboard';
@@ -89,16 +85,18 @@ export const AmontMenu: React.FC = () => {
         },
         {
           title: 'Logout',
-          icon: <LogOut size={48} color="#dc2626" />, 
+          icon: <span role="img" aria-label="Sair" style={{fontSize: 48}}>🚺</span>, 
           onClick: () => {
             handleLogout();
           }
         },
   ];
   return (
-    <div>
-      <div style={{ position: 'relative', margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu Aderente</h2>
+    <>
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div style={{ position: 'relative', margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu Amont</h2>
         <div style={{ position: 'absolute', right: '15%', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 8, minWidth: 160 }}>
           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
             <User size={20} />
@@ -110,9 +108,10 @@ export const AmontMenu: React.FC = () => {
             </div>
           </div>
         </div>
+        </div>
+        <MenuGrid items={items} />
       </div>
-      <MenuGrid items={items} />
-    </div>
+    </>
   );
 };
 

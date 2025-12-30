@@ -5,8 +5,8 @@ import { User } from 'lucide-react';
 import { MenuGrid, MenuGridItem } from '../components/ui/MenuGrid';
 import { Calendar, LayoutDashboard, Upload, BookOpen, Users, BarChart3, Plus, History, RefreshCw, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';  
-
+import { LogOut } from 'lucide-react';
+import { Header } from '../components/layout/Header';
 
 export const DOTTeamLeaderMenu: React.FC = () => {
       const navigate = useNavigate();
@@ -33,10 +33,11 @@ export const DOTTeamLeaderMenu: React.FC = () => {
   ) : '👤';
   const items: MenuGridItem[] = [
     {
-      title: 'Calendário',
-      icon: <Calendar size={48} />, 
+      title: 'Dashboard',
+      icon: <span role="img" aria-label="Dashboard" style={{fontSize: 48}}>🏠</span>, 
       onClick: () => {
-        window.location.href = '/dot-team-leader/calendar';
+        localStorage.setItem('layoutMode', '1');
+        window.location.href = '/dot-team-leader/dashboard';
       }
     },
     {
@@ -46,37 +47,32 @@ export const DOTTeamLeaderMenu: React.FC = () => {
     },
     {
       title: 'Dados da Loja',
-      icon: <Store size={48} />,
+      icon: <span role="img" aria-label="Loja" style={{fontSize: 48}}>🏬</span>,
       onClick: () => window.location.href = '/dot-team-leader/dados-da-loja'
     },
     {
-      title: 'Dashboard',
-      icon: <LayoutDashboard size={48} />, 
-      onClick: () => window.location.href = '/dot-team-leader/dashboard'
-    },
-    {
       title: 'Importar CSV',
-      icon: <Upload size={48} />, 
+      icon: <span role="img" aria-label="Upload" style={{fontSize: 48}}>📤</span>, 
       onClick: () => window.location.href = '/dot-team-leader/import-visitas'
     },
     {
       title: 'Selecionar Nova Visita',
-      icon: <Users size={48} />, 
+      icon: <span role="img" aria-label="Utilizadores" style={{fontSize: 48}}>👥</span>, 
       onClick: () => window.location.href = '/dot-team-leader/select-new-visit'
     },
     {
       title: 'Indicadores',
-      icon: <BarChart3 size={48} />, 
+      icon: <span role="img" aria-label="Indicadores" style={{fontSize: 48}}>📊</span>, 
       onClick: () => window.location.href = '/dot-team-leader/reports'
     },
     {
       title: 'Analítica',
-      icon: <BarChart3 size={48} />, 
+      icon: <span role="img" aria-label="Analítica" style={{fontSize: 48}}>📈</span>, 
       onClick: () => window.location.href = '/analytics'
     },
     {
       title: 'Manual de Especialista',
-      icon: <BookOpen size={48} />, 
+      icon: <span role="img" aria-label="Manual" style={{fontSize: 48}}>📚</span>, 
       onClick: () => window.location.href = '/dot-team-leader/specialist-manuals'
     },
     {
@@ -111,7 +107,7 @@ export const DOTTeamLeaderMenu: React.FC = () => {
     },
     {
       title: 'Mudar para Layout Base',
-      icon: <LayoutDashboard size={48} />, 
+      icon: <span role="img" aria-label="Layout" style={{fontSize: 48}}>📱</span>, 
       onClick: () => {
         localStorage.setItem('layoutMode', '1');
         window.location.href = '/dot-team-leader/dashboard';
@@ -119,16 +115,18 @@ export const DOTTeamLeaderMenu: React.FC = () => {
     },
                     {
               title: 'Logout',
-              icon: <LogOut size={48} color="#dc2626" />, 
+              icon: <span role="img" aria-label="Sair" style={{fontSize: 48}}>🚺</span>, 
               onClick: () => {
                 handleLogout();
               }
             },
   ];
   return (
-    <div>
-      <div style={{ position: 'relative', margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu Dot Aderente</h2>
+    <>
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div style={{ position: 'relative', margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <h2 style={{ fontWeight: 700, fontSize: 28, textAlign: 'center', margin: 0 }}>Menu DOT Team Leader</h2>
         <div style={{ position: 'absolute', right: '15%', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 8, minWidth: 160 }}>
           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
             <User size={20} />
@@ -138,9 +136,10 @@ export const DOTTeamLeaderMenu: React.FC = () => {
             <div style={{ fontSize: 13, color: '#888' }}>{displayIcon} {displayRole}</div>
           </div>
         </div>
+        </div>
+        <MenuGrid items={items} />
       </div>
-      <MenuGrid items={items} />
-    </div>
+    </>
   );
 };
 

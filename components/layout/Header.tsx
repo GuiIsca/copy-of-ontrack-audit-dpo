@@ -221,7 +221,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/admin/analises-importantes'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>📈</span>
+                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>�</span>
                     Análises Importantes
                   </button>
                   <button 
@@ -335,7 +335,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-team-leader/analises-importantes'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>📈</span>
+                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>�</span>
                     Análises Importantes
                   </button>
                   <button 
@@ -587,7 +587,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/dot-operacional/analises-importantes'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>📈</span>
+                    <span role="img" aria-label="Análises" style={{fontSize: 18}}>�</span>
                     Análises Importantes
                   </button>
                   <button 
