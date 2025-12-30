@@ -608,20 +608,13 @@ export const Header: React.FC = () => {
               )}
               <button
                 onClick={() => {
-                  localStorage.setItem('layoutMode', '2');
-                  if (userIsDotTeamLeader) {
-                    window.location.href = '/dot-team-leader/menu';
-                  } else if (userIsAderente) {
-                    window.location.href = '/aderente/menu';
-                  } else if (userIsDotOperacional) {
-                    window.location.href = '/dot-operacional/menu';
-                  } else if (userIsAdmin) {
-                    window.location.href = '/admin/menu';
-                  } else if (userIsAmont) {
-                    window.location.href = '/amont/menu';
+                  const currentLayout = localStorage.getItem('layoutMode');
+                  if (currentLayout === '2') {
+                    localStorage.setItem('layoutMode', '1');
                   } else {
-                    window.location.href = '/dashboard';
+                    localStorage.setItem('layoutMode', '2');
                   }
+                  window.location.reload();
                   setIsMenuOpen(false);
                 }}
                 className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 mt-4 border-t border-gray-100 pt-4"

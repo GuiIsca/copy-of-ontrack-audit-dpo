@@ -1,9 +1,5 @@
-import DOTTeamLeaderCalendarPage from './pages/DOTTeamLeaderCalendarPage';
-import AderenteVisitasrecentes from './pages/AderenteVisitasrecentes';
-import AdminUtilizadores from './pages/AdminUtilizadores';
-import AdminLojas from './pages/AdminLojas';
-import AdminImport from './pages/AdminImport';
-import { AmontCalendario } from './pages/AmontCalendario';
+
+
 import { getCurrentUser, hasRole } from './utils/auth';
 import { UserRole } from './types';
 console.log('DEBUG getCurrentUser:', getCurrentUser());
@@ -12,7 +8,6 @@ import AmontMenu from './pages/AmontMenu';
 import AderenteMenu from './pages/AderenteMenu';
 import DOTTeamLeaderMenu from './pages/DOTTeamLeaderMenu';
 import DotOperacionalMenu from './pages/DotOperacionalMenu';
-import DotOperacionalCalendarPage from './pages/DotOperacionalCalendarPage';
 import DadosDaLoja from './pages/DadosDaLoja';
 import React from 'react';
 import { ToastProvider } from './components/ui/Toast';
@@ -212,11 +207,6 @@ const App: React.FC = () => {
                 <SelectVisitType />
             </ProtectedRoute>
         } />
-        <Route path="/dot-operacional/calendar" element={
-            <ProtectedRoute requireRole={() => hasRole(UserRole.DOT_OPERACIONAL)}>
-                <DotOperacionalCalendarPage />
-            </ProtectedRoute>
-        } />
         <Route path="/dot-operacional/history" element={
             <ProtectedRoute requireRole={() => canAccessDOTDashboard() || canAccessDotTeamLeaderDashboard()}>
                 <AuditList />
@@ -307,11 +297,6 @@ const App: React.FC = () => {
                 <AderenteAuditView />
             </ProtectedRoute>
         } />
-        <Route path="/aderente/visitas-recentes" element={
-            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
-                <AderenteVisitasrecentes />
-            </ProtectedRoute>
-        } />
         <Route path="/aderente/actions" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
                 <ActionPlans />
@@ -347,11 +332,6 @@ const App: React.FC = () => {
         <Route path="/dot-team-leader/import-visitas" element={
             <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
                 <DOTTeamLeaderImportTasksCSV />
-            </ProtectedRoute>
-        } />
-        <Route path="/dot-team-leader/calendar" element={
-            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
-                <DOTTeamLeaderCalendarPage />
             </ProtectedRoute>
         } />
         <Route path="/dot-team-leader/audit/:id" element={
@@ -397,21 +377,6 @@ const App: React.FC = () => {
         <Route path="/admin/dashboard" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
                 {localStorage.getItem('layoutMode') === '2' ? <AdminMenu /> : <AdminDashboard />}
-            </ProtectedRoute>
-        } />
-        <Route path="/admin/import" element={
-            <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AdminImport />
-            </ProtectedRoute>
-        } />
-        <Route path="/admin/lojas" element={
-            <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AdminLojas />
-            </ProtectedRoute>
-        } />
-        <Route path="/admin/utilizadores" element={
-            <ProtectedRoute requireRole={canAccessAdminDashboard}>
-                <AdminUtilizadores />
             </ProtectedRoute>
         } />
         <Route path="/admin/visitas" element={
@@ -572,11 +537,6 @@ const App: React.FC = () => {
         <Route path="/amont/dashboard" element={
             <ProtectedRoute requireRole={canAccessAmontDashboard}>
                 {localStorage.getItem('layoutMode') === '2' ? <AmontMenu /> : <AmontDashboard />}
-            </ProtectedRoute>
-        } />
-        <Route path="/amont/calendario" element={
-            <ProtectedRoute requireRole={canAccessAmontDashboard}>
-                <AmontCalendario />
             </ProtectedRoute>
         } />
         <Route path="/amont/dados-da-loja" element={
