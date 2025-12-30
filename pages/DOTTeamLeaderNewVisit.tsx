@@ -22,12 +22,12 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [dots, setDots] = useState<User[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState<number | ''>('');
-  const [visitType, setVisitType] = useState<VisitType>(VisitType.ACOMPANHAMENTO);
+  const [visitType, setVisitType] = useState<VisitType>(VisitType.OUTROS);
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [date, setDate] = useState(initialDate);
   const [time, setTime] = useState('09:00');
-  const [timeEnd, setTimeEnd] = useState('17:00');
+  const [timeEnd, setTimeEnd] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,7 +62,7 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
     setError('');
     try {
       const datetime = new Date(`${date}T${time}`);
-      const datetimeEnd = new Date(`${date}T${timeEnd}`);
+      const datetimeEnd = timeEnd ? new Date(`${date}T${timeEnd}`) : undefined;
       
       let createdItem: any = null;
 
@@ -80,7 +80,7 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
           created_by: currentUser.userId
         });
       } else {
-        // Para outros tipos de visita (Formação, Acompanhamento, Outros)
+        // Para outros tipos de visita (Outros)
         createdItem = await db.createVisit({
           type: visitType,
           title: title.trim(),
@@ -88,7 +88,7 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
           user_id: currentUser.userId,
           store_id: selectedStoreId as number,
           dtstart: datetime.toISOString(),
-          dtend: datetimeEnd.toISOString(),
+          dtend: datetimeEnd?.toISOString(),
           status: AuditStatus.NEW,
           created_by: currentUser.userId
         });
@@ -107,8 +107,6 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
   const getTypeColor = (type: VisitType) => {
     switch(type) {
       case VisitType.AUDITORIA: return 'bg-red-100 text-red-800 border-red-200';
-      case VisitType.FORMACAO: return 'bg-blue-100 text-blue-800 border-blue-200';
-      case VisitType.ACOMPANHAMENTO: return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -140,11 +138,9 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
           {/* Visit Type */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Tipo de Visita</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
               {[
                 { type: VisitType.AUDITORIA, label: 'Auditoria' },
-                { type: VisitType.FORMACAO, label: 'Formação' },
-                { type: VisitType.ACOMPANHAMENTO, label: 'Acompanhamento' },
                 { type: VisitType.OUTROS, label: 'Outros' },
               ].map(({ type, label }) => (
                 <button
@@ -214,12 +210,11 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Hora de Fim</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hora de Fim (opcional)</label>
                     <input
                       type="time"
                       value={timeEnd}
                       onChange={(e) => setTimeEnd(e.target.value)}
-                      required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
                     />
                   </div>
@@ -249,7 +244,7 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Acompanhamento mensal, Visita de supervisão..."
+                placeholder="Ex: Visita especial, Inspeção"
                 required
                 maxLength={200}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"

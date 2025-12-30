@@ -92,7 +92,7 @@ export const DOTTeamLeaderDashboard: React.FC<{ adminView?: boolean }> = ({ admi
         })
         .filter((audit): audit is VisitItem & { isAudit: boolean } => audit !== null);
 
-      // Get all visits (Formação, Acompanhamento, Outros) - all visits
+      // Get all visits (Outros) - all visits
       const allVisitsData = await db.getVisits();
       const enrichedVisits: VisitItem[] = allVisitsData
         .map(visit => {
@@ -339,11 +339,6 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     switch(u) {
       case 'AUDITORIA':
         return VisitType.AUDITORIA;
-      case 'FORMACAO':
-      case 'FORMAÇÃO':
-        return VisitType.FORMACAO;
-      case 'ACOMPANHAMENTO':
-        return VisitType.ACOMPANHAMENTO;
       case 'OUTROS':
         return VisitType.OUTROS;
       default:
@@ -355,10 +350,6 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     switch(visitType) {
       case VisitType.AUDITORIA:
         return <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded font-medium">Auditoria</span>;
-      case VisitType.FORMACAO:
-        return <span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded font-medium">Formação</span>;
-      case VisitType.ACOMPANHAMENTO:
-        return <span className="bg-cyan-100 text-cyan-800 text-xs px-2 py-1 rounded font-medium">Acompanhamento</span>;
       case VisitType.OUTROS:
         return <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">Outros</span>;
       default:
@@ -379,8 +370,6 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
           {dayVisits.map(v => {
             const isAudit = v.visitType === VisitType.AUDITORIA;
             const bgColor = v.visitType === VisitType.AUDITORIA ? 'bg-red-500 hover:bg-red-700' :
-                           v.visitType === VisitType.FORMACAO ? 'bg-indigo-500 hover:bg-indigo-700' :
-                           v.visitType === VisitType.ACOMPANHAMENTO ? 'bg-cyan-500 hover:bg-cyan-700' :
                            'bg-gray-500 hover:bg-gray-700';
             return (
               <div
@@ -428,14 +417,6 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-red-500 rounded"></div>
               <span className="text-xs text-gray-700">Auditoria</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-indigo-500 rounded"></div>
-              <span className="text-xs text-gray-700">Formação</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-cyan-500 rounded"></div>
-              <span className="text-xs text-gray-700">Acompanhamento</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-gray-500 rounded"></div>
@@ -625,8 +606,6 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
     inProgress: filteredVisits.filter(v => v.status === AuditStatus.NEW || v.status === AuditStatus.IN_PROGRESS).length,
     byType: {
       auditoria: filteredVisits.filter(v => v.visitType === VisitType.AUDITORIA).length,
-      formacao: filteredVisits.filter(v => v.visitType === VisitType.FORMACAO).length,
-      acompanhamento: filteredVisits.filter(v => v.visitType === VisitType.ACOMPANHAMENTO).length,
       outros: filteredVisits.filter(v => v.visitType === VisitType.OUTROS).length,
     }
   };
@@ -712,8 +691,6 @@ const handleVisitClick = (visit: VisitItem, isAudit: boolean) => {
               >
                 <option value="all">Todas as Tipologias</option>
                 <option value={VisitType.AUDITORIA}>Auditoria</option>
-                <option value={VisitType.FORMACAO}>Formação</option>
-                <option value={VisitType.ACOMPANHAMENTO}>Acompanhamento</option>
                 <option value={VisitType.OUTROS}>Outros</option>
               </select>
 

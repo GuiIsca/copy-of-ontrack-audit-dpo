@@ -46,6 +46,11 @@ export const AderenteMenu: React.FC = () => {
       onClick: () => window.location.href = '/aderente/new-visit'
     },
     {
+      title: 'Visitas',
+      icon: <span role="img" aria-label="Visitas" style={{fontSize: 48}}>🏬</span>,
+      onClick: () => window.location.href = '/aderente/visitas'
+    },
+    {
       title: 'Histórico de visitas',
       icon: <span role="img" aria-label="Histórico" style={{fontSize: 48}}>📋</span>,
       onClick: () => window.location.href = '/aderente/history'

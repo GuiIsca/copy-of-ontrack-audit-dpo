@@ -55,8 +55,6 @@ const DOTTeamLeaderCalendarPage: React.FC = () => {
         if (!type) return VisitType.OUTROS;
         const t = String(type).toLowerCase();
         if (t === 'auditoria') return VisitType.AUDITORIA;
-        if (t === 'formacao' || t === 'formação') return VisitType.FORMACAO;
-        if (t === 'acompanhamento') return VisitType.ACOMPANHAMENTO;
         return VisitType.OUTROS;
       }
       const enrichedAudits: VisitItem[] = auditsToShow

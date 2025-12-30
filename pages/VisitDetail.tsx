@@ -79,8 +79,6 @@ useEffect(() => {
   const getVisitTypeLabel = (type: VisitType) => {
     switch(type) {
       case VisitType.AUDITORIA: return 'Auditoria';
-      case VisitType.FORMACAO: return 'Formação';
-      case VisitType.ACOMPANHAMENTO: return 'Acompanhamento';
       case VisitType.OUTROS: return 'Outros';
       default: return type;
     }
@@ -148,8 +146,8 @@ useEffect(() => {
                 <MapPin className="text-gray-400 mt-1" size={20} />
                 <div>
                   <div className="text-sm font-medium text-gray-500">Loja</div>
-                  <div className="text-base font-semibold text-gray-900">{store.brand} - {store.city}</div>
-                  <div className="text-sm text-gray-600">{store.codehex} • {store.size}</div>
+                  <div className="text-base font-semibold text-gray-900">{store.numero && store.nome ? `${store.numero} - ${store.nome}` : store.nome || store.numero || store.codehex}</div>
+                  {store.codehex && <div className="text-sm text-gray-600">{store.codehex}</div>}
                 </div>
               </div>
 
@@ -193,13 +191,7 @@ useEffect(() => {
                 </div>
               )}
 
-              <div className="flex items-start gap-3">
-                <FileText className="text-gray-400 mt-1" size={20} />
-                <div>
-                  <div className="text-sm font-medium text-gray-500">ID da Visita</div>
-                  <div className="text-base font-semibold text-gray-900">#{visit.id}</div>
-                </div>
-              </div>
+
             </div>
 
             {/* Description/Text */}

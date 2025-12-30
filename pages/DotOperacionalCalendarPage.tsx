@@ -41,15 +41,13 @@ const DotOperacionalCalendarPage: React.FC = () => {
         if (!type) return VisitType.OUTROS;
         const t = String(type).toLowerCase();
         if (t === 'auditoria') return VisitType.AUDITORIA;
-        if (t === 'formacao' || t === 'formação') return VisitType.FORMACAO;
-        if (t === 'acompanhamento') return VisitType.ACOMPANHAMENTO;
         return VisitType.OUTROS;
       }
       const enrichedAudits: VisitItem[] = auditsToShow
         .map(audit => {
           const store = stores.find(s => s.id === audit.store_id);
           const createdBy = (audit as any).createdBy ?? (audit as any).created_by;
-          let visitType: VisitType = VisitType.AUDITORIA;
+          let visitType: VisitType = VisitType.OUTROS;
           if ((audit as any).visitType) {
             visitType = normalizeVisitType((audit as any).visitType);
           } else if ((audit as any).type) {

@@ -52,11 +52,11 @@ router.get('/:id', async (req, res) => {
 // Create visit
 router.post('/', async (req, res) => {
   try {
-    const { storeId, userId, type, title, description, dtstart, status, createdBy } = req.body;
+    const { storeId, userId, type, title, description, dtstart, dtend, status, createdBy } = req.body;
     const result = await query(
-      `INSERT INTO visits (store_id, user_id, type, title, description, dtstart, status, created_by) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [storeId, userId, type, title, description || '', dtstart, status || 'SCHEDULED', createdBy]
+      `INSERT INTO visits (store_id, user_id, type, title, description, dtstart, dtend, status, created_by) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [storeId, userId, type, title, description || '', dtstart, dtend || null, status || 'SCHEDULED', createdBy]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {

@@ -79,8 +79,6 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
     
     switch(visitType) {
       case 'Auditoria': return 'bg-red-600';
-      case 'Formacao': return 'bg-blue-600';
-      case 'Acompanhamento': return 'bg-emerald-600';
       case 'Outros': return 'bg-gray-600';
       default: return 'bg-red-600';
     }
@@ -216,14 +214,6 @@ export const WeekPlanner: React.FC<WeekPlannerProps> = ({ audits, onAuditClick, 
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 bg-red-600 rounded-full"></div>
             <span className="text-gray-600">Auditoria</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-            <span className="text-gray-600">Formação</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-emerald-600 rounded-full"></div>
-            <span className="text-gray-600">Acompanhamento</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 bg-gray-600 rounded-full"></div>

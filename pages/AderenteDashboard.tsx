@@ -298,76 +298,8 @@ export const AderenteDashboard: React.FC = () => {
         </div>
         )}
 
-        {/* My Visits to Other Stores */}
-        {filteredMyVisits.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8">
-            <div className="p-4 border-b border-gray-100">
-              <h3 className="font-semibold text-gray-700">Minhas Visitas a Outras Lojas</h3>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {filteredMyVisits.map(visit => (
-                <div
-                  key={visit.id}
-                  className="p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div 
-                      className="flex-1 cursor-pointer" 
-                      onClick={() => navigate(`/aderente/visit/${visit.id}`)}
-                    >
-                      <div className="flex items-center gap-3 mb-1">
-                        <h4 className="font-semibold text-gray-900">
-                          {visit.store.nome} - {visit.store.city}
-                        </h4>
-                        {getStatusBadge(visit.status)}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(visit.dtstart).toLocaleDateString('pt-PT', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </div>
-                      {visit.score != null && (
-                        <div className="mt-2">
-                          <div className="flex items-center gap-2">
-                            <div className="text-sm font-medium text-gray-700">
-                              Pontuação: {visit.score.toFixed(0)}%
-                            </div>
-                            <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-xs">
-                              <div
-                                className={`h-2 rounded-full ${
-                                  visit.score < 50
-                                    ? 'bg-red-500'
-                                    : visit.score < 80
-                                    ? 'bg-yellow-500'
-                                    : 'bg-green-500'
-                                }`}
-                                style={{ width: `${visit.score}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/aderente/visit/${visit.id}`);
-                      }}
-                    >
-                      Ver Detalhes
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
       </main>
     </div>
   );
 };
+

@@ -22,8 +22,6 @@ export enum AuditStatus {
 
 export enum VisitType {
   AUDITORIA = 'Auditoria',
-  FORMACAO = 'Formacao',
-  ACOMPANHAMENTO = 'Acompanhamento',
   OUTROS = 'Outros'
 }
 
