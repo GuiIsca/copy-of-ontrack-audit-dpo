@@ -113,13 +113,13 @@ export const DOTTeamLeaderMenu: React.FC = () => {
         window.location.href = '/dot-team-leader/dashboard';
       }
     },
-                    {
-              title: 'Logout',
-              icon: <span role="img" aria-label="Sair" style={{fontSize: 48}}>🚺</span>, 
-              onClick: () => {
-                handleLogout();
+    {
+      title: 'Logout',
+      icon: <LogOut size={48} aria-label="Sair" />,
+      onClick: () => {
+        handleLogout();
               }
-            },
+    },
   ];
   return (
     <>

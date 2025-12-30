@@ -85,7 +85,7 @@ export const AderenteMenu: React.FC = () => {
         },
         {
           title: 'Logout',
-          icon: <span role="img" aria-label="Sair" style={{fontSize: 48}}>🚺</span>, 
+          icon: <LogOut size={48} aria-label="Sair" />, 
           onClick: () => {
             handleLogout();
           }

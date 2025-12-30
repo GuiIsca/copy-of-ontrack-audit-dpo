@@ -171,7 +171,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/analytics'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📊</span>
+                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📈</span>
                     Analítica
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
@@ -285,7 +285,7 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/analytics'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Analítica" style={{fontSize: 18}}>📊</span>
+                    <span role="img" aria-label="Analítica" style={{fontSize: 18}}>📈</span>
                     Analítica
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
