@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, Download, Loader } from 'lucide-react';
 import { api } from '../services/api';
 import { useToast } from '../components/ui/Toast';
+import { Header } from '../components/layout/Header';
 
 interface Manual {
   id: number;
@@ -92,6 +94,7 @@ export const SpecialistManuals: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Manuais de Especialista</h1>

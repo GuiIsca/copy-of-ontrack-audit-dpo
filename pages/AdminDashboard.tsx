@@ -1,3 +1,69 @@
+  // Função para download do template de lojas
+  const downloadStoreTemplate = () => {
+    const headers = [
+      'numero', 'nome', 'formato', 'area', 'telefone', 'situacao_pdv', 'data_abertura', 'ultima_retoma', 'distrito', 'amplitude_horaria', 'morada', 'codigo_postal', 'conjugue_adh', 'dot_operacional_id', 'aderente_id'
+    ];
+    const example = [
+      '12345', 'Supermercado Exemplo', 'Super 1500', '1200', '912345678', 'Exploração', '2022-01-01', '', 'Lisboa', '09:00-21:00', 'Rua Exemplo, 123', '1000-001', '', '2', '5'
+    ];
+    const csvContent = headers.join(';') + '\n' + example.join(';');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'template_lojas.csv';
+    link.click();
+  };
+  // Função para exportar lojas para CSV
+  const exportStoresToCSV = (stores: Store[], users: User[]) => {
+    const headers = [
+      'numero', 'nome', 'formato', 'area', 'telefone', 'situacao_pdv', 'data_abertura', 'ultima_retoma', 'distrito', 'amplitude_horaria', 'morada', 'codigo_postal', 'conjugue_adh', 'dot_operacional_id', 'aderente_id'
+    ];
+    const csvRows = [headers.join(';')];
+    stores.forEach(store => {
+      const row = [
+        store.numero || '',
+        store.nome || '',
+        store.formato || '',
+        store.area || '',
+        store.telefone || '',
+        store.situacao_pdv || '',
+        store.data_abertura || '',
+        store.ultima_retoma || '',
+        store.distrito || '',
+        store.amplitude_horaria || '',
+        store.morada || '',
+        store.codigo_postal || '',
+        store.conjugue_adh || '',
+        store.dot_operacional_id || store.dotUserId || '',
+        store.aderente_id || store.aderenteId || ''
+      ];
+      csvRows.push(row.join(';'));
+    });
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'lojas.csv';
+    link.click();
+  };
+  // Template para AMONT
+  const downloadAmontTemplate = () => {
+    const template = `email;fullname\namont1@exemplo.com;Ana Amont\namont2@exemplo.com;Rui Auditor`;
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'template_amont.csv';
+    link.click();
+  };
+// Função para download do template de DOT Team Leader
+const downloadDotTeamLeaderTemplate = () => {
+  const template = `email;fullname\nteamleader1@mousquetaires.com;Maria TeamLeader\nteamleader2@mousquetaires.com;Carlos Supervisor`;
+  const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'template_dot_team_leaders.csv';
+  link.click();
+};
 import React, { useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
@@ -166,8 +232,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
                           className="mt-1"
                         />
                         <div className="text-sm">
-                          <div className="font-medium">{store.codehex} - {store.nome}</div>
-                          <div className="text-xs text-gray-500">{store.city}</div>
+                          <div className="font-medium">{store.nome}</div>
                           {assignedToOther && (
                             <div className="text-xs text-orange-600 mt-1">
                               Atribuída a: {otherDot?.fullname || 'Outro DOT'}
@@ -209,7 +274,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, isOpen, onClose, on
                   {allStores.map(s => {
                     return (
                     <option key={s.id} value={s.id}>
-                      {s.codehex} - {s.city}
+                      {s.nome}
                     </option>
                   )})}
                 </select>
@@ -383,7 +448,7 @@ export const AdminDashboard: React.FC = () => {
   const [dotForm, setDotForm] = useState({ email: '', fullname: '', dotTeamLeaderId: '' as string });
   const [aderenteForm, setAderenteForm] = useState({ email: '', fullname: '', storeId: '' as string, dotId: '' as string });
   const [amontForm, setAmontForm] = useState({ email: '', fullname: '' });
-  const [storeForm, setStoreForm] = useState({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', nome: '', dotUserId: '' as string, aderenteId: '' as string });
+  const [storeForm, setStoreForm] = useState({ brand: 'Intermarché', size: 'Super', nome: '', dotUserId: '' as string, aderenteId: '' as string });
 
   const clearFeedback = () => { setFeedback(''); setErrorMsg(''); };
 
@@ -460,19 +525,53 @@ export const AdminDashboard: React.FC = () => {
   // --- Store handlers ---
   const handleCreateStore = async () => {
     clearFeedback();
+    // Validação obrigatória
+    const requiredFields = [
+      'numero', 'nome', 'formato', 'area', 'telefone', 'situacao_pdv', 'data_abertura', 'distrito', 'amplitude_horaria', 'morada', 'codigo_postal'
+    ];
+    for (const field of requiredFields) {
+      if (!storeForm[field]) {
+        setErrorMsg(`O campo "${field}" é obrigatório.`);
+        return;
+      }
+    }
     try {
       const payload: any = {
-        codehex: storeForm.codehex.trim(),
+        numero: storeForm.numero,
         nome: storeForm.nome,
-        size: storeForm.size,
-        city: storeForm.city.trim(),
-        gpslat: Number(storeForm.gpslat) || 0,
-        gpslong: Number(storeForm.gpslong) || 0,
+        formato: storeForm.formato,
+        area: storeForm.area,
+        telefone: storeForm.telefone,
+        situacao_pdv: storeForm.situacao_pdv,
+        data_abertura: storeForm.data_abertura,
+        distrito: storeForm.distrito,
+        amplitude_horaria: storeForm.amplitude_horaria,
+        morada: storeForm.morada,
+        codigo_postal: storeForm.codigo_postal,
       };
-      if (storeForm.dotUserId) payload.dotUserId = Number(storeForm.dotUserId);
-      if (storeForm.aderenteId) payload.aderenteId = Number(storeForm.aderenteId);
+      // Campos opcionais
+      if (storeForm.ultima_retoma) payload.ultima_retoma = storeForm.ultima_retoma;
+      if (storeForm.conjugue_adh) payload.conjugue_adh = storeForm.conjugue_adh;
+      if (storeForm.dotUserId) payload.dot_operacional_id = Number(storeForm.dotUserId);
+      if (storeForm.aderenteId) payload.aderente_id = Number(storeForm.aderenteId);
       await db.createStore(payload);
-      setStoreForm({ codehex: '', brand: 'Intermarché', size: 'Super', city: '', gpslat: '', gpslong: '', nome: '', dotUserId: '', aderenteId: '' });
+      setStoreForm({
+        numero: '',
+        nome: '',
+        formato: '',
+        area: '',
+        telefone: '',
+        situacao_pdv: '',
+        data_abertura: '',
+        ultima_retoma: '',
+        distrito: '',
+        amplitude_horaria: '',
+        morada: '',
+        codigo_postal: '',
+        conjugue_adh: '',
+        dotUserId: '',
+        aderenteId: ''
+      });
       setFeedback('Loja criada com sucesso');
       await refresh();
     } catch (e: any) {
@@ -550,16 +649,101 @@ export const AdminDashboard: React.FC = () => {
   const handleDeleteStore = (storeId: number) => { openConfirm('Tem certeza que deseja eliminar esta Loja?', async () => { clearFeedback(); try { await db.deleteStore(storeId); setFeedback('Loja eliminada com sucesso'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro ao eliminar Loja'); } }); };
 
   // --- CSV Import ---
+  const [dotTeamLeaderCsv, setDotTeamLeaderCsv] = useState<File | null>(null);
   const [dotCsv, setDotCsv] = useState<File | null>(null);
   const [aderenteCsv, setAderenteCsv] = useState<File | null>(null);
   const [storeCsv, setStoreCsv] = useState<File | null>(null);
+    // Importação de DOT Team Leaders
+    const importDotTeamLeaders = async () => {
+      if (!dotTeamLeaderCsv) return;
+      clearFeedback();
+      setImportBusy(true);
+      setImportResult(null);
+      try {
+        const text = await dotTeamLeaderCsv.text();
+        const lines = parseCsvText(text);
+        const rows = lines.slice(1);
+        let created = 0, errors = 0;
+        for (const line of rows) {
+          const cols = line.split(';').map(c => c.trim());
+          if (cols.length < 2) { errors++; continue; }
+          const [email, fullname] = cols;
+          try {
+            await db.createUser({ email, fullname, roles: [UserRole.DOT_TEAM_LEADER] });
+            created++;
+          } catch { errors++; }
+        }
+        setImportResult({ created, errors });
+        await refresh();
+      } finally {
+        setImportBusy(false);
+      }
+    };
   const [importResult, setImportResult] = useState<{created:number;errors:number}|null>(null);
   const [importBusy, setImportBusy] = useState(false);
 
   const parseCsvText = (text: string) => text.split('\n').filter(l => l.trim());
-  const downloadDotTemplate = () => { const template = `email;fullname;dot_team_leader_email\n`+`dot1@mousquetaires.com;João Silva;leader1@mousquetaires.com\n`+`dot2@mousquetaires.com;Pedro Martins;leader1@mousquetaires.com`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_dots.csv'; link.click(); };
-  const downloadAderenteTemplate = () => { const template = `email;fullname;store_codehex;dot_email\n`+`aderente100@intermarche.pt;Joana Lopes;LOJ018;dot1@mousquetaires.com\n`+`aderente101@intermarche.pt;Paulo Reis;;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_aderentes.csv'; link.click(); };
-  const downloadStoreTemplate = () => { const template = `codehex;brand;size;city;gpslat;gpslong;dot_email\n`+`LOJ001;Intermarché;Super;Lisboa;38.716;-9.13;dot1@mousquetaires.com\n`+`LOJ002;Bricomarché;Média;Porto;41.15;-8.62;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_lojas.csv'; link.click(); };
+  const downloadDotTemplate = () => {
+    // Pega os Team Leaders atuais
+    const teamLeaders = users.filter(u => u.roles.includes(UserRole.DOT_TEAM_LEADER));
+    const teamLeadersList = teamLeaders.length
+      ? teamLeaders.map(tl => `- ${tl.fullname} <${tl.email}>`).join('\n')
+      : '- Nenhum Team Leader cadastrado';
+    const comment = `# Team Leaders atuais:\n${teamLeadersList}\n`;
+    const template = `${comment}email;fullname;dot_team_leader_email\n`+
+      `dot1@mousquetaires.com;João Silva;leader1@mousquetaires.com\n`+
+      `dot2@mousquetaires.com;Pedro Martins;leader1@mousquetaires.com`;
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'template_dots.csv';
+    link.click();
+  };
+  const downloadAderenteTemplate = () => { const template = `email;fullname;dot_email\n`+`aderente100@intermarche.pt;Joana Lopes;dot1@mousquetaires.com\n`+`aderente101@intermarche.pt;Paulo Reis;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_aderentes.csv'; link.click(); };
+  const downloadStoreTemplate = () => {
+    // All required/optional fields for store import
+    const headers = [
+      'numero',
+      'nome',
+      'formato',
+      'area',
+      'telefone',
+      'situacao_pdv',
+      'data_abertura',
+      'ultima_retoma',
+      'distrito',
+      'amplitude_horaria',
+      'morada',
+      'codigo_postal',
+      'conjugue_adh',
+      'dot_operacional_id',
+      'aderente_id'
+    ];
+    // Example row (can be empty or filled with example values)
+    const example = [
+      '123',
+      'Intermarché Porto',
+      'Super',
+      '1200',
+      '222333444',
+      'Ativo',
+      '2022-01-01',
+      '2023-01-01',
+      'Porto',
+      '08:00-22:00',
+      'Rua Exemplo 123',
+      '4000-123',
+      '',
+      '',
+      ''
+    ];
+    const csvContent = headers.join(';') + '\n' + example.join(';');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'template_lojas.csv';
+    link.click();
+  };
 
   const importDOTs = async () => { if (!dotCsv) return; clearFeedback(); setImportBusy(true); setImportResult(null); try { const text = await dotCsv.text(); const lines = parseCsvText(text); const rows = lines.slice(1); let created = 0, errors = 0; const usersNow = await db.getUsers(); for (const line of rows) { const cols = line.split(';').map(c => c.trim()); if (cols.length < 3) { errors++; continue; } const [email, fullname, dot_team_leader_email] = cols; const leader = usersNow.find(u => u.email === dot_team_leader_email && u.roles.includes(UserRole.DOT_TEAM_LEADER)); if (!leader) { errors++; continue; } try { await db.createUser({ email, fullname, roles: [UserRole.DOT_OPERACIONAL], dotTeamLeaderId: leader.id, assignedStores: [] } as any); created++; } catch { errors++; } } setImportResult({ created, errors }); await refresh(); } finally { setImportBusy(false); } };
   const importAderentes = async () => { 
@@ -578,7 +762,7 @@ export const AdminDashboard: React.FC = () => {
       for (const line of rows) { 
         const cols = line.split(';').map(c => c.trim()); 
         if (cols.length < 2) { errors++; continue; } 
-        const [email, fullname, store_codehex, dot_email] = cols; 
+        const [email, fullname, dot_email] = cols; 
         
         try { 
           const payload: any = { email, fullname, roles: [UserRole.ADERENTE] };
@@ -589,13 +773,7 @@ export const AdminDashboard: React.FC = () => {
             if (dot) payload.dotTeamLeaderId = dot.id;
           }
 
-          // Find Store if provided
-          if (store_codehex) { 
-            const store = storesNow.find(s => s.codehex === store_codehex); 
-            if (store) { 
-              payload.assignedStores = [store.id];
-            } 
-          } 
+          // Não há mais store_codehex, só dot_email
           
           await db.createUser(payload); 
           created++; 
@@ -620,24 +798,55 @@ export const AdminDashboard: React.FC = () => {
 
       for (const line of rows) {
         const cols = line.split(';').map(c => c.trim());
-        if (cols.length < 4) { errors++; continue; }
-        const [codehex, brand, size, city, gpslat, gpslong, dot_email] = cols;
+        // Expecting 15 columns as per template
+        if (cols.length < 2) { errors++; continue; }
+        const [
+          numero,
+          nome,
+          formato,
+          area,
+          telefone,
+          situacao_pdv,
+          data_abertura,
+          ultima_retoma,
+          distrito,
+          amplitude_horaria,
+          morada,
+          codigo_postal,
+          conjugue_adh,
+          dot_operacional_id,
+          aderente_id
+        ] = cols;
 
         try {
-          const payload: any = {
-            codehex,
-            brand: brand || 'Intermarché',
-            size: size || 'Super',
-            city,
-            gpslat: Number(gpslat) || 0,
-            gpslong: Number(gpslong) || 0
-          };
-
-          if (dot_email) {
-            const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT_OPERACIONAL));
-            if (dot) payload.dotUserId = dot.id;
+          // Always send all fields, even if empty
+          let dot_operacional_final = dot_operacional_id || '';
+          if (dot_operacional_id && isNaN(Number(dot_operacional_id))) {
+            const dot = usersNow.find(u => u.email === dot_operacional_id && u.roles.includes(UserRole.DOT_OPERACIONAL));
+            if (dot) dot_operacional_final = dot.id;
           }
-
+          let aderente_final = aderente_id || '';
+          if (aderente_id && isNaN(Number(aderente_id))) {
+            const ad = usersNow.find(u => u.email === aderente_id && u.roles.includes(UserRole.ADERENTE));
+            if (ad) aderente_final = ad.id;
+          }
+          const payload: any = {
+            numero: numero || '',
+            nome: nome || '',
+            formato: formato || '',
+            area: area || '',
+            telefone: telefone || '',
+            situacao_pdv: situacao_pdv || '',
+            data_abertura: data_abertura || '',
+            ultima_retoma: ultima_retoma || '',
+            distrito: distrito || '',
+            amplitude_horaria: amplitude_horaria || '',
+            morada: morada || '',
+            codigo_postal: codigo_postal || '',
+            conjugue_adh: conjugue_adh || '',
+            dot_operacional_id: dot_operacional_final || null,
+            aderente_id: aderente_final || null
+          };
           await db.createStore(payload);
           created++;
         } catch { errors++; }
@@ -757,7 +966,7 @@ export const AdminDashboard: React.FC = () => {
                         const isOccupied = s.aderente_id || s.aderenteId;
                         return (
                           <option key={s.id} value={s.id} disabled={!!isOccupied}>
-                            {s.codehex} - {s.city} {isOccupied ? '(Ocupada)' : ''}
+                            {s.nome} {isOccupied ? '(Ocupada)' : ''}
                           </option>
                         );
                       })}
@@ -836,8 +1045,7 @@ export const AdminDashboard: React.FC = () => {
                                   <div key={store.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-100 text-sm">
                                     <div className="flex items-center gap-2">
                                       <StoreIcon size={14} className="text-gray-400" />
-                                      <span className="font-medium">{store.codehex}</span>
-                                      <span className="text-gray-600">- {store.city}</span>
+                                      <span className="font-medium">{store.nome}</span>
                                     </div>
                                     <div className="flex flex-col gap-1 items-end">
                                       {aderentes.length > 0 ? (
@@ -960,31 +1168,40 @@ export const AdminDashboard: React.FC = () => {
             <div className="bg-white rounded shadow p-4">
               <SectionHeader title="Criar Loja" icon={<PlusCircle className="w-4 h-4" />} />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Input label="Código (codehex)" value={storeForm.codehex} onChange={e=>setStoreForm({...storeForm,codehex:e.target.value})} />
-                <Input label="Nome" value={storeForm.nome} onChange={e=>setStoreForm({...storeForm,nome:e.target.value})} />
-                <Input label="Tamanho" value={storeForm.size} onChange={e=>setStoreForm({...storeForm,size:e.target.value})} />
-                <Input label="Cidade" value={storeForm.city} onChange={e=>setStoreForm({...storeForm,city:e.target.value})} />
-                <Input label="GPS Lat" value={storeForm.gpslat} onChange={e=>setStoreForm({...storeForm,gpslat:e.target.value})} />
-                <Input label="GPS Long" value={storeForm.gpslong} onChange={e=>setStoreForm({...storeForm,gpslong:e.target.value})} />
+                <Input label="Número (único)" value={storeForm.numero || ''} onChange={e=>setStoreForm({...storeForm,numero:e.target.value})} required />
+                <Input label="Nome" value={storeForm.nome || ''} onChange={e=>setStoreForm({...storeForm,nome:e.target.value})} required />
+                <Input label="Formato" value={storeForm.formato || ''} onChange={e=>setStoreForm({...storeForm,formato:e.target.value})} required />
+                <Input label="Área (m²)" type="number" value={storeForm.area || ''} onChange={e=>setStoreForm({...storeForm,area:e.target.value})} required />
+                <Input label="Telefone" value={storeForm.telefone || ''} onChange={e=>setStoreForm({...storeForm,telefone:e.target.value})} required />
+                <Input label="Situação PDV" value={storeForm.situacao_pdv || ''} onChange={e=>setStoreForm({...storeForm,situacao_pdv:e.target.value})} required />
+                <Input label="Data de Abertura" type="date" value={storeForm.data_abertura || ''} onChange={e=>setStoreForm({...storeForm,data_abertura:e.target.value})} required />
+                <Input label="Última Retoma" type="date" value={storeForm.ultima_retoma || ''} onChange={e=>setStoreForm({...storeForm,ultima_retoma:e.target.value})} />
+                <Input label="Distrito" value={storeForm.distrito || ''} onChange={e=>setStoreForm({...storeForm,distrito:e.target.value})} required />
+                <Input label="Amplitude Horária" value={storeForm.amplitude_horaria || ''} onChange={e=>setStoreForm({...storeForm,amplitude_horaria:e.target.value})} required />
+                <Input label="Morada" value={storeForm.morada || ''} onChange={e=>setStoreForm({...storeForm,morada:e.target.value})} required />
+                <Input label="Código Postal" value={storeForm.codigo_postal || ''} onChange={e=>setStoreForm({...storeForm,codigo_postal:e.target.value})} required />
+                <Input label="Conjugue ADH" value={storeForm.conjugue_adh || ''} onChange={e=>setStoreForm({...storeForm,conjugue_adh:e.target.value})} />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">DOT Operacional (opcional)</label>
                   <select className="w-full border rounded px-3 py-2 text-sm" value={storeForm.dotUserId} onChange={e=>setStoreForm({...storeForm,dotUserId:e.target.value})}>
                     <option value="">—</option>
-                    {users.filter(u=>u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
+                    {/* Só DOTs que não estão já atribuídos a uma loja (dot_user_id) */}
+                    {users.filter(u => u.roles.includes(UserRole.DOT_OPERACIONAL) && !stores.some(s => (s.dot_user_id || s.dotUserId) === u.id)).map(d => (
+                      <option key={d.id} value={d.id}>{d.fullname}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Aderente (opcional)</label>
                   <select className="w-full border rounded px-3 py-2 text-sm" value={storeForm.aderenteId} onChange={e=>setStoreForm({...storeForm,aderenteId:e.target.value})}>
                     <option value="">—</option>
-                    {users.filter(u=>u.roles.includes(UserRole.ADERENTE)).map(a => {
-                      const hasStore = stores.some(s => (s.aderente_id || s.aderenteId) === a.id);
-                      return (
-                        <option key={a.id} value={a.id} disabled={hasStore}>
-                          {a.fullname} {hasStore ? '(Já tem loja)' : ''}
-                        </option>
-                      );
-                    })}
+                    {/* Só aderentes que não têm loja atribuída (nem por assignedStores nem por aderente_id) */}
+                    {users.filter(u => u.roles.includes(UserRole.ADERENTE) &&
+                      !u.assignedStores?.length &&
+                      !stores.some(s => (s.aderente_id || s.aderenteId) === u.id)
+                    ).map(a => (
+                      <option key={a.id} value={a.id}>{a.fullname}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -997,12 +1214,10 @@ export const AdminDashboard: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-3 py-2 text-left">Código</th>
-                      <th className="px-3 py-2 text-left">Marca</th>
-                      <th className="px-3 py-2 text-left">Cidade</th>
+                      <th className="px-3 py-2 text-left">Numero</th>
+                      <th className="px-3 py-2 text-left">Nome</th>
                         <th className="px-3 py-2 text-left">DOT Operacional</th>
                       <th className="px-3 py-2 text-left">Aderente</th>
-                        <th className="px-3 py-2 text-left">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -1015,7 +1230,6 @@ export const AdminDashboard: React.FC = () => {
                         <tr key={s.id}>
                           <td className="px-3 py-2 whitespace-nowrap">{s.numero}</td>
                           <td className="px-3 py-2 whitespace-nowrap">{s.nome}</td>
-                          <td className="px-3 py-2 whitespace-nowrap">{s.city}</td>
                           <td className="px-3 py-2 whitespace-nowrap">
                             <select className="border rounded px-2 py-1 text-sm" value={dotId || ''} onChange={e=>handleChangeStoreDot(s.id, Number(e.target.value))}>
                               <option value="">—</option>
@@ -1062,6 +1276,16 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'import' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded shadow p-4">
+              <SectionHeader title="Importar DOT Team Leaders (CSV)" icon={<Upload className="w-4 h-4" />} />
+              <p className="text-sm text-gray-600 mb-3">Formato: <code>email;fullname</code></p>
+              <div className="flex items-center gap-3 mb-3">
+                <input type="file" accept=".csv" onChange={e=>setDotTeamLeaderCsv && setDotTeamLeaderCsv(e.target.files?.[0]||null)} />
+                <Button size="sm" onClick={downloadDotTeamLeaderTemplate}><Download className="w-4 h-4 mr-2"/>Template</Button>
+              </div>
+              <Button onClick={importDotTeamLeaders} disabled={!dotTeamLeaderCsv || importBusy}>Importar DOT Team Leaders</Button>
+            </div>
+
+            <div className="bg-white rounded shadow p-4">
               <SectionHeader title="Importar DOTs (CSV)" icon={<Upload className="w-4 h-4" />} />
               <p className="text-sm text-gray-600 mb-3">Formato: <code>email;fullname;dot_team_leader_email</code>. DOT Team Leader deve existir.</p>
               <div className="flex items-center gap-3 mb-3">
@@ -1070,6 +1294,8 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <Button onClick={importDOTs} disabled={!dotCsv || importBusy}>Importar DOTs</Button>
             </div>
+
+
 
             <div className="bg-white rounded shadow p-4">
               <SectionHeader title="Importar Aderentes (CSV)" icon={<Upload className="w-4 h-4" />} />

@@ -30,18 +30,59 @@ router.get('/:id', async (req, res) => {
 // Create store
 router.post('/', async (req, res) => {
   try {
-    const { codehex, brand, size, city, gpslat, gpslong, dotUserId, aderenteId } = req.body;
+    const {
+      numero,
+      nome,
+      formato,
+      area,
+      telefone,
+      dot_operacional_id,
+      aderente_id,
+      situacao_pdv,
+      data_abertura,
+      ultima_retoma,
+      distrito,
+      amplitude_horaria,
+      morada,
+      codigo_postal,
+      conjugue_adh
+    } = req.body;
+
+    // Check for duplicate numero
+    if (numero) {
+      const existing = await query('SELECT id FROM stores WHERE numero = $1', [numero]);
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ error: 'Já existe uma loja com esse número.' });
+      }
+    }
+
     const result = await query(
-      `INSERT INTO stores (codehex, brand, size, city, gpslat, gpslong, dot_operacional_id, aderente_id) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [codehex, brand, size, city, gpslat || 0, gpslong || 0, dotUserId || null, aderenteId || null]
+      `INSERT INTO stores (
+        numero, nome, formato, area, telefone, dot_operacional_id, aderente_id, situacao_pdv, data_abertura, ultima_retoma, distrito, amplitude_horaria, morada, codigo_postal, conjugue_adh
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+      ) RETURNING *`,
+      [
+        numero || null,
+        nome || null,
+        formato || null,
+        area || null,
+        telefone || null,
+        dot_operacional_id || null,
+        aderente_id || null,
+        situacao_pdv || null,
+        data_abertura || null,
+        ultima_retoma || null,
+        distrito || null,
+        amplitude_horaria || null,
+        morada || null,
+        codigo_postal || null,
+        conjugue_adh || null
+      ]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create store error:', error);
-    if (error.code === '23505') {
-      return res.status(409).json({ error: 'Store code already exists' });
-    }
     res.status(500).json({ error: 'Failed to create store' });
   }
 });
@@ -49,60 +90,99 @@ router.post('/', async (req, res) => {
 // Update store
 router.put('/:id', async (req, res) => {
   try {
-    const { codehex, brand, size, city, gpslat, gpslong, dotUserId, aderenteId, telefone } = req.body;
-    
-    // Build dynamic UPDATE query based on provided fields
+    const {
+      numero,
+      nome,
+      formato,
+      area,
+      telefone,
+      dot_operacional_id,
+      aderente_id,
+      situacao_pdv,
+      data_abertura,
+      ultima_retoma,
+      distrito,
+      amplitude_horaria,
+      morada,
+      codigo_postal,
+      conjugue_adh
+    } = req.body;
+
     const updates = [];
     const values = [];
     let paramCount = 1;
-    
-    if (codehex !== undefined) {
-      updates.push(`codehex = $${paramCount++}`);
-      values.push(codehex);
+
+    if (numero !== undefined) {
+      updates.push(`numero = $${paramCount++}`);
+      values.push(numero);
     }
-    if (brand !== undefined) {
-      updates.push(`brand = $${paramCount++}`);
-      values.push(brand);
+    if (nome !== undefined) {
+      updates.push(`nome = $${paramCount++}`);
+      values.push(nome);
     }
-    if (size !== undefined) {
-      updates.push(`size = $${paramCount++}`);
-      values.push(size);
+    if (formato !== undefined) {
+      updates.push(`formato = $${paramCount++}`);
+      values.push(formato);
     }
-    if (city !== undefined) {
-      updates.push(`city = $${paramCount++}`);
-      values.push(city);
-    }
-    if (gpslat !== undefined) {
-      updates.push(`gpslat = $${paramCount++}`);
-      values.push(gpslat);
-    }
-    if (gpslong !== undefined) {
-      updates.push(`gpslong = $${paramCount++}`);
-      values.push(gpslong);
-    }
-    if (dotUserId !== undefined) {
-      updates.push(`dot_operacional_id = $${paramCount++}`);
-      values.push(dotUserId);
-    }
-    if (aderenteId !== undefined) {
-      updates.push(`aderente_id = $${paramCount++}`);
-      values.push(aderenteId);
+    if (area !== undefined) {
+      updates.push(`area = $${paramCount++}`);
+      values.push(area);
     }
     if (telefone !== undefined) {
       updates.push(`telefone = $${paramCount++}`);
       values.push(telefone);
     }
-    
+    if (dot_operacional_id !== undefined) {
+      updates.push(`dot_operacional_id = $${paramCount++}`);
+      values.push(dot_operacional_id);
+    }
+    if (aderente_id !== undefined) {
+      updates.push(`aderente_id = $${paramCount++}`);
+      values.push(aderente_id);
+    }
+    if (situacao_pdv !== undefined) {
+      updates.push(`situacao_pdv = $${paramCount++}`);
+      values.push(situacao_pdv);
+    }
+    if (data_abertura !== undefined) {
+      updates.push(`data_abertura = $${paramCount++}`);
+      values.push(data_abertura);
+    }
+    if (ultima_retoma !== undefined) {
+      updates.push(`ultima_retoma = $${paramCount++}`);
+      values.push(ultima_retoma);
+    }
+    if (distrito !== undefined) {
+      updates.push(`distrito = $${paramCount++}`);
+      values.push(distrito);
+    }
+    if (amplitude_horaria !== undefined) {
+      updates.push(`amplitude_horaria = $${paramCount++}`);
+      values.push(amplitude_horaria);
+    }
+    if (morada !== undefined) {
+      updates.push(`morada = $${paramCount++}`);
+      values.push(morada);
+    }
+    if (codigo_postal !== undefined) {
+      updates.push(`codigo_postal = $${paramCount++}`);
+      values.push(codigo_postal);
+    }
+    if (conjugue_adh !== undefined) {
+      updates.push(`conjugue_adh = $${paramCount++}`);
+      values.push(conjugue_adh);
+    }
+
     if (updates.length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
     }
-    
+
     values.push(req.params.id);
     const result = await query(
       `UPDATE stores SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`,
       values
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Store not found' });
     }
