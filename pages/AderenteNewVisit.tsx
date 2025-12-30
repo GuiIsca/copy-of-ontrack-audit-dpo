@@ -35,6 +35,7 @@ export const AderenteNewVisit: React.FC = () => {
       try {
         // Carregar todas as lojas
         const allStores = await db.getStores();
+        console.log('📦 Stores loaded:', allStores);
         
         // Encontrar a loja do aderente
         const aderenteStore = allStores.find(s => s.aderenteId === currentUser.userId);
@@ -70,7 +71,7 @@ export const AderenteNewVisit: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!currentUser || !formData.storeId || !formData.checklistId || !formData.dtstart) {
+    if (!currentUser || !formData.storeId || !formData.dtstart) {
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
@@ -81,11 +82,14 @@ export const AderenteNewVisit: React.FC = () => {
     }
 
     try {
+      // Usar a primeira checklist disponível se existir
+      const checklistIdToUse = formData.checklistId ? Number(formData.checklistId) : (checklists.length > 0 ? checklists[0].id : 1);
+
       // Criar auditoria de visita (usando tabela audits mas marcada como criada por Aderente)
       const newAudit = await db.createAudit({
         user_id: currentUser.userId, // Aderente visitante
         store_id: Number(formData.storeId),
-        checklist_id: Number(formData.checklistId),
+        checklist_id: checklistIdToUse,
         dtstart: new Date(formData.dtstart).toISOString(),
         status: 2, // IN_PROGRESS
         createdBy: currentUser.userId,
@@ -101,6 +105,21 @@ export const AderenteNewVisit: React.FC = () => {
   };
 
   const selectedStore = stores.find(s => s.id === Number(formData.storeId));
+
+  // Debug: log store data
+  useEffect(() => {
+    if (selectedStore) {
+      console.log('📦 Selected Store Data:', {
+        id: selectedStore.id,
+        nome: selectedStore.nome,
+        size: selectedStore.size,
+        city: selectedStore.city,
+        codehex: selectedStore.codehex,
+        numero: selectedStore.numero,
+        rawStore: selectedStore
+      });
+    }
+  }, [selectedStore]);
 
   if (loading) {
     return (
@@ -178,19 +197,19 @@ export const AderenteNewVisit: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">Marca:</span>
-                      <span className="ml-2 font-medium">{selectedStore.nome}</span>
+                      <span className="ml-2 font-medium">{selectedStore.nome || 'N/A'}</span>
                     </div>
                     <div>
                       <span className="text-gray-500">Tamanho:</span>
-                      <span className="ml-2 font-medium">{selectedStore.size}</span>
+                      <span className="ml-2 font-medium">{selectedStore.size || selectedStore.formato || 'N/A'}</span>
                     </div>
                     <div>
                       <span className="text-gray-500">Cidade:</span>
-                      <span className="ml-2 font-medium">{selectedStore.city}</span>
+                      <span className="ml-2 font-medium">{selectedStore.city || selectedStore.distrito || 'N/A'}</span>
                     </div>
                     <div>
                       <span className="text-gray-500">Código:</span>
-                      <span className="ml-2 font-medium">{selectedStore.codehex}</span>
+                      <span className="ml-2 font-medium">{selectedStore.codehex || selectedStore.numero || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -213,28 +232,6 @@ export const AderenteNewVisit: React.FC = () => {
                   placeholder="Ex: Visita de benchmarking, Auditoria cruzada, etc."
                   required
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Checklist *
-                </label>
-                <select
-                  value={formData.checklistId}
-                  onChange={(e) => setFormData({ ...formData, checklistId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  required
-                >
-                  {checklists.length === 0 ? (
-                    <option value="">Nenhuma checklist disponível</option>
-                  ) : (
-                    checklists.map(checklist => (
-                      <option key={checklist.id} value={checklist.id}>
-                        {checklist.name}
-                      </option>
-                    ))
-                  )}
-                </select>
               </div>
 
               <div>
@@ -275,7 +272,7 @@ export const AderenteNewVisit: React.FC = () => {
             </Button>
             <Button
               type="submit"
-              disabled={!formData.storeId || !formData.checklistId || !formData.title.trim() || checklists.length === 0}
+              disabled={!formData.storeId || !formData.title.trim()}
             >
               <Save className="mr-2" size={16} />
               Criar e Iniciar Visita

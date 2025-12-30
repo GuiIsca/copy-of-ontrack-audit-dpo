@@ -62,6 +62,7 @@ import { AderenteAuditView } from './pages/AderenteAuditView';
 import { AderenteDashboard } from './pages/AderenteDashboard';
 import { AderenteNewVisit } from './pages/AderenteNewVisit';
 import { AderenteContactAdmin } from './pages/AderenteContactAdmin';
+import { AderenteVisitas } from './pages/AderenteVisitas';
 import { DOTTeamLeaderDashboard } from './pages/DOTTeamLeaderDashboard';
 import { DOTTeamLeaderAuditView } from './pages/DOTTeamLeaderAuditView';
 import { DOTTeamLeaderImportTasksCSV } from './pages/DOTTeamLeaderImportTasksCSV';
@@ -325,6 +326,11 @@ const App: React.FC = () => {
         <Route path="/aderente/new-visit" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
                 <AderenteNewVisit />
+            </ProtectedRoute>
+        } />
+        <Route path="/aderente/visitas" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <AderenteVisitas />
             </ProtectedRoute>
         } />
         <Route path="/aderente/visit/:id" element={
