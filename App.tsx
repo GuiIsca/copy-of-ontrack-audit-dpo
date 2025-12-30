@@ -13,6 +13,7 @@ import AderenteMenu from './pages/AderenteMenu';
 import DOTTeamLeaderMenu from './pages/DOTTeamLeaderMenu';
 import DotOperacionalMenu from './pages/DotOperacionalMenu';
 import DotOperacionalCalendarPage from './pages/DotOperacionalCalendarPage';
+import DadosDaLoja from './pages/DadosDaLoja';
 import React from 'react';
 import { ToastProvider } from './components/ui/Toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -481,6 +482,11 @@ const App: React.FC = () => {
                 <AdminPlantaLayout />
             </ProtectedRoute>
         } />
+        <Route path="/admin/dados-da-loja" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <DadosDaLoja />
+            </ProtectedRoute>
+        } />
         
         {/* DOT Team Leader Routes */}
         <Route path="/dot-team-leader/specialist-manuals" element={
@@ -503,6 +509,11 @@ const App: React.FC = () => {
                 <PlantaLayout />
             </ProtectedRoute>
         } />
+        <Route path="/dot-team-leader/dados-da-loja" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <DadosDaLoja />
+            </ProtectedRoute>
+        } />
         
         {/* DOT Operacional Routes */}
         <Route path="/dot-operacional/specialist-manuals" element={
@@ -518,6 +529,11 @@ const App: React.FC = () => {
         <Route path="/dot-operacional/estudo-mercado" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
                 <EstudoMercado />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/dados-da-loja" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <DadosDaLoja />
             </ProtectedRoute>
         } />
         <Route path="/dot-operacional/planta-layout" element={
@@ -557,6 +573,11 @@ const App: React.FC = () => {
         <Route path="/amont/calendario" element={
             <ProtectedRoute requireRole={canAccessAmontDashboard}>
                 <AmontCalendario />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/dados-da-loja" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <DadosDaLoja />
             </ProtectedRoute>
         } />
         <Route path="/amont/folhetos" element={

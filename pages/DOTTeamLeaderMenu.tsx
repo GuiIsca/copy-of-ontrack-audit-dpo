@@ -3,7 +3,7 @@ import { getCurrentUser } from '../utils/auth';
 import { UserRole } from '../types';
 import { User } from 'lucide-react';
 import { MenuGrid, MenuGridItem } from '../components/ui/MenuGrid';
-import { Calendar, LayoutDashboard, Upload, BookOpen, Users, BarChart3, Plus, History, RefreshCw } from 'lucide-react';
+import { Calendar, LayoutDashboard, Upload, BookOpen, Users, BarChart3, Plus, History, RefreshCw, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';  
 
@@ -43,6 +43,11 @@ export const DOTTeamLeaderMenu: React.FC = () => {
       title: 'Planta Layout',
       icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
       onClick: () => window.location.href = '/dot-team-leader/planta-layout'
+    },
+    {
+      title: 'Dados da Loja',
+      icon: <Store size={48} />,
+      onClick: () => window.location.href = '/dot-team-leader/dados-da-loja'
     },
     {
       title: 'Dashboard',

@@ -3,7 +3,7 @@ import { getCurrentUser } from '../utils/auth';
 import { UserRole } from '../types';
 import { User } from 'lucide-react';
 import { MenuGrid, MenuGridItem } from '../components/ui/MenuGrid';
-import { Calendar, LayoutDashboard, BookOpen, Users, BarChart3, Plus, History, RefreshCw } from 'lucide-react';
+import { Calendar, LayoutDashboard, BookOpen, Users, BarChart3, Plus, History, RefreshCw, Store } from 'lucide-react';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -53,6 +53,11 @@ export const AmontMenu: React.FC = () => {
       title: 'Planta Layout',
       icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
       onClick: () => window.location.href = '/amont/planta-layout'
+    },
+    {
+      title: 'Dados da Loja',
+      icon: <Store size={48} />,
+      onClick: () => window.location.href = '/amont/dados-da-loja'
     },
     {
       title: 'Folhetos',

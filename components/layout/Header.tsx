@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, LogOut, User, Settings, Users, Upload, LayoutDashboard, Plus, BookOpen, BarChart3 } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings, Users, Upload, LayoutDashboard, Plus, BookOpen, BarChart3, Store } from 'lucide-react';
 import { APP_NAME, APP_SUBTITLE } from '../../constants';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../../utils/auth';
@@ -183,6 +183,13 @@ export const Header: React.FC = () => {
                     Planta Layout
                   </button>
                   <button 
+                    onClick={() => { window.location.href = '/admin/dados-da-loja'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <Store size={18} />
+                    Dados da Loja
+                  </button>
+                  <button 
                     onClick={() => { window.location.href = '/admin/specialist-manuals'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
@@ -260,6 +267,13 @@ export const Header: React.FC = () => {
                   >
                     <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
                     Planta Layout
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/dados-da-loja'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <Store size={18} />
+                    Dados da Loja
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/specialist-manuals'; setIsMenuOpen(false); }}
@@ -380,6 +394,13 @@ export const Header: React.FC = () => {
                     Planta Layout
                   </button>
                   <button 
+                    onClick={() => { window.location.href = '/amont/dados-da-loja'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <Store size={18} />
+                    Dados da Loja
+                  </button>
+                  <button 
                     onClick={() => { window.location.href = '/amont/folhetos'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
@@ -435,6 +456,13 @@ export const Header: React.FC = () => {
                   >
                     <span role="img" aria-label="Planta" style={{fontSize: 18}}>📐</span>
                     Planta Layout
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/dados-da-loja'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <Store size={18} />
+                    Dados da Loja
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/specialist-manuals'; setIsMenuOpen(false); }}
