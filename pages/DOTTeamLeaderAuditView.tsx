@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { CommentThread } from '../components/audit/CommentThread';
-import { ArrowLeft, Image as ImageIcon, FileText, CheckCircle, XCircle, ListTodo, User, Clock, Calendar } from 'lucide-react';
+import { ArrowLeft, FileDown, Image as ImageIcon, FileText, CheckCircle, XCircle, ListTodo, User, Clock, Calendar } from 'lucide-react';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditScore, AuditStatus, Checklist, Store, ActionPlan, SectionEvaluation } from '../types';
+import { Audit, AuditScore, AuditStatus, Checklist, Store, ActionPlan, SectionEvaluation, User as UserType, AuditComment } from '../types';
+import { exportAuditToPDF } from '../utils/pdfExport';
 
 export const DOTTeamLeaderAuditView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,9 @@ export const DOTTeamLeaderAuditView: React.FC = () => {
   const [sectionEvaluations, setSectionEvaluations] = useState<SectionEvaluation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [allUsers, setAllUsers] = useState<UserType[]>([]);
+  const [comments, setComments] = useState<AuditComment[]>([]);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     // Reset loading state when id changes
@@ -53,6 +57,12 @@ export const DOTTeamLeaderAuditView: React.FC = () => {
 
       const sectionEvalsData = await db.getSectionEvaluations(Number(id));
       setSectionEvaluations(sectionEvalsData || []);
+
+      const usersData = await db.getUsers();
+      setAllUsers(usersData || []);
+
+      const commentsData = await db.getComments(Number(id));
+      setComments(commentsData || []);
 
       setLoading(false);
     };
@@ -151,6 +161,30 @@ export const DOTTeamLeaderAuditView: React.FC = () => {
     });
     
     return count === 0 ? 0 : totalRating / count;
+  };
+
+  // For admins/DOT TL we always show the Resumo block to avoid hiding content when API omits section evals
+  const shouldShowSummary = true;
+
+  const handleExportPdf = async () => {
+    if (!audit || !store || !checklist) return;
+    setExporting(true);
+    try {
+      await exportAuditToPDF(
+        audit,
+        store,
+        checklist,
+        allUsers,
+        scores,
+        actions,
+        comments,
+        sectionEvaluations
+      );
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const getStatusBadge = (status: AuditStatus) => {
@@ -261,16 +295,27 @@ export const DOTTeamLeaderAuditView: React.FC = () => {
                   )}
                 </div>
               </div>
-
-              {audit.status === AuditStatus.ENDED && (
+              <div className="flex items-center gap-3">
                 <Button
-                  variant="primary"
-                  onClick={() => setShowCloseModal(true)}
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPdf}
+                  disabled={exporting}
                 >
-                  <CheckCircle size={16} className="mr-2" />
-                  Encerrar Visita
+                  <FileDown size={16} className="mr-2" />
+                  {exporting ? 'A gerar...' : 'Exportar PDF'}
                 </Button>
-              )}
+
+                {audit.status === AuditStatus.ENDED && (
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowCloseModal(true)}
+                  >
+                    <CheckCircle size={16} className="mr-2" />
+                    Encerrar Visita
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Action Plan Summary */}
@@ -441,7 +486,7 @@ export const DOTTeamLeaderAuditView: React.FC = () => {
         </div>
 
         {/* Final Summary (if available) */}
-        {((audit as any).pontosFortes || (audit as any).pontosMelhorar || (audit as any).acoesCriticas || (audit as any).alertas || audit.pontos_fortes || audit.pontos_melhorar || audit.acoes_criticas || audit.alertas) && (
+        {shouldShowSummary && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
             <div className="p-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">

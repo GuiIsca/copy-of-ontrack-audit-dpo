@@ -1,4 +1,4 @@
-import { Audit, User } from '../types';
+import { Audit, AuditScore, User } from '../types';
 
 // Declarar html2pdf como disponível no window
 declare global {
@@ -12,12 +12,22 @@ export const exportAuditToPDF = async (
   store: any,
   checklistData: any,
   allUsers: User[],
+  scores: AuditScore[] = [],
   actions?: any[],
   comments?: any[],
-  scoresBySection?: any[]
+  scoresBySection?: any[],
+  options?: {
+    hideSummary?: boolean;
+    hideComments?: boolean;
+    hideUnscoredBadges?: boolean;
+    hideSectionEvaluations?: boolean;
+  }
 ) => {
   // Usar html2pdf do window (carregado via CDN)
   const html2pdf = window.html2pdf;
+  if (!html2pdf) {
+    throw new Error('Gerador de PDF não encontrado (html2pdf).');
+  }
 
   const getUserName = (userId: any): string => {
     if (!userId) return 'Desconhecido';
@@ -36,6 +46,68 @@ export const exportAuditToPDF = async (
   const storeCity = store?.distrito || '-';
   const storeArea = store?.area || '-';
 
+  const normalizeRatingValue = (val: any): number | null => {
+    if (val === null || val === undefined) return null;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (trimmed.includes('/')) {
+        const [first] = trimmed.split('/');
+        const n = Number(first);
+        return Number.isNaN(n) ? null : n;
+      }
+      const n = Number(trimmed.replace(',', '.'));
+      return Number.isNaN(n) ? null : n;
+    }
+    if (typeof val === 'number') return val;
+    return null;
+  };
+
+  const normalizedSectionEvals = (scoresBySection || []).map((s: any) => ({
+    ...s,
+    section_id: s.section_id ?? s.sectionId ?? (s as any).sectionid ?? (s as any).section,
+    rating: normalizeRatingValue(s.rating ?? s.rating_value ?? s.ratingValue ?? s.rating_score ?? s.ratingScore),
+    percentage_filled: s.percentage_filled ?? s.percentageFilled
+  }));
+
+  const getSectionRating = (sectionId: any): number | null => {
+    const matches = normalizedSectionEvals.filter((s: any) => {
+      const sid = String(s.section_id);
+      const target = String(sectionId);
+      return sid === target || sid.startsWith(target + '_');
+    });
+    if (matches.length === 0) return null;
+
+    const ratings = matches
+      .map((m: any) => {
+        if (m.rating !== undefined && m.rating !== null) return m.rating;
+        if (m.percentage_filled !== undefined && m.percentage_filled !== null) {
+          return (Number(m.percentage_filled) / 100) * 5;
+        }
+        return null;
+      })
+      .filter((r: number | null) => r !== null && r !== undefined && !Number.isNaN(r));
+
+    if (ratings.length === 0) return 0; // Secção avaliada mas sem nota explícita: mostrar 0
+    const total = ratings.reduce((sum: number, r: number | null) => sum + (r || 0), 0);
+    return total / ratings.length;
+  };
+
+  const sectionRatings = (checklistData?.sections || []).map((section: any) => ({
+    id: section.id,
+    name: section.name,
+    rating: getSectionRating(section.id)
+  })).filter((s: any) => s.rating !== null && s.rating !== undefined);
+
+  const totalScaleRating = sectionRatings.length > 0
+    ? sectionRatings.reduce((sum: number, s: any) => sum + (s.rating || 0), 0) / sectionRatings.length
+    : (audit.score ? (Number(audit.score) / 100) * 5 : null);
+
+  const formatRating = (rating: number | null | undefined): string => {
+    if (rating === null || rating === undefined) return 'N/A';
+    const fixed = Number(rating);
+    return fixed % 1 === 0 ? fixed.toFixed(0) : fixed.toFixed(1);
+  };
+
   // Construir seções com critérios
   const sectionsHTML = (checklistData?.sections || [])
     .map((section: any) => {
@@ -45,16 +117,35 @@ export const exportAuditToPDF = async (
         .map((item: any) => {
           const criteriaHTML = (item.criteria || [])
             .map((criteria: any) => {
-              const score = audit.scores?.find((s: any) => s.criteria_id === criteria.id);
-              const scoreLabel =
-                score?.score === 1 ? '✓ OK' :
-                score?.score === 0 ? '✗ KO' : 'Não avaliado';
-              const scoreBg =
-                score?.score === 1 ? '#d1fae5' :
-                score?.score === 0 ? '#fee2e2' : '#f3f4f6';
-              const scoreColor =
-                score?.score === 1 ? '#059669' :
-                score?.score === 0 ? '#dc2626' : '#6b7280';
+              const score = scores.find((s: any) => String(s.criteria_id) === String(criteria.id));
+              const rawScore = score?.score;
+              const hasScore = rawScore === 0 || rawScore === 1 || (rawScore !== null && rawScore !== undefined);
+              const forceScale15 = (criteria?.evaluation_type === 'SCALE_1_5') || (criteria as any)?.type === 'rating';
+              const isOkKo = !forceScale15 && (rawScore === 0 || rawScore === 1);
+              const isScale15 = forceScale15 || (hasScore && !isOkKo);
+              const scaleColors: Record<number, string> = {
+                1: '#dc2626', // red
+                2: '#ea580c', // orange
+                3: '#eab308', // yellow
+                4: '#84cc16', // lime
+                5: '#16a34a'  // green
+              };
+              const shouldHideBadge = options?.hideUnscoredBadges && !hasScore;
+              const scoreLabel = isScale15
+                ? `${rawScore}/5`
+                : rawScore === 1 ? '✓ OK'
+                : rawScore === 0 ? '✗ KO'
+                : options?.hideUnscoredBadges ? '' : 'Não avaliado';
+              const scoreBg = isScale15
+                ? '#e0f2fe'
+                : rawScore === 1 ? '#d1fae5'
+                : rawScore === 0 ? '#fee2e2'
+                : '#f3f4f6';
+              const scoreColor = isScale15
+                ? scaleColors[Number(rawScore)] || '#0ea5e9'
+                : rawScore === 1 ? '#059669'
+                : rawScore === 0 ? '#dc2626'
+                : '#6b7280';
 
               return `
                 <div style="
@@ -69,17 +160,19 @@ export const exportAuditToPDF = async (
                     <div style="flex: 1; font-size: 14px; color: #374151;">
                       <strong>${criteria.name}</strong>
                     </div>
-                    <div style="
-                      background-color: ${scoreBg};
-                      color: ${scoreColor};
-                      padding: 6px 12px;
-                      border-radius: 20px;
-                      font-weight: bold;
-                      font-size: 12px;
-                      margin-left: 12px;
-                    ">
-                      ${scoreLabel}
-                    </div>
+                    ${shouldHideBadge ? '' : `
+                      <div style="
+                        background-color: ${scoreBg};
+                        color: ${scoreColor};
+                        padding: 6px 12px;
+                        border-radius: 20px;
+                        font-weight: bold;
+                        font-size: 12px;
+                        margin-left: 12px;
+                      ">
+                        ${scoreLabel}
+                      </div>
+                    `}
                   </div>
                   ${
                     score?.comment
@@ -126,7 +219,7 @@ export const exportAuditToPDF = async (
           </h4>
 
           ${
-            sectionEval?.rating
+            !options?.hideSectionEvaluations && sectionEval && sectionEval.rating !== undefined && sectionEval.rating !== null
               ? `<div style="
                   margin: 12px 0;
                   padding: 10px;
@@ -151,7 +244,7 @@ export const exportAuditToPDF = async (
           }
 
           ${
-            sectionEval?.action_plan
+            !options?.hideSectionEvaluations && sectionEval?.action_plan
               ? `<div style="
                   margin: 8px 0 16px 0;
                   padding: 10px;
@@ -175,21 +268,35 @@ export const exportAuditToPDF = async (
     })
     .join('');
 
+  const normalizedActions = (actions || []).map(action => ({
+    ...action,
+    dueDate: action.dueDate || (action as any).due_date,
+    responsible_user_id: action.responsible_user_id || (action as any).responsibleUserId,
+    status: action.status,
+    completedDate: action.completedDate || (action as any).completed_date
+  }));
+
   // Construir lista de ações
-  const actionsListHTML = (actions || [])
+  const actionsListHTML = normalizedActions
     .map(action => `
       <li>
         <strong>${action.title || 'Sem título'}</strong><br/>
         <small>Responsável: ${getUserName(action.responsible_user_id)}</small><br/>
-        <small>Data Limite: ${formatDate(action.due_date)}</small><br/>
+        <small>Data Limite: ${formatDate(action.dueDate)}</small><br/>
         <small>Status: <strong>${action.status || 'Pendente'}</strong></small><br/>
         <p>${action.description || ''}</p>
       </li>
     `)
     .join('');
 
+  const normalizedComments = (comments || []).map(comment => ({
+    user_id: (comment as any).user_id || (comment as any).userId,
+    created_at: (comment as any).created_at || (comment as any).timestamp || (comment as any).createdAt,
+    text: (comment as any).text || (comment as any).comment || (comment as any).content || ''
+  }));
+
   // Construir lista de comentários
-  const commentsListHTML = (comments || [])
+  const commentsListHTML = normalizedComments
     .map(comment => `
       <div class="comment-item">
         <strong>${getUserName(comment.user_id)}</strong><br/>
@@ -198,6 +305,68 @@ export const exportAuditToPDF = async (
       </div>
     `)
     .join('');
+
+  const summaryFields = {
+    pontosFortes: (audit as any).pontos_fortes || (audit as any).pontosFortes,
+    pontosMelhorar: (audit as any).pontos_melhorar || (audit as any).pontosMelhorar,
+    acoesCriticas: (audit as any).acoes_criticas || (audit as any).acoesCriticas,
+    alertas: (audit as any).alertas || (audit as any).alertas
+  };
+
+  const summaryHTML = options?.hideSummary ? '' :
+    (summaryFields.pontosFortes || summaryFields.pontosMelhorar || summaryFields.acoesCriticas || summaryFields.alertas || totalScaleRating !== null) ? `
+      <div class="section">
+        <h2>Resumo Final da Auditoria</h2>
+        ${totalScaleRating !== null ? `
+          <div style="margin-bottom: 16px; padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 600; color: #374151;">Nota Final Global</span>
+              <span style="font-size: 22px; font-weight: 700; color: #dc2626;">${formatRating(totalScaleRating)}/5</span>
+            </div>
+          </div>
+        ` : ''}
+
+        ${sectionRatings.length > 0 ? `
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Notas por Secção</h4>
+            ${sectionRatings.map((s: any) => `
+              <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px;">
+                <span style="color: #4b5563;">${s.name}</span>
+                <span style="font-weight: 700; color: ${s.rating < 2.5 ? '#dc2626' : s.rating < 4 ? '#d97706' : '#16a34a'};">${formatRating(s.rating)}/5</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${summaryFields.pontosFortes ? `
+          <div style="margin-bottom: 16px;">
+            <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Pontos Fortes</h4>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; font-size: 13px; color: #334155; white-space: pre-line;">${summaryFields.pontosFortes}</div>
+          </div>
+        ` : ''}
+
+        ${summaryFields.pontosMelhorar ? `
+          <div style="margin-bottom: 16px;">
+            <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Pontos a Melhorar</h4>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; font-size: 13px; color: #334155; white-space: pre-line;">${summaryFields.pontosMelhorar}</div>
+          </div>
+        ` : ''}
+
+        ${summaryFields.acoesCriticas ? `
+          <div style="margin-bottom: 16px;">
+            <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Ações Críticas</h4>
+            <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 10px; font-size: 13px; color: #9a3412; white-space: pre-line;">${summaryFields.acoesCriticas}</div>
+          </div>
+        ` : ''}
+
+        ${summaryFields.alertas ? `
+          <div style="margin-bottom: 4px;">
+            <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px;">Alertas</h4>
+            <div style="background: #fef2f2; border: 1px solid #fecdd3; border-radius: 8px; padding: 10px; font-size: 13px; color: #b91c1c; white-space: pre-line;">${summaryFields.alertas}</div>
+          </div>
+        ` : ''}
+      </div>
+    ` : '';
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -373,6 +542,8 @@ export const exportAuditToPDF = async (
         </div>
       </div>
 
+      ${summaryHTML}
+
       ${
         actions && actions.length > 0
           ? `
@@ -398,7 +569,7 @@ export const exportAuditToPDF = async (
       }
 
       ${
-        comments && comments.length > 0
+        !options?.hideComments && comments && comments.length > 0
           ? `
         <div class="section">
           <h2>Comentários</h2>
@@ -417,7 +588,7 @@ export const exportAuditToPDF = async (
 
   const fileName = `Auditoria_${storeNumber}_${auditDate.replace(/\//g, '-')}.pdf`;
 
-  const options = {
+  const pdfRenderOptions = {
     margin: [20, 15, 30, 15],
     filename: fileName,
     image: { type: 'jpeg', quality: 0.98 },
@@ -439,7 +610,7 @@ export const exportAuditToPDF = async (
   };
 
   try {
-    html2pdf().set(options).from(htmlContent).save();
+    html2pdf().set(pdfRenderOptions).from(htmlContent).save();
     return { success: true, filename: fileName };
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);

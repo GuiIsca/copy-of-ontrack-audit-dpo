@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
 import { CommentThread } from '../components/audit/CommentThread';
-import { ArrowLeft, Image as ImageIcon, FileText, ListTodo, User as UserIcon, Calendar } from 'lucide-react';
+import { ArrowLeft, FileDown, Image as ImageIcon, FileText, ListTodo, User as UserIcon, Calendar } from 'lucide-react';
 import { db } from '../services/dbAdapter';
-import { Audit, AuditScore, Checklist, Store, User, SectionEvaluation } from '../types';
+import { Audit, AuditScore, Checklist, Store, User, SectionEvaluation, ActionPlan, AuditComment } from '../types';
+import { exportAuditToPDF } from '../utils/pdfExport';
 
 export const AderenteAuditView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +17,11 @@ export const AderenteAuditView: React.FC = () => {
   const [checklist, setChecklist] = useState<Checklist | null>(null);
   const [scores, setScores] = useState<AuditScore[]>([]);
   const [sectionEvaluations, setSectionEvaluations] = useState<SectionEvaluation[]>([]);
+  const [actions, setActions] = useState<ActionPlan[]>([]);
+  const [comments, setComments] = useState<AuditComment[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -36,6 +41,8 @@ export const AderenteAuditView: React.FC = () => {
       }
 
       setAudit(auditData);
+      const usersData = await db.getUsers();
+      setAllUsers(usersData || []);
       const stores = await db.getStores();
       const storeId = auditData.store_id || (auditData as any).storeId;
       const foundStore = stores.find(s => s.id === storeId) || null;
@@ -65,10 +72,44 @@ export const AderenteAuditView: React.FC = () => {
       const sectionEvalsData = await db.getSectionEvaluations(Number(id));
       console.log('AderenteAuditView: Loaded section evaluations:', sectionEvalsData);
       setSectionEvaluations(sectionEvalsData || []);
+
+      const actionsData = await db.getActions(Number(id));
+      setActions(actionsData || []);
+
+      const commentsData = await db.getComments(Number(id));
+      const visibleComments = (commentsData || []).filter(c => !c.isInternal);
+      setComments(visibleComments);
       setLoading(false);
     };
     loadData();
   }, [id, navigate]);
+
+  const handleExportPdf = async () => {
+    if (!audit || !store || !checklist) return;
+    setExporting(true);
+    try {
+      await exportAuditToPDF(
+        audit,
+        store,
+        checklist,
+        allUsers,
+        scores,
+        actions,
+        comments,
+        sectionEvaluations,
+        {
+          hideSummary: true,
+          hideComments: true,
+          hideUnscoredBadges: true,
+          hideSectionEvaluations: true
+        }
+      );
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const getScoreForCriteria = (criteriaId: number): AuditScore | undefined => {
     return scores.find(s => s.criteria_id === criteriaId);
@@ -228,6 +269,17 @@ export const AderenteAuditView: React.FC = () => {
                   )}
                 </div>
               </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPdf}
+                  disabled={exporting}
+                >
+                  <FileDown size={16} className="mr-2" />
+                  {exporting ? 'A gerar...' : 'Exportar PDF'}
+                </Button>
+              </div>
             </div>
 
             {/* General Observations */}
@@ -283,43 +335,7 @@ export const AderenteAuditView: React.FC = () => {
                 )}
 
                 {/* Section Evaluation (Rating 1-5) */}
-                {sectionEval && sectionEval.rating && (
-                  <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold text-gray-900">Avaliação da Secção:</span>
-                      <span className="bg-gray-600 text-white px-3 py-1 rounded-full font-bold">
-                        {sectionEval.rating}/5
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Section Action Plan */}
-                {sectionEval && (sectionEval.action_plan || sectionEval.responsible || sectionEval.due_date) && (
-                  <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
-                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <ListTodo size={16} />
-                      Plano de Ação da Secção
-                    </h4>
-                    {sectionEval.action_plan && (
-                      <p className="text-sm text-gray-700 mb-2">{sectionEval.action_plan}</p>
-                    )}
-                    <div className="flex gap-4 text-xs text-gray-600">
-                      {sectionEval.responsible && (
-                        <div className="flex items-center gap-1">
-                          <UserIcon size={12} />
-                          <span>Responsável: {sectionEval.responsible}</span>
-                        </div>
-                      )}
-                      {sectionEval.due_date && (
-                        <div className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          <span>Data Limite: {new Date(sectionEval.due_date).toLocaleDateString('pt-PT')}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Aderente não tem avaliações de secção nem plano de ação por secção */}
                 
                 {section.items.map(item => (
                   // Skip "Dados da Loja" item (id 2101) as it only contains identification fields
@@ -406,96 +422,7 @@ export const AderenteAuditView: React.FC = () => {
         </div>
 
         {/* Final Summary (if available) */}
-        {((audit as any).pontosFortes || (audit as any).pontosMelhorar || (audit as any).acoesCriticas || (audit as any).alertas || audit.pontos_fortes || audit.pontos_melhorar || audit.acoes_criticas || audit.alertas) && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
-            <div className="p-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <FileText size={20} />
-                Resumo Final da Auditoria
-              </h2>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Global Score and Section Scores */}
-              <div>
-                <h4 className="font-bold text-base mb-4 text-gray-800">Notas</h4>
-                
-                {/* Global Score */}
-                <div className="mb-4 pb-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-700 font-semibold">Nota Final Global</span>
-                    <span className={`text-2xl font-bold ${
-                      calculateTotalScaleRating() < 2.5 ? 'text-red-600' 
-                      : calculateTotalScaleRating() < 4 ? 'text-yellow-600' 
-                      : 'text-green-600'
-                    }`}>
-                      {formatRatingScale(calculateTotalScaleRating())}/5
-                    </span>
-                  </div>
-                </div>
-
-                {/* Section Scores */}
-                {sectionEvaluations.length > 0 && checklist && (
-                  <div className="space-y-2">
-                    <h5 className="font-semibold text-gray-700 mb-3">Notas por Secção</h5>
-                    {checklist.sections.map((section, idx) => {
-                      const sectionRating = calculateSectionRatingScale(section.id);
-                      return (
-                        <div key={idx} className="flex items-center justify-between py-2">
-                          <span className="text-sm text-gray-600">{section.name}</span>
-                          <span className={`text-sm font-bold ${
-                            sectionRating < 2.5 ? 'text-red-600' 
-                            : sectionRating < 4 ? 'text-yellow-600' 
-                            : 'text-green-600'
-                          }`}>
-                            {formatRatingScale(sectionRating)}/5
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Text Fields */}
-              {((audit as any).pontosFortes || audit.pontos_fortes) && (
-                <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">Pontos Fortes</h4>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{(audit as any).pontosFortes || audit.pontos_fortes}</p>
-                  </div>
-                </div>
-              )}
-
-              {((audit as any).pontosMelhorar || audit.pontos_melhorar) && (
-                <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">Pontos a Melhorar</h4>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{(audit as any).pontosMelhorar || audit.pontos_melhorar}</p>
-                  </div>
-                </div>
-              )}
-
-              {((audit as any).acoesCriticas || audit.acoes_criticas) && (
-                <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">Ações Críticas</h4>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{(audit as any).acoesCriticas || audit.acoes_criticas}</p>
-                  </div>
-                </div>
-              )}
-
-              {((audit as any).alertas || audit.alertas) && (
-                <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">Alertas</h4>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{(audit as any).alertas || audit.alertas}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Aderente não tem Resumo Final da Auditoria */}
 
         {/* Comment Thread */}
         <CommentThread auditId={audit.id} />
