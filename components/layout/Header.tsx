@@ -114,50 +114,69 @@ export const Header: React.FC = () => {
             <div className="mt-3 px-2 space-y-1">
               {userIsAdmin && (
                 <>
-                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Administração</div>
+                  {/* Dashboard */}
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Dashboard</div>
                   <button 
                     onClick={() => { window.location.href = '/admin/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>⚙️</span>
+                    <span role="img" aria-label="Sistema" style={{fontSize: 18}}>⚙️</span>
                     Gestão do Sistema
                   </button>
+                  
+                  {/* Plano de Visitas */}
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
                   <button 
                     onClick={() => { window.location.href = '/admin/visitas'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📋</span>
+                    <span role="img" aria-label="Visitas" style={{fontSize: 18}}>📋</span>
                     Visitas
                   </button>
-                  <button 
-                    onClick={() => { window.location.href = '/admin/contact-messages'; setIsMenuOpen(false); }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  >
-                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>💬</span>
-                    Contacto
-                  </button>
-                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
                   <button 
                     onClick={() => { window.location.href = '/admin/new-visit-admin'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>➕</span>
+                    <span role="img" aria-label="Nova" style={{fontSize: 18}}>➕</span>
                     Nova Visita
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/admin/new-visit-dot'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>👥</span>
+                    <span role="img" aria-label="Utilizadores" style={{fontSize: 18}}>👥</span>
                     Visita DOT Operacional
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/history'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Histórico" style={{fontSize: 18}}>📋</span>
+                    Histórico
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/actions'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Plano" style={{fontSize: 18}}>🔄</span>
+                    Plano de Ação
+                  </button>
+                  
+                  {/* Ferramentas */}
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
                   <button 
                     onClick={() => { window.location.href = '/admin/import-visitas'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Planta" style={{fontSize: 18}}>📤</span>
+                    <span role="img" aria-label="Upload" style={{fontSize: 18}}>📤</span>
                     Importar CSV
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/admin/contact-messages'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Contacto" style={{fontSize: 18}}>💬</span>
+                    Contacto
                   </button>
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
@@ -168,7 +187,7 @@ export const Header: React.FC = () => {
                     Indicadores
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/analytics'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/admin/analytics'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Planta" style={{fontSize: 18}}>📈</span>
@@ -250,21 +269,37 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Dashboard" style={{fontSize: 18}}>🏠</span>
                     Dashboard
                   </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/new-visit-leader'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>👥</span>
+                    <span role="img" aria-label="Nova" style={{fontSize: 18}}>👥</span>
                     Nova visita
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/new-visit-dot'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>👥</span>
+                    <span role="img" aria-label="DOT" style={{fontSize: 18}}>👥</span>
                     Visita DOT Operacional
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/history'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Histórico" style={{fontSize: 18}}>📋</span>
+                    Histórico
+                  </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/actions'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Plano" style={{fontSize: 18}}>🔄</span>
+                    Plano de Ação
+                  </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/import-visitas'; setIsMenuOpen(false); }}
@@ -273,21 +308,23 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Importar CSV" style={{fontSize: 18}}>📤</span>
                     Importar CSV
                   </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/reports'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Importar CSV" style={{fontSize: 18}}>📊</span>
+                    <span role="img" aria-label="Indicadores" style={{fontSize: 18}}>📊</span>
                     Indicadores
                   </button>
                   <button 
-                    onClick={() => { window.location.href = '/analytics'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/dot-team-leader/analytics'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span role="img" aria-label="Analítica" style={{fontSize: 18}}>📈</span>
                     Analítica
                   </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-team-leader/planta-layout'; setIsMenuOpen(false); }}
@@ -352,11 +389,20 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
                     Dados da Concorrência
                   </button>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Contacto</div>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-team-leader/contact-admin'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Contacto" style={{fontSize: 18}}>💬</span>
+                    Contacto Admin
+                  </button>
                 </>
               )}
               {userIsAderente && (
                 <>
-                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Minhas Visitas</div>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Supervisão</div>
                   <button 
                     onClick={() => { window.location.href = '/aderente/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -364,11 +410,13 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Dashboard" style={{fontSize: 18}}>🏠</span>
                     Dashboard
                   </button>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
                   <button 
                     onClick={() => { window.location.href = '/aderente/new-visit'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>👥</span>
+                    <span role="img" aria-label="Nova" style={{fontSize: 18}}>👥</span>
                     Nova Visita
                   </button>
                   <button 
@@ -382,24 +430,33 @@ export const Header: React.FC = () => {
                     onClick={() => { window.location.href = '/aderente/history'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>📋</span>
+                    <span role="img" aria-label="Histórico" style={{fontSize: 18}}>📋</span>
                     Histórico
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/aderente/actions'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Plano de Ação" style={{fontSize: 18}}>📝</span>
+                    <span role="img" aria-label="Plano" style={{fontSize: 18}}>🔄</span>
                     Plano de Ação
                   </button>
-                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Contacto</div>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
-                    onClick={() => { window.location.href = '/aderente/contact-admin'; setIsMenuOpen(false); }}
+                    onClick={() => { window.location.href = '/aderente/analytics'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Contacto Admin" style={{fontSize: 18}}>💬</span>
-                    Contacto Admin
+                    <span role="img" aria-label="Analítica" style={{fontSize: 18}}>📈</span>
+                    Analítica
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/reports'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Indicadores" style={{fontSize: 18}}>📊</span>
+                    Indicadores
+                  </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
                     onClick={() => { window.location.href = '/aderente/planta-layout'; setIsMenuOpen(false); }}
@@ -443,11 +500,27 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
                     Dados da Concorrência
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/inventario'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Inventário" style={{fontSize: 18}}>📦</span>
+                    Inventário
+                  </button>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Contacto</div>
+                  <button 
+                    onClick={() => { window.location.href = '/aderente/contact-admin'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Contacto" style={{fontSize: 18}}>💬</span>
+                    Contacto Admin
+                  </button>
                 </>
               )}
               {userIsAmont && (
                 <>
-                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Auditorias AMONT</div>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Supervisão</div>
                   <button 
                     onClick={() => { window.location.href = '/amont/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -455,13 +528,25 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Dashboard" style={{fontSize: 18}}>🏠</span>
                     Dashboard
                   </button>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
                   <button 
                     onClick={() => { window.location.href = '/amont/new-audit'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>📋</span>
+                    <span role="img" aria-label="Nova" style={{fontSize: 18}}>📋</span>
                     Nova Visita (Auditoria)
                   </button>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/analytics'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Analítica" style={{fontSize: 18}}>📈</span>
+                    Analítica
+                  </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
                     onClick={() => { window.location.href = '/amont/planta-layout'; setIsMenuOpen(false); }}
@@ -505,11 +590,27 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
                     Dados da Concorrência
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/specialist-manuals'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Manuais" style={{fontSize: 18}}>📚</span>
+                    Manuais de Especialista
+                  </button>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Contacto</div>
+                  <button 
+                    onClick={() => { window.location.href = '/amont/contact-admin'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Contacto" style={{fontSize: 18}}>💬</span>
+                    Contacto Admin
+                  </button>
                 </>
               )}
               {!userIsAdmin && !userIsDotTeamLeader && !userIsAderente && !userIsAmont && (
                 <>
-                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Auditorias DOT Operacional</div>
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Supervisão</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/dashboard'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -517,20 +618,30 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Dashboard" style={{fontSize: 18}}>🏠</span>
                     Dashboard
                   </button>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Plano de Visitas</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/select-visit-type'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>📋</span>
+                    <span role="img" aria-label="Nova" style={{fontSize: 18}}>📋</span>
                     Nova Visita
                   </button>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/history'; setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    <span role="img" aria-label="Nova Visita" style={{fontSize: 18}}>📋</span>
+                    <span role="img" aria-label="Histórico" style={{fontSize: 18}}>📋</span>
                     Histórico
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/actions'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Plano" style={{fontSize: 18}}>🔄</span>
+                    Plano de Ação
+                  </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Ferramentas</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/import-visitas'; setIsMenuOpen(false); }}
@@ -539,6 +650,7 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Importar CSV" style={{fontSize: 18}}>📤</span>
                     Importar CSV
                   </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Relatórios</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/reports'; setIsMenuOpen(false); }}
@@ -547,6 +659,14 @@ export const Header: React.FC = () => {
                     <span role="img" aria-label="Indicadores" style={{fontSize: 18}}>📊</span>
                     Indicadores
                   </button>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/analytics'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Analítica" style={{fontSize: 18}}>📈</span>
+                    Analítica
+                  </button>
+                  
                   <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Recursos</div>
                   <button 
                     onClick={() => { window.location.href = '/dot-operacional/planta-layout'; setIsMenuOpen(false); }}
@@ -610,6 +730,15 @@ export const Header: React.FC = () => {
                   >
                     <span role="img" aria-label="Concorrência" style={{fontSize: 18}}>🔍</span>
                     Dados da Concorrência
+                  </button>
+                  
+                  <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase mt-2">Contacto</div>
+                  <button 
+                    onClick={() => { window.location.href = '/dot-operacional/contact-admin'; setIsMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span role="img" aria-label="Contacto" style={{fontSize: 18}}>💬</span>
+                    Contacto Admin
                   </button>
                 </>
               )}

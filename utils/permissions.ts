@@ -242,8 +242,8 @@ export const canViewReports = (): boolean => {
 };
 
 export const canViewAnalytics = (): boolean => {
-  // Apenas DOT Team Leader e ADMIN podem ver analítica
-  return hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN);
+  // Todos os perfis podem ver analítica
+  return hasRole(UserRole.DOT_TEAM_LEADER) || hasRole(UserRole.ADMIN) || hasRole(UserRole.AMONT) || hasRole(UserRole.ADERENTE) || hasRole(UserRole.DOT_OPERACIONAL);
 };
 
 export const canImportAuditsCSV = (): boolean => {

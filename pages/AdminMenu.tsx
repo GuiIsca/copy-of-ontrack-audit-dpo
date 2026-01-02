@@ -32,6 +32,7 @@ export const AdminMenu: React.FC = () => {
     '👤'
   ) : '👤';
   const items: MenuGridItem[] = [
+    // Dashboard
     {
       title: 'Gestão do Sistema',
       icon: <span role="img" aria-label="Sistema" style={{fontSize: 48}}>⚙️</span>, 
@@ -40,20 +41,12 @@ export const AdminMenu: React.FC = () => {
         window.location.href = '/admin/dashboard';
       }
     },
+    
+    // Plano de Visitas
     {
       title: 'Visitas',
       icon: <span role="img" aria-label="Visitas" style={{fontSize: 48}}>📋</span>, 
       onClick: () => window.location.href = '/admin/visitas'
-    },
-    {
-      title: 'Importar CSV',
-      icon: <span role="img" aria-label="Upload" style={{fontSize: 48}}>📤</span>, 
-      onClick: () => window.location.href = '/admin/import'
-    },
-    {
-      title: 'Contacto',
-      icon: <span role="img" aria-label="Mensagem" style={{fontSize: 48}}>💬</span>, 
-      onClick: () => window.location.href = '/admin/contact-messages'
     },
     {
       title: 'Nova visita',
@@ -64,7 +57,31 @@ export const AdminMenu: React.FC = () => {
       title: 'Nova visita Dot Operacional',
       icon: <span role="img" aria-label="Utilizadores" style={{fontSize: 48}}>👥</span>, 
       onClick: () => window.location.href = '/admin/new-visit-dot'
-    },  
+    },
+    {
+      title: 'Histórico',
+      icon: <span role="img" aria-label="Histórico" style={{fontSize: 48}}>📋</span>, 
+      onClick: () => window.location.href = '/admin/history'
+    },
+    {
+      title: 'Plano de Ação',
+      icon: <span role="img" aria-label="Plano" style={{fontSize: 48}}>🔄</span>, 
+      onClick: () => window.location.href = '/admin/actions'
+    },
+    
+    // Ferramentas
+    {
+      title: 'Importar CSV',
+      icon: <span role="img" aria-label="Upload" style={{fontSize: 48}}>📤</span>, 
+      onClick: () => window.location.href = '/admin/import'
+    },
+    {
+      title: 'Contacto',
+      icon: <span role="img" aria-label="Mensagem" style={{fontSize: 48}}>💬</span>, 
+      onClick: () => window.location.href = '/admin/contact-messages'
+    },
+    
+    // Relatórios
     {
       title: 'Indicadores',
       icon: <span role="img" aria-label="Indicadores" style={{fontSize: 48}}>📊</span>, 
@@ -73,8 +90,10 @@ export const AdminMenu: React.FC = () => {
     {
       title: 'Analítica',
       icon: <span role="img" aria-label="Analítica" style={{fontSize: 48}}>📈</span>, 
-      onClick: () => window.location.href = '/analytics'
+      onClick: () => window.location.href = '/admin/analytics'
     },
+    
+    // Recursos
     {
       title: 'Planta Layout',
       icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
@@ -119,7 +138,8 @@ export const AdminMenu: React.FC = () => {
       title: 'Dados da Concorrência',
       icon: <span role="img" aria-label="Concorrência" style={{fontSize: 48}}>🔍</span>, 
       onClick: () => window.location.href = '/admin/dados-concorrencia'
-    },          
+    },
+            
     {
       title: 'Mudar para Layout Base',
       icon: <span role="img" aria-label="Layout" style={{fontSize: 48}}>📱</span>, 

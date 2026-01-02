@@ -32,6 +32,7 @@ export const DotOperacionalMenu: React.FC = () => {
     '👤'
   ) : '👤';
   const items: MenuGridItem[] = [
+    // Dashboard
     {
       title: 'Dashboard',
       icon: <span role="img" aria-label="Dashboard" style={{fontSize: 48}}>🏠</span>, 
@@ -40,6 +41,39 @@ export const DotOperacionalMenu: React.FC = () => {
         window.location.href = '/dot-operacional/dashboard';
       }
     },
+    
+    // Plano de Visitas
+    {
+      title: 'Nova Visita',
+      icon: <span role="img" aria-label="Nova" style={{fontSize: 48}}>➕</span>,
+      onClick: () => window.location.href = '/dot-operacional/select-visit-type'
+    },
+    {
+      title: 'Plano de Ação',
+      icon: <span role="img" aria-label="Plano" style={{fontSize: 48}}>🔄</span>, 
+      onClick: () => window.location.href = '/dot-operacional/actions'
+    },
+    
+    // Ferramentas
+    {
+      title: 'Contacto Admin',
+      icon: <span role="img" aria-label="Contacto" style={{fontSize: 48}}>💬</span>, 
+      onClick: () => window.location.href = '/dot-operacional/contact-admin'
+    },
+    
+    // Relatórios
+    {
+      title: 'Indicadores',
+      icon: <span role="img" aria-label="Indicadores" style={{fontSize: 48}}>📊</span>, 
+      onClick: () => window.location.href = '/dot-operacional/reports'
+    },
+    {
+      title: 'Analítica',
+      icon: <span role="img" aria-label="Analítica" style={{fontSize: 48}}>📈</span>, 
+      onClick: () => window.location.href = '/dot-operacional/analytics'
+    },
+    
+    // Recursos
     {
       title: 'Planta Layout',
       icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
@@ -49,11 +83,6 @@ export const DotOperacionalMenu: React.FC = () => {
       title: 'Dados da Loja',
       icon: <span role="img" aria-label="Loja" style={{fontSize: 48}}>🏬</span>,
       onClick: () => window.location.href = '/dot-operacional/dados-da-loja'
-    },
-    {
-      title: 'Nova Visita',
-      icon: <span role="img" aria-label="Nova" style={{fontSize: 48}}>➕</span>,
-      onClick: () => window.location.href = '/dot-operacional/select-visit-type'
     },
     {
       title: 'Manual de Especialista',
@@ -69,11 +98,6 @@ export const DotOperacionalMenu: React.FC = () => {
       title: 'Estudo de Mercado',
       icon: <span role="img" aria-label="Globo" style={{fontSize: 48}}>🌐</span>, 
       onClick: () => window.location.href = '/dot-operacional/estudo-mercado'
-    },
-    {
-      title: 'Indicadores',
-      icon: <span role="img" aria-label="Indicadores" style={{fontSize: 48}}>📊</span>, 
-      onClick: () => window.location.href = '/dot-operacional/reports'
     },
     {
       title: 'Book Negócio',

@@ -32,6 +32,7 @@ export const DOTTeamLeaderMenu: React.FC = () => {
     '👤'
   ) : '👤';
   const items: MenuGridItem[] = [
+    // Dashboard
     {
       title: 'Dashboard',
       icon: <span role="img" aria-label="Dashboard" style={{fontSize: 48}}>🏠</span>, 
@@ -40,6 +41,49 @@ export const DOTTeamLeaderMenu: React.FC = () => {
         window.location.href = '/dot-team-leader/dashboard';
       }
     },
+    
+    // Plano de Visitas
+    {
+      title: 'Selecionar Nova Visita',
+      icon: <span role="img" aria-label="Utilizadores" style={{fontSize: 48}}>👥</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/select-new-visit'
+    },
+    {
+      title: 'Histórico',
+      icon: <span role="img" aria-label="Histórico" style={{fontSize: 48}}>📋</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/history'
+    },
+    {
+      title: 'Plano de Ação',
+      icon: <span role="img" aria-label="Plano" style={{fontSize: 48}}>🔄</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/actions'
+    },
+    
+    // Ferramentas
+    {
+      title: 'Importar CSV',
+      icon: <span role="img" aria-label="Upload" style={{fontSize: 48}}>📤</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/import-visitas'
+    },
+    {
+      title: 'Contacto Admin',
+      icon: <span role="img" aria-label="Contacto" style={{fontSize: 48}}>💬</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/contact-admin'
+    },
+    
+    // Relatórios
+    {
+      title: 'Indicadores',
+      icon: <span role="img" aria-label="Indicadores" style={{fontSize: 48}}>📊</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/reports'
+    },
+    {
+      title: 'Analítica',
+      icon: <span role="img" aria-label="Analítica" style={{fontSize: 48}}>📈</span>, 
+      onClick: () => window.location.href = '/dot-team-leader/analytics'
+    },
+    
+    // Recursos
     {
       title: 'Planta Layout',
       icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
@@ -49,26 +93,6 @@ export const DOTTeamLeaderMenu: React.FC = () => {
       title: 'Dados da Loja',
       icon: <span role="img" aria-label="Loja" style={{fontSize: 48}}>🏬</span>,
       onClick: () => window.location.href = '/dot-team-leader/dados-da-loja'
-    },
-    {
-      title: 'Importar CSV',
-      icon: <span role="img" aria-label="Upload" style={{fontSize: 48}}>📤</span>, 
-      onClick: () => window.location.href = '/dot-team-leader/import-visitas'
-    },
-    {
-      title: 'Selecionar Nova Visita',
-      icon: <span role="img" aria-label="Utilizadores" style={{fontSize: 48}}>👥</span>, 
-      onClick: () => window.location.href = '/dot-team-leader/select-new-visit'
-    },
-    {
-      title: 'Indicadores',
-      icon: <span role="img" aria-label="Indicadores" style={{fontSize: 48}}>📊</span>, 
-      onClick: () => window.location.href = '/dot-team-leader/reports'
-    },
-    {
-      title: 'Analítica',
-      icon: <span role="img" aria-label="Analítica" style={{fontSize: 48}}>📈</span>, 
-      onClick: () => window.location.href = '/analytics'
     },
     {
       title: 'Manual de Especialista',

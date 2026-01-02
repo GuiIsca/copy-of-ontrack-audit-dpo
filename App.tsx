@@ -218,6 +218,16 @@ const App: React.FC = () => {
                 <Reports />
             </ProtectedRoute>
         } />
+        <Route path="/dot-operacional/actions" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <ActionsList />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/contact-admin" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <AderenteContactAdmin />
+            </ProtectedRoute>
+        } />
         <Route path="/dot-operacional/import-visitas" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
                 <DOTTeamLeaderImportTasksCSV />
@@ -329,6 +339,16 @@ const App: React.FC = () => {
                 <AderenteContactAdmin />
             </ProtectedRoute>
         } />
+        <Route path="/aderente/reports" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <Reports />
+            </ProtectedRoute>
+        } />
+        <Route path="/aderente/inventario" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <Inventario />
+            </ProtectedRoute>
+        } />
         <Route path="/dot-team-leader/dashboard" element={
             <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
                 {localStorage.getItem('layoutMode') === '2' ? <DOTTeamLeaderMenu /> : <DOTTeamLeaderDashboard />}
@@ -360,8 +380,48 @@ const App: React.FC = () => {
                 <Reports />
             </ProtectedRoute>
         } />
+        <Route path="/dot-team-leader/history" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <AuditList />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/actions" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <ActionsList />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/contact-admin" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <AderenteContactAdmin />
+            </ProtectedRoute>
+        } />
         <Route path="/analytics" element={
             <ProtectedRoute requireRole={canViewAnalytics}>
+                <Analytics />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/analytics" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <Analytics />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-team-leader/analytics" element={
+            <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
+                <Analytics />
+            </ProtectedRoute>
+        } />
+        <Route path="/dot-operacional/analytics" element={
+            <ProtectedRoute requireRole={canAccessDOTDashboard}>
+                <Analytics />
+            </ProtectedRoute>
+        } />
+        <Route path="/aderente/analytics" element={
+            <ProtectedRoute requireRole={canAccessAderenteDashboard}>
+                <Analytics />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/analytics" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
                 <Analytics />
             </ProtectedRoute>
         } />
@@ -425,6 +485,16 @@ const App: React.FC = () => {
         <Route path="/admin/reports" element={
             <ProtectedRoute requireRole={canAccessAdminDashboard}>
                 <Reports />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/history" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <AuditList />
+            </ProtectedRoute>
+        } />
+        <Route path="/admin/actions" element={
+            <ProtectedRoute requireRole={canAccessAdminDashboard}>
+                <ActionsList />
             </ProtectedRoute>
         } />
         <Route path="/admin/contact-messages" element={
@@ -560,6 +630,11 @@ const App: React.FC = () => {
                 <PlantaLayout />
             </ProtectedRoute>
         } />
+        <Route path="/amont/specialist-manuals" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <SpecialistManuals />
+            </ProtectedRoute>
+        } />
         
         {/* Legacy Routes for backward compatibility */}
         <Route path="/specialist-manuals" element={
@@ -601,6 +676,11 @@ const App: React.FC = () => {
         <Route path="/amont/audit/:id" element={
             <ProtectedRoute requireRole={canAccessAmontDashboard}>
                 <DotOperacionalAuditView />
+            </ProtectedRoute>
+        } />
+        <Route path="/amont/contact-admin" element={
+            <ProtectedRoute requireRole={canAccessAmontDashboard}>
+                <AderenteContactAdmin />
             </ProtectedRoute>
         } />
         

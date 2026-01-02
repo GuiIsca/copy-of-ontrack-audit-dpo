@@ -32,6 +32,7 @@ export const AderenteMenu: React.FC = () => {
     '👤'
   ) : '👤';
   const items: MenuGridItem[] = [
+    // Dashboard
     {
       title: 'Dashboard',
       icon: <span role="img" aria-label="Dashboard" style={{fontSize: 48}}>🏠</span>, 
@@ -40,6 +41,8 @@ export const AderenteMenu: React.FC = () => {
         window.location.href = '/aderente/dashboard';
       }
     },
+    
+    // Plano de Visitas
     {
       title: 'Nova visita',
       icon: <span role="img" aria-label="Nova" style={{fontSize: 48}}>➕</span>, 
@@ -60,11 +63,27 @@ export const AderenteMenu: React.FC = () => {
       icon: <span role="img" aria-label="Plano" style={{fontSize: 48}}>🔄</span>,
       onClick: () => window.location.href = '/aderente/actions'
     },
+    
+    // Ferramentas
     {
       title: 'Contacto Admin',
       icon: <span role="img" aria-label="Contacto" style={{fontSize: 48}}>👥</span>,
       onClick: () => window.location.href = '/aderente/contact-admin'
     },
+    
+    // Relatórios
+    {
+      title: 'Indicadores',
+      icon: <span role="img" aria-label="Indicadores" style={{fontSize: 48}}>📊</span>, 
+      onClick: () => window.location.href = '/aderente/reports'
+    },
+    {
+      title: 'Analítica',
+      icon: <span role="img" aria-label="Analítica" style={{fontSize: 48}}>📈</span>, 
+      onClick: () => window.location.href = '/aderente/analytics'
+    },
+    
+    // Recursos
     {
       title: 'Manual de Especialista',
       icon: <span role="img" aria-label="Manual" style={{fontSize: 48}}>📚</span>, 
@@ -74,6 +93,11 @@ export const AderenteMenu: React.FC = () => {
       title: 'Book Negócio',
       icon: <span role="img" aria-label="Negócio" style={{fontSize: 48}}>📊</span>, 
       onClick: () => window.location.href = '/aderente/book-negocio'
+    },
+    {
+      title: 'Inventário',
+      icon: <span role="img" aria-label="Inventário" style={{fontSize: 48}}>📦</span>, 
+      onClick: () => window.location.href = '/aderente/inventario'
     },
     {
       title: 'Dados da Concorrência',

@@ -32,6 +32,7 @@ export const AmontMenu: React.FC = () => {
     '👤'
   ) : '👤';
   const items: MenuGridItem[] = [
+    // Dashboard
     {
       title: 'Dashboard',
       icon: <span role="img" aria-label="Dashboard" style={{fontSize: 48}}>🏠</span>, 
@@ -40,11 +41,29 @@ export const AmontMenu: React.FC = () => {
         window.location.href = '/amont/dashboard';
       }
     },
+    
+    // Plano de Visitas
     {
       title: 'Nova Auditoria',
       icon: <span role="img" aria-label="Nova" style={{fontSize: 48}}>➕</span>, 
       onClick: () => window.location.href = '/amont/new-audit'
     },
+    
+    // Ferramentas
+    {
+      title: 'Contacto Admin',
+      icon: <span role="img" aria-label="Contacto" style={{fontSize: 48}}>💬</span>, 
+      onClick: () => window.location.href = '/amont/contact-admin'
+    },
+    
+    // Relatórios
+    {
+      title: 'Analítica',
+      icon: <span role="img" aria-label="Analítica" style={{fontSize: 48}}>📈</span>, 
+      onClick: () => window.location.href = '/amont/analytics'
+    },
+    
+    // Recursos
     {
       title: 'Planta Layout',
       icon: <span role="img" aria-label="Planta" style={{fontSize: 48}}>📐</span>, 
@@ -54,6 +73,11 @@ export const AmontMenu: React.FC = () => {
       title: 'Dados da Loja',
       icon: <span role="img" aria-label="Loja" style={{fontSize: 48}}>🏬</span>,
       onClick: () => window.location.href = '/amont/dados-da-loja'
+    },
+    {
+      title: 'Manuais de Especialista',
+      icon: <span role="img" aria-label="Manual" style={{fontSize: 48}}>📚</span>, 
+      onClick: () => window.location.href = '/amont/specialist-manuals'
     },
     {
       title: 'Folhetos',
