@@ -1220,6 +1220,13 @@ export const AuditExecution: React.FC = () => {
                                     type="date"
                                     className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none"
                                     value={sectionDueDates[evalKey] || ''}
+                                    min={(() => {
+                                      const now = new Date();
+                                      now.setHours(0,0,0,0);
+                                      const offset = now.getTimezoneOffset();
+                                      now.setMinutes(now.getMinutes() - offset);
+                                      return now.toISOString().split('T')[0];
+                                    })()}
                                     onChange={(e) => handleSectionFieldChange(evalKey as any, 'due_date', e.target.value)}
                                     onBlur={() => handleSaveSectionEvaluation(currentSection.id, prefix, items)}
                                   />
