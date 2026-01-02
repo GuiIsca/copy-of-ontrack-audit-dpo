@@ -1566,7 +1566,10 @@ export const AuditExecution: React.FC = () => {
 
               {currentSectionIndex < checklist.sections.length - 1 ? (
                    <Button 
-                    onClick={() => setCurrentSectionIndex(Math.min(checklist.sections.length - 1, currentSectionIndex + 1))}
+                    onClick={() => {
+                      setCurrentSectionIndex(Math.min(checklist.sections.length - 1, currentSectionIndex + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     className="flex-1 sm:flex-none"
                    >
                     <span className="hidden sm:inline">Próximo</span> <ChevronRight className="ml-1" size={18} />
