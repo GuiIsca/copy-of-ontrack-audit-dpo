@@ -192,6 +192,13 @@ export const DOTTeamLeaderNewVisit: React.FC = () => {
                 <input
                   type="date"
                   value={date}
+                  min={(() => {
+                    const now = new Date();
+                    now.setHours(0,0,0,0);
+                    const offset = now.getTimezoneOffset();
+                    now.setMinutes(now.getMinutes() - offset);
+                    return now.toISOString().split('T')[0];
+                  })()}
                   onChange={(e) => setDate(e.target.value)}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires"
