@@ -43,7 +43,13 @@ class DatabaseAdapter {
   }
 
   async updateUser(user: User): Promise<void> {
-    await api.updateUser(user.id, user);
+    // Convert assignedStores to assigned_stores for backend compatibility
+    const userData: any = { ...user };
+    if ('assignedStores' in userData) {
+      userData.assigned_stores = userData.assignedStores;
+      delete userData.assignedStores;
+    }
+    await api.updateUser(user.id, userData);
   }
 
   async deleteUser(userId: number): Promise<void> {
@@ -51,7 +57,8 @@ class DatabaseAdapter {
   }
 
   async assignDOTOperacionalToStore(storeId: number, dotOperacionalId: number): Promise<void> {
-    await api.updateStore(storeId, { dotUserId: dotOperacionalId });
+    // Enviar o campo correto para o backend
+    await api.updateStore(storeId, { dot_operacional_id: dotOperacionalId });
   }
 
   // Legacy alias for backward compatibility
@@ -60,7 +67,7 @@ class DatabaseAdapter {
   }
 
   async assignAderenteToStore(storeId: number, aderenteId: number): Promise<void> {
-    await api.updateStore(storeId, { aderenteId });
+    await api.updateStore(storeId, { aderente_id: aderenteId });
   }
 
   // ============ STORES ============

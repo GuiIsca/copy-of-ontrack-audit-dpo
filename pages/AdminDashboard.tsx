@@ -1,3 +1,38 @@
+
+import React, { useMemo, useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Header } from '../components/layout/Header';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { db } from '../services/dbAdapter';
+import { Store, User, UserRole } from '../types';
+import { Download, Upload, Users as UsersIcon, Store as StoreIcon, Settings, PlusCircle, CheckCircle, AlertCircle, KeyRound, Mail, ChevronDown, ChevronRight, Edit2, Save, X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+
+const useQuery = () => new URLSearchParams(useLocation().search);
+  // Função para download do template de importação de aderente
+  const downloadAderenteTemplate = (users: User[], stores: Store[]) => {
+
+    // Lojas sem aderente
+    const availableStores = stores.filter(s => !s.aderente_id && !s.aderenteId);
+
+
+    let comment = '\n# Lojas disponíveis (sem aderente):\n';
+    comment += availableStores.map(store => `# ${store.numero || ''} - ${store.nome || ''}`).join('\n');
+
+    const headers = ['nome', 'email','numero_loja'];
+    const example = ['João Silva', 'joao@exemplo.com', availableStores[0]?.numero || ''];
+    const template = `${comment}\n${headers.join(';')}\n${example.join(';')}`;
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'template_aderente.csv';
+    link.click();
+  };
+  // ...existing code...
+  // Exemplo de botão para download do template de aderente (coloque onde preferir na UI):
+  // <Button onClick={() => downloadAderenteTemplate(users, stores)}>Download template aderente</Button>
   // Função para download do template de lojas
   const downloadStoreTemplate = () => {
     const headers = [
@@ -64,19 +99,6 @@ const downloadDotTeamLeaderTemplate = () => {
   link.download = 'template_dot_team_leaders.csv';
   link.click();
 };
-import React, { useMemo, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Header } from '../components/layout/Header';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { db } from '../services/dbAdapter';
-import { Store, User, UserRole } from '../types';
-import { Download, Upload, Users as UsersIcon, Store as StoreIcon, Settings, PlusCircle, CheckCircle, AlertCircle, KeyRound, Mail, ChevronDown, ChevronRight, Edit2, Save, X } from 'lucide-react';
-import { Trash2 } from 'lucide-react';
-import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-
-const useQuery = () => new URLSearchParams(useLocation().search);
-
 // --- Edit User Modal ---
 interface EditUserModalProps {
   user: User | null;
@@ -448,7 +470,16 @@ export const AdminDashboard: React.FC = () => {
   const [dotForm, setDotForm] = useState({ email: '', fullname: '', dotTeamLeaderId: '' as string });
   const [aderenteForm, setAderenteForm] = useState({ email: '', fullname: '', storeId: '' as string, dotId: '' as string });
   const [amontForm, setAmontForm] = useState({ email: '', fullname: '' });
-  const [storeForm, setStoreForm] = useState({ brand: 'Intermarché', size: 'Super', nome: '', dotUserId: '' as string, aderenteId: '' as string });
+  const [storeForm, setStoreForm] = useState({
+    brand: 'Intermarché',
+    size: 'Super',
+    nome: '',
+    dotUserId: '' as string,
+    aderenteId: '' as string,
+    lugares_estacionamento: '',
+    pac: false,
+    servicos_disponiveis: '' // string separada por vírgulas
+  });
 
   const clearFeedback = () => { setFeedback(''); setErrorMsg(''); };
 
@@ -496,9 +527,12 @@ export const AdminDashboard: React.FC = () => {
         payload.assignedStores = [storeId];
       }
 
-      await db.createUser(payload);
-      // Legacy assignment removed in favor of assignedStores
-      
+      // Cria o aderente
+      const newUser = await db.createUser(payload);
+      // Se uma loja foi selecionada, atualiza a loja com o novo aderente
+      if (storeId && newUser && newUser.id) {
+        await db.assignAderenteToStore(storeId, newUser.id);
+      }
       setAderenteForm({ email: '', fullname: '', storeId: '', dotId: '' });
       setFeedback('Aderente criado com sucesso');
       await refresh();
@@ -554,23 +588,20 @@ export const AdminDashboard: React.FC = () => {
       if (storeForm.conjugue_adh) payload.conjugue_adh = storeForm.conjugue_adh;
       if (storeForm.dotUserId) payload.dot_operacional_id = Number(storeForm.dotUserId);
       if (storeForm.aderenteId) payload.aderente_id = Number(storeForm.aderenteId);
+      // Novos campos opcionais
+      if (storeForm.lugares_estacionamento) payload.lugares_estacionamento = Number(storeForm.lugares_estacionamento);
+      if (storeForm.pac !== undefined) payload.pac = !!storeForm.pac;
+      if (storeForm.servicos_disponiveis) payload.servicos_disponiveis = storeForm.servicos_disponiveis.split(',').map((s: string) => s.trim()).filter(Boolean);
       await db.createStore(payload);
       setStoreForm({
-        numero: '',
+        brand: 'Intermarché',
+        size: 'Super',
         nome: '',
-        formato: '',
-        area: '',
-        telefone: '',
-        situacao_pdv: '',
-        data_abertura: '',
-        ultima_retoma: '',
-        distrito: '',
-        amplitude_horaria: '',
-        morada: '',
-        codigo_postal: '',
-        conjugue_adh: '',
         dotUserId: '',
-        aderenteId: ''
+        aderenteId: '',
+        lugares_estacionamento: '',
+        pac: false,
+        servicos_disponiveis: ''
       });
       setFeedback('Loja criada com sucesso');
       await refresh();
@@ -581,44 +612,58 @@ export const AdminDashboard: React.FC = () => {
 
   const handleChangeStoreDot = async (storeId: number, dotUserId: number) => {
     clearFeedback();
-    try { await db.assignDOTToStore(storeId, dotUserId); setFeedback('DOT atribuído à loja'); await refresh(); } catch (e: any) { setErrorMsg(e.message || 'Erro na atribuição'); }
+    console.log('[DOT ASSIGN] Store ID:', storeId, 'DOT User ID:', dotUserId);
+    try {
+      const result = await db.assignDOTToStore(storeId, dotUserId);
+      console.log('[DOT ASSIGN] Result from db.assignDOTToStore:', result);
+      setFeedback('DOT atribuído à loja');
+      await refresh();
+    } catch (e: any) {
+      console.error('[DOT ASSIGN] Error:', e);
+      setErrorMsg(e.message || 'Erro na atribuição');
+    }
   };
 
+  const [aderenteLoadingStoreId, setAderenteLoadingStoreId] = useState<number|null>(null);
   const handleAddAderenteToStore = async (storeId: number, userId: number) => {
     if (!userId) return;
     clearFeedback();
+    setAderenteLoadingStoreId(storeId);
     try {
       const user = users.find(u => u.id === userId);
-      if (!user) return;
-      
+      if (!user) { setAderenteLoadingStoreId(null); return; }
+      // 1. Update user.assignedStores
       const newStores = [...(user.assignedStores || []), storeId];
-      // Ensure unique
       const unique = [...new Set(newStores)];
-      
       await db.updateUser({ ...user, assignedStores: unique });
+      // 2. Update store.aderente_id
+      await db.assignAderenteToStore(storeId, userId);
       setFeedback('Aderente adicionado à loja');
       await refresh();
     } catch (e: any) {
       setErrorMsg(e.message || 'Erro ao adicionar aderente');
+    } finally {
+      setAderenteLoadingStoreId(null);
     }
   };
 
   const handleUnassignAderente = async (storeId: number, user: User) => {
     clearFeedback();
+    setAderenteLoadingStoreId(storeId);
     try {
       const newStores = (user.assignedStores || []).filter(id => id !== storeId);
       await db.updateUser({ ...user, assignedStores: newStores });
-      
       // Also clear legacy if needed
       const store = stores.find(s => s.id === storeId);
       if (store && (store.aderente_id === user.id || store.aderenteId === user.id)) {
          await db.assignAderenteToStore(storeId, null as any);
       }
-      
       setFeedback('Aderente removido da loja');
       await refresh();
     } catch (e: any) {
       setErrorMsg(e.message || 'Erro ao remover aderente');
+    } finally {
+      setAderenteLoadingStoreId(null);
     }
   };
 
@@ -682,7 +727,11 @@ export const AdminDashboard: React.FC = () => {
   const [importResult, setImportResult] = useState<{created:number;errors:number}|null>(null);
   const [importBusy, setImportBusy] = useState(false);
 
-  const parseCsvText = (text: string) => text.split('\n').filter(l => l.trim());
+  const parseCsvText = (text: string) =>
+    text
+      .split('\n')
+      .map(line => line.replace(/^\uFEFF/, '').trim())
+      .filter(line => line && !line.startsWith('#'));
   const downloadDotTemplate = () => {
     // Pega os Team Leaders atuais
     const teamLeaders = users.filter(u => u.roles.includes(UserRole.DOT_TEAM_LEADER));
@@ -699,7 +748,6 @@ export const AdminDashboard: React.FC = () => {
     link.download = 'template_dots.csv';
     link.click();
   };
-  const downloadAderenteTemplate = () => { const template = `email;fullname;dot_email\n`+`aderente100@intermarche.pt;Joana Lopes;dot1@mousquetaires.com\n`+`aderente101@intermarche.pt;Paulo Reis;`; const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'template_aderentes.csv'; link.click(); };
   const downloadStoreTemplate = () => {
     // All required/optional fields for store import
     const headers = [
@@ -745,43 +793,88 @@ export const AdminDashboard: React.FC = () => {
     link.click();
   };
 
-  const importDOTs = async () => { if (!dotCsv) return; clearFeedback(); setImportBusy(true); setImportResult(null); try { const text = await dotCsv.text(); const lines = parseCsvText(text); const rows = lines.slice(1); let created = 0, errors = 0; const usersNow = await db.getUsers(); for (const line of rows) { const cols = line.split(';').map(c => c.trim()); if (cols.length < 3) { errors++; continue; } const [email, fullname, dot_team_leader_email] = cols; const leader = usersNow.find(u => u.email === dot_team_leader_email && u.roles.includes(UserRole.DOT_TEAM_LEADER)); if (!leader) { errors++; continue; } try { await db.createUser({ email, fullname, roles: [UserRole.DOT_OPERACIONAL], dotTeamLeaderId: leader.id, assignedStores: [] } as any); created++; } catch { errors++; } } setImportResult({ created, errors }); await refresh(); } finally { setImportBusy(false); } };
-  const importAderentes = async () => { 
-    if (!aderenteCsv) return; 
-    clearFeedback(); 
-    setImportBusy(true); 
-    setImportResult(null); 
-    try { 
-      const text = await aderenteCsv.text(); 
-      const lines = parseCsvText(text); 
-      const rows = lines.slice(1); 
-      let created = 0, errors = 0; 
-      const storesNow = await db.getStores(); 
+  const importDOTs = async () => {
+    if (!dotCsv) return;
+    clearFeedback();
+    setImportBusy(true);
+    setImportResult(null);
+    try {
+      const text = await dotCsv.text();
+      const lines = parseCsvText(text);
+      if (!lines.length) {
+        setImportResult({ created: 0, errors: 0 });
+        return;
+      }
+
+      // Detect separator (accept ';' or ',') using header
+      const header = lines[0];
+      const sep = header.includes(';') ? ';' : ',';
+      const rows = lines.slice(1);
+      let created = 0, errors = 0;
       const usersNow = await db.getUsers();
-      
-      for (const line of rows) { 
-        const cols = line.split(';').map(c => c.trim()); 
-        if (cols.length < 2) { errors++; continue; } 
-        const [email, fullname, dot_email] = cols; 
-        
-        try { 
+
+      for (const line of rows) {
+        const cols = line.split(sep).map(c => c.trim());
+        if (cols.length < 3) { errors++; continue; }
+        const [email, fullname, dot_team_leader_email] = cols;
+        const leader = usersNow.find(u => u.email === dot_team_leader_email && u.roles.includes(UserRole.DOT_TEAM_LEADER));
+        if (!leader) { errors++; continue; }
+        try {
+          await db.createUser({ email, fullname, roles: [UserRole.DOT_OPERACIONAL], dotTeamLeaderId: leader.id, assignedStores: [] } as any);
+          created++;
+        } catch {
+          errors++;
+        }
+      }
+      setImportResult({ created, errors });
+      await refresh();
+    } finally {
+      setImportBusy(false);
+    }
+  };
+  const importAderentes = async () => {
+    if (!aderenteCsv) return;
+    clearFeedback();
+    setImportBusy(true);
+    setImportResult(null);
+    try {
+      const text = await aderenteCsv.text();
+      const lines = parseCsvText(text);
+      const rows = lines.slice(1); // ignore header
+      let created = 0, errors = 0;
+      const storesNow = await db.getStores();
+      const usersNow = await db.getUsers();
+
+      for (const line of rows) {
+        const cols = line.split(';').map(c => c.trim());
+        if (cols.length < 2) { errors++; continue; }
+        const [email, fullname, storeCode] = cols;
+
+        try {
           const payload: any = { email, fullname, roles: [UserRole.ADERENTE] };
-          
-          // Find DOT if provided
-          if (dot_email) {
-            const dot = usersNow.find(u => u.email === dot_email && u.roles.includes(UserRole.DOT_OPERACIONAL));
-            if (dot) payload.dotTeamLeaderId = dot.id;
+
+          // Criar aderente
+          const newUser = await db.createUser(payload);
+
+          // Opcional: associar loja pelo numero (codehex)
+          if (storeCode) {
+            const store = storesNow.find(s => `${s.numero}` === storeCode || `${s.id}` === storeCode);
+            if (store && newUser?.id) {
+              await db.assignAderenteToStore(store.id, newUser.id);
+              await db.updateUser({ ...newUser, assignedStores: [store.id] });
+            }
           }
 
-          // Não há mais store_codehex, só dot_email
-          
-          await db.createUser(payload); 
-          created++; 
-        } catch { errors++; } 
-      } 
-      setImportResult({ created, errors }); 
-      await refresh(); 
-    } finally { setImportBusy(false); } 
+          created++;
+        } catch {
+          errors++;
+        }
+      }
+      setImportResult({ created, errors });
+      await refresh();
+    } finally {
+      setImportBusy(false);
+    }
   };
 
   const importStores = async () => {
@@ -956,20 +1049,11 @@ export const AdminDashboard: React.FC = () => {
                   <div className="space-y-2">
                     <Input placeholder="Nome" value={aderenteForm.fullname} onChange={e=>setAderenteForm({...aderenteForm,fullname:e.target.value})} />
                     <Input placeholder="Email" value={aderenteForm.email} onChange={e=>setAderenteForm({...aderenteForm,email:e.target.value})} />
-                    <select className="w-full border rounded px-2 py-2 text-sm" value={aderenteForm.dotId} onChange={e=>setAderenteForm({...aderenteForm,dotId:e.target.value})}>
-                      <option value="">Selecione DOT Operacional (opcional)</option>
-                      {users.filter(u=>u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d=><option key={d.id} value={d.id}>{d.fullname}</option>)}
-                    </select>
                     <select className="w-full border rounded px-2 py-2 text-sm" value={aderenteForm.storeId} onChange={e=>setAderenteForm({...aderenteForm,storeId:e.target.value})}>
                       <option value="">Selecione Loja (opcional)</option>
-                      {stores.map(s => {
-                        const isOccupied = s.aderente_id || s.aderenteId;
-                        return (
-                          <option key={s.id} value={s.id} disabled={!!isOccupied}>
-                            {s.nome} {isOccupied ? '(Ocupada)' : ''}
-                          </option>
-                        );
-                      })}
+                      {stores.filter(s => !s.aderente_id && !s.aderenteId).map(s => (
+                        <option key={s.id} value={s.id}>{s.nome}</option>
+                      ))}
                     </select>
                     <Button size="sm" fullWidth onClick={handleCreateAderente}>Criar</Button>
                   </div>
@@ -1185,8 +1269,8 @@ export const AdminDashboard: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">DOT Operacional (opcional)</label>
                   <select className="w-full border rounded px-3 py-2 text-sm" value={storeForm.dotUserId} onChange={e=>setStoreForm({...storeForm,dotUserId:e.target.value})}>
                     <option value="">—</option>
-                    {/* Só DOTs que não estão já atribuídos a uma loja (dot_user_id) */}
-                    {users.filter(u => u.roles.includes(UserRole.DOT_OPERACIONAL) && !stores.some(s => (s.dot_user_id || s.dotUserId) === u.id)).map(d => (
+                    {/* Permitir selecionar qualquer DOT Operacional (só um por loja) */}
+                    {users.filter(u => u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d => (
                       <option key={d.id} value={d.id}>{d.fullname}</option>
                     ))}
                   </select>
@@ -1195,14 +1279,26 @@ export const AdminDashboard: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Aderente (opcional)</label>
                   <select className="w-full border rounded px-3 py-2 text-sm" value={storeForm.aderenteId} onChange={e=>setStoreForm({...storeForm,aderenteId:e.target.value})}>
                     <option value="">—</option>
-                    {/* Só aderentes que não têm loja atribuída (nem por assignedStores nem por aderente_id) */}
+                    {/* Só aderentes que não têm nenhuma loja atribuída (nem por assignedStores nem por aderente_id/aderenteId em qualquer loja) */}
                     {users.filter(u => u.roles.includes(UserRole.ADERENTE) &&
-                      !u.assignedStores?.length &&
+                      (!u.assignedStores || u.assignedStores.length === 0) &&
                       !stores.some(s => (s.aderente_id || s.aderenteId) === u.id)
                     ).map(a => (
                       <option key={a.id} value={a.id}>{a.fullname}</option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lugares de Estacionamento (opcional)</label>
+                  <Input type="number" value={storeForm.lugares_estacionamento} onChange={e=>setStoreForm({...storeForm, lugares_estacionamento: e.target.value})} min={0} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="pac" checked={storeForm.pac} onChange={e=>setStoreForm({...storeForm, pac: e.target.checked})} />
+                  <label htmlFor="pac" className="text-sm font-medium text-gray-700">PAC (opcional)</label>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Serviços Disponíveis (opcional, separar por vírgula)</label>
+                  <Input value={storeForm.servicos_disponiveis} onChange={e=>setStoreForm({...storeForm, servicos_disponiveis: e.target.value})} placeholder="Ex: Lavandaria, Cacifos, ATM" />
                 </div>
               </div>
               <div className="mt-3"><Button onClick={handleCreateStore}>Criar Loja</Button></div>
@@ -1233,29 +1329,44 @@ export const AdminDashboard: React.FC = () => {
                           <td className="px-3 py-2 whitespace-nowrap">
                             <select className="border rounded px-2 py-1 text-sm" value={dotId || ''} onChange={e=>handleChangeStoreDot(s.id, Number(e.target.value))}>
                               <option value="">—</option>
-                              {users.filter(u=>u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d => (<option key={d.id} value={d.id}>{d.fullname}</option>))}
+                              {/* Permitir selecionar qualquer DOT Operacional (só um por loja) */}
+                              {users.filter(u => u.roles.includes(UserRole.DOT_OPERACIONAL)).map(d => (
+                                <option key={d.id} value={d.id}>{d.fullname}</option>
+                              ))}
                             </select>
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
-                            <div className="flex flex-col gap-1 min-w-[150px]">
-                              {/* List existing */}
-                              {users.filter(u => u.assignedStores?.includes(s.id) || (u.id === (s.aderente_id || s.aderenteId))).map(u => (
-                                <span key={u.id} className="text-xs bg-gray-100 px-2 py-1 rounded flex justify-between items-center border border-gray-200">
-                                  <span className="truncate max-w-[100px]" title={u.fullname}>{u.fullname}</span>
-                                  <button onClick={() => handleUnassignAderente(s.id, u)} className="ml-1 text-red-500 hover:text-red-700 font-bold">×</button>
-                                </span>
-                              ))}
-                              {/* Add new */}
-                              <select 
-                                className="border rounded px-2 py-1 text-xs mt-1 w-full bg-white" 
-                                value="" 
-                                onChange={e => handleAddAderenteToStore(s.id, Number(e.target.value))}
+                            <div className="min-w-[150px]">
+                              <select
+                                className="border rounded px-2 py-1 text-xs w-full bg-white"
+                                value={adId || ''}
+                                disabled={aderenteLoadingStoreId === s.id}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  if (val === '') {
+                                    const aderenteUser = users.find(u => u.id === adId);
+                                    if (aderenteUser) handleUnassignAderente(s.id, aderenteUser);
+                                  } else {
+                                    handleAddAderenteToStore(s.id, Number(val));
+                                  }
+                                }}
                               >
-                                <option value="">+ Adicionar</option>
-                                {users.filter(u => u.roles.includes(UserRole.ADERENTE) && !u.assignedStores?.includes(s.id) && u.id !== (s.aderente_id || s.aderenteId)).map(a => (
+                                <option value="">—</option>
+                                {ad && (
+                                  <option key={ad.id} value={ad.id}>{ad.fullname}</option>
+                                )}
+                                {users.filter(u =>
+                                  u.roles.includes(UserRole.ADERENTE) &&
+                                  (!u.assignedStores || u.assignedStores.length === 0) &&
+                                  !stores.some(store => (store.aderente_id || store.aderenteId) === u.id) &&
+                                  (!ad || u.id !== ad.id)
+                                ).map(a => (
                                   <option key={a.id} value={a.id}>{a.fullname}</option>
                                 ))}
                               </select>
+                              {aderenteLoadingStoreId === s.id && (
+                                <div className="text-xs text-gray-400 mt-1">A atualizar...</div>
+                              )}
                             </div>
                           </td>
                             <td className="px-3 py-2 whitespace-nowrap">
@@ -1302,7 +1413,7 @@ export const AdminDashboard: React.FC = () => {
               <p className="text-sm text-gray-600 mb-3">Formato: <code>email;fullname;store_codehex;dot_email</code> (loja/dot opcionais).</p>
               <div className="flex items-center gap-3 mb-3">
                 <input type="file" accept=".csv" onChange={e=>setAderenteCsv(e.target.files?.[0]||null)} />
-                <Button size="sm" onClick={downloadAderenteTemplate}><Download className="w-4 h-4 mr-2"/>Template</Button>
+                <Button size="sm" onClick={() => downloadAderenteTemplate(users, stores)}><Download className="w-4 h-4 mr-2"/>Template</Button>
               </div>
               <Button onClick={importAderentes} disabled={!aderenteCsv || importBusy}>Importar Aderentes</Button>
             </div>

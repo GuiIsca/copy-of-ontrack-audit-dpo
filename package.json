@@ -20,9 +20,9 @@
     "lucide-react": "^0.554.0",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.11.3",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-router-dom": "^7.10.1"
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^7.11.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
