@@ -85,6 +85,10 @@ CREATE TABLE audits (
     final_score DECIMAL(5, 2),
     created_by INTEGER NOT NULL REFERENCES users(id),
     visit_source_type VARCHAR(50),
+    pontos_fortes TEXT,
+    pontos_melhorar TEXT,
+    acoes_criticas TEXT,
+    alertas TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

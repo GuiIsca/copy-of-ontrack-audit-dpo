@@ -241,7 +241,10 @@ class DatabaseAdapter {
     let status: AuditStatus;
     let dtend: string | undefined;
     let final_score: number | undefined;
-    let auditorcomments: string | undefined;
+    let pontos_fortes: string | undefined;
+    let pontos_melhorar: string | undefined;
+    let acoes_criticas: string | undefined;
+    let alertas: string | undefined;
 
     if (typeof auditOrId === 'number') {
       // Called with (id, partialData)
@@ -249,14 +252,22 @@ class DatabaseAdapter {
       status = partialData?.status ?? AuditStatus.NEW;
       dtend = partialData?.dtend;
       final_score = partialData?.final_score;
-      auditorcomments = partialData?.auditorcomments;
+      // Try both snake_case and camelCase since API converts to camelCase
+      pontos_fortes = partialData?.pontos_fortes || (partialData as any)?.pontosFortes;
+      pontos_melhorar = partialData?.pontos_melhorar || (partialData as any)?.pontosMelhorar;
+      acoes_criticas = partialData?.acoes_criticas || (partialData as any)?.acoesCriticas;
+      alertas = partialData?.alertas;
     } else {
-      // Called with (audit)
+      // Called with (audit) - may have camelCase keys from API response
       id = auditOrId.id;
       status = auditOrId.status;
       dtend = auditOrId.dtend;
       final_score = auditOrId.final_score;
-      auditorcomments = auditOrId.auditorcomments;
+      // Try both snake_case and camelCase since API converts to camelCase
+      pontos_fortes = auditOrId.pontos_fortes || (auditOrId as any)?.pontosFortes;
+      pontos_melhorar = auditOrId.pontos_melhorar || (auditOrId as any)?.pontosMelhorar;
+      acoes_criticas = auditOrId.acoes_criticas || (auditOrId as any)?.acoesCriticas;
+      alertas = auditOrId.alertas;
     }
 
     let statusStr = 'SCHEDULED';
@@ -275,7 +286,10 @@ class DatabaseAdapter {
       status: statusStr,
       dtend,
       finalScore: final_score,
-      auditorcomments
+      pontos_fortes,
+      pontos_melhorar,
+      acoes_criticas,
+      alertas
     });
   }
 

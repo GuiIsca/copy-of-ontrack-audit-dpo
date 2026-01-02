@@ -40,6 +40,12 @@ export const AuditExecution: React.FC = () => {
   const [sectionActionPlans, setSectionActionPlans] = useState<Record<number | string, string>>({});
   const [sectionResponsible, setSectionResponsible] = useState<Record<number | string, string>>({});
   const [sectionDueDates, setSectionDueDates] = useState<Record<number | string, string>>({});
+  
+  // Final summary page state
+  const [pontosFortes, setPontosFortes] = useState('');
+  const [pontosMelhorar, setPontosMelhorar] = useState('');
+  const [acoesCriticas, setAcoesCriticas] = useState('');
+  const [alertas, setAlertas] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -114,7 +120,6 @@ export const AuditExecution: React.FC = () => {
         
         setCriteriaComments(comments);
         setCriteriaPhotos(photos);
-        setGeneralComments(aud.auditorcomments || '');
         
         // Load section evaluations
         console.log('AuditExecution: Fetching section evaluations');
@@ -148,6 +153,20 @@ export const AuditExecution: React.FC = () => {
         
         console.log('AuditExecution: All data loaded successfully');
         setLoading(false);
+        
+        // Load final summary fields
+        console.log('AuditExecution: Loading summary fields:', {
+          pontos_fortes: aud.pontos_fortes,
+          pontos_melhorar: aud.pontos_melhorar,
+          acoes_criticas: aud.acoes_criticas,
+          alertas: aud.alertas
+        });
+        // Use camelCase properties from API response (converted from snake_case by toCamelCase)
+        setPontosFortes((aud as any).pontosFortes || aud.pontos_fortes || '');
+        setPontosMelhorar((aud as any).pontosMelhorar || aud.pontos_melhorar || '');
+        setAcoesCriticas((aud as any).acoesCriticas || aud.acoes_criticas || '');
+        setAlertas((aud as any).alertas || aud.alertas || '');
+        console.log('AuditExecution: Summary fields set');
       } catch (error) {
         console.error('AuditExecution: Error loading data:', error);
         setLoading(false);
@@ -263,6 +282,14 @@ export const AuditExecution: React.FC = () => {
         const formatted = scaled.toFixed(1);
         // Remove .0 if it's an integer
         return formatted.endsWith('.0') ? Math.round(scaled).toString() : formatted;
+    };
+
+    // Format rating on 0-5 scale (remove .0 for integers)
+    const formatRatingScale = (rating: number): string => {
+        if (rating % 1 === 0) {
+            return Math.floor(rating).toString();
+        }
+        return rating.toFixed(1);
     };
     
     // Determine evaluation type for a criteria (OK_KO vs SCALE_1_5)
@@ -503,13 +530,31 @@ export const AuditExecution: React.FC = () => {
           console.log('handleSave: finalScore =', finalScore);
           const updated = { 
               ...audit, 
-              auditorcomments: generalComments,
               final_score: finalScore,
-              score: finalScore
+              score: finalScore,
+              pontos_fortes: pontosFortes,
+              pontos_melhorar: pontosMelhorar,
+              acoes_criticas: acoesCriticas,
+              alertas: alertas
           };
-          console.log('handleSave: saving audit with score =', finalScore);
-          await db.updateAudit(updated);
-          setAudit(updated);
+          console.log('handleSave: saving audit with:', { 
+              pontos_fortes: pontosFortes, 
+              pontos_melhorar: pontosMelhorar,
+              acoes_criticas: acoesCriticas,
+              alertas: alertas
+          });
+          try {
+              await db.updateAudit(updated);
+              setAudit(updated);
+              setToastType('success');
+              setToastMsg('Auditoria guardada com sucesso');
+              setTimeout(() => setToastMsg(null), 1500);
+          } catch (error) {
+              console.error('Error saving audit:', error);
+              setToastType('error');
+              setToastMsg('Falha ao guardar auditoria');
+              setTimeout(() => setToastMsg(null), 2000);
+          }
       }
   };
 
@@ -527,10 +572,13 @@ export const AuditExecution: React.FC = () => {
           
           const updated = { 
               ...audit,
-              auditorcomments: generalComments,
               final_score: finalScore,
               score: finalScore,
-              status: audit.status // Keep current status (IN_PROGRESS)
+              status: audit.status, // Keep current status (IN_PROGRESS)
+              pontos_fortes: pontosFortes,
+              pontos_melhorar: pontosMelhorar,
+              acoes_criticas: acoesCriticas,
+              alertas: alertas
           };
           
           console.log('  Calling db.updateAudit with:', updated);
@@ -556,7 +604,7 @@ export const AuditExecution: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-            if (!audit) return;
+            if (!audit || !checklist) return;
             
             // Validate that all KO scores have photos
             const koScoresWithoutPhotos: number[] = [];
@@ -578,15 +626,71 @@ export const AuditExecution: React.FC = () => {
             
             try {
                 setSubmitting(true);
+                
+                // Save section evaluations for all sections before submitting
+                console.log('Saving section evaluations before submit...');
+                for (const section of checklist.sections) {
+                    const autoRating = calculateSectionRating(section);
+                    const evalKey = section.id;
+                    
+                    try {
+                        await db.saveSectionEvaluation({
+                            audit_id: audit.id,
+                            section_id: evalKey as any,
+                            rating: autoRating,
+                            action_plan: sectionActionPlans[evalKey],
+                            responsible: sectionResponsible[evalKey] || aderenteName || `Aderente (ID: ${store?.aderente_id})`,
+                            due_date: sectionDueDates[evalKey],
+                            aderente_id: store?.aderente_id,
+                            store_id: store?.id,
+                            created_by: currentUser?.userId
+                        });
+                        console.log(`Saved evaluation for section ${section.id}: rating=${autoRating}`);
+                    } catch (evalError) {
+                        console.error(`Error saving evaluation for section ${section.id}:`, evalError);
+                    }
+                    
+                    // Save subsection evaluations for FRESCOS section (id=3)
+                    if (section.id === 3) {
+                        const subsectionGroups = groupItemsBySubsection(section);
+                        for (const [prefix, items] of Object.entries(subsectionGroups)) {
+                            if (prefix === '_other') continue; // Skip 'other' group
+                            
+                            const subsectionRating = calculateRatingFromItems(items);
+                            const subsectionEvalKey = `${section.id}_${prefix}`;
+                            
+                            try {
+                                await db.saveSectionEvaluation({
+                                    audit_id: audit.id,
+                                    section_id: subsectionEvalKey as any,
+                                    rating: subsectionRating,
+                                    action_plan: sectionActionPlans[subsectionEvalKey],
+                                    responsible: sectionResponsible[subsectionEvalKey] || aderenteName || `Aderente (ID: ${store?.aderente_id})`,
+                                    due_date: sectionDueDates[subsectionEvalKey],
+                                    aderente_id: store?.aderente_id,
+                                    store_id: store?.id,
+                                    created_by: currentUser?.userId
+                                });
+                                console.log(`Saved evaluation for subsection ${subsectionEvalKey}: rating=${subsectionRating}`);
+                            } catch (subsecError) {
+                                console.error(`Error saving evaluation for subsection ${subsectionEvalKey}:`, subsecError);
+                            }
+                        }
+                    }
+                }
+                
                 const isAderenteVisit = (audit as any).visit_source_type === 'ADERENTE_VISIT';
                 const finalScore = Math.round(isAderenteVisit ? calculateAderenteFinalScore() : calculateTotalScore());
                 const updated = { 
                         ...audit, 
                         status: AuditStatus.SUBMITTED,
-                        auditorcomments: generalComments,
                         dtend: new Date().toISOString(),
                     final_score: finalScore,
-                    score: finalScore
+                    score: finalScore,
+                    pontos_fortes: pontosFortes,
+                    pontos_melhorar: pontosMelhorar,
+                    acoes_criticas: acoesCriticas,
+                    alertas: alertas
                 };
                 console.log('Submitting audit update:', { id: audit.id, status: updated.status, dtend: updated.dtend, finalScore });
                 await db.updateAudit(updated);
@@ -650,15 +754,16 @@ export const AuditExecution: React.FC = () => {
       return count === 0 ? 0 : totalScore / count;
   };
 
-  // Calculate automatic section/subsection rating (1-5) based on OK/KO percentage
+  // Calculate automatic section/subsection rating (0-5) based on OK/KO percentage
   const calculateRatingFromItems = (items: typeof currentSection.items): number => {
       const percentage = calculateItemsScore(items);
-      // Convert percentage to 1-5 scale: 0-20% = 1, 20-40% = 2, 40-60% = 3, 60-80% = 4, 80-100% = 5
-      if (percentage >= 80) return 5;
-      if (percentage >= 60) return 4;
-      if (percentage >= 40) return 3;
-      if (percentage >= 20) return 2;
-      return 1;
+      // Convert percentage to 0-5 scale: 0% = 0, 0-20% = 1, 20-40% = 2, 40-60% = 3, 60-80% = 4, 80-100% = 5
+      if (percentage === 0) return 0;
+      if (percentage < 20) return 1;
+      if (percentage < 40) return 2;
+      if (percentage < 60) return 3;
+      if (percentage < 80) return 4;
+      return 5;
   };
 
   const calculateSectionRating = (section: Section): number => {
@@ -670,6 +775,30 @@ export const AuditExecution: React.FC = () => {
       const score = calculateSectionsAverageScore();
       console.log('calculateTotalScore called, returning:', score);
       return score;
+  };
+
+  // Calculate section rating (0-5 scale) based on OK/KO percentage
+  const calculateSectionRatingScale = (section: Section): number => {
+      const percentage = calculateSectionScore(section);
+      // Convert percentage (0-100) to 0-5 scale proportionally
+      return (percentage / 100) * 5;
+  };
+
+  // Calculate total score on 0-5 scale (average of all section ratings)
+  const calculateTotalScaleRating = (): number => {
+      if (!checklist || checklist.sections.length === 0) return 0;
+      let totalRating = 0;
+      let count = 0;
+      
+      checklist.sections.forEach(section => {
+          const sectionRating = calculateSectionRatingScale(section);
+          if (sectionRating !== null && sectionRating !== undefined) {
+              totalRating += sectionRating;
+              count++;
+          }
+      });
+      
+      return count === 0 ? 0 : totalRating / count;
   };
 
   // Calculate final score for Aderente visits based on Section 2 (criteria 22001-22006)
@@ -697,8 +826,14 @@ export const AuditExecution: React.FC = () => {
 
   if (loading || !audit || !checklist || !store) return <div>Loading...</div>;
 
-  const currentSection = checklist.sections[currentSectionIndex];
-  const sectionScore = calculateSectionScore(currentSection);
+  // Check if this is an Aderente visit
+  const isAderenteVisit = (audit as any).visit_source_type === 'ADERENTE_VISIT';
+  
+  // Add a virtual "final summary page" for non-Aderente audits
+  const totalPages = isAderenteVisit ? checklist.sections.length : checklist.sections.length + 1;
+  const isOnFinalSummaryPage = !isAderenteVisit && currentSectionIndex === checklist.sections.length;
+  const currentSection = isOnFinalSummaryPage ? null : checklist.sections[currentSectionIndex];
+  const sectionScore = currentSection ? calculateSectionScore(currentSection) : 0;
   
   // Verificar se pode editar baseado nas permissões
   console.log('AuditExecution: audit.status =', audit.status, 'type =', typeof audit.status);
@@ -706,9 +841,6 @@ export const AuditExecution: React.FC = () => {
   console.log('AuditExecution: canEdit =', canEdit);
     const canSubmit = canSubmitAudit(audit.user_id, audit.status);
   const isReadOnly = !canEdit;
-  
-  // Check if this is an Aderente visit
-  const isAderenteVisit = (audit as any).visit_source_type === 'ADERENTE_VISIT';
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -735,7 +867,125 @@ export const AuditExecution: React.FC = () => {
 
       <main className="flex-1 overflow-y-auto p-4 max-w-4xl mx-auto w-full">
 
-          
+          {/* Final Summary Page for DOT audits (after all sections) */}
+          {isOnFinalSummaryPage ? (
+            <div className="space-y-6">
+              {/* Page Header */}
+              <div className="bg-gradient-to-r from-mousquetaires to-red-700 rounded-xl shadow-md p-6">
+                <h3 className="font-bold text-2xl text-white mb-2">Resumo Final da Auditoria</h3>
+                <p className="text-white text-sm opacity-90">Notas globais e observações finais</p>
+              </div>
+
+              {/* Global Score and Section Scores */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h4 className="font-bold text-lg mb-4 text-gray-800">Notas</h4>
+                
+                {/* Global Score */}
+                <div className="mb-6 pb-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-700 font-semibold">Nota Final Global</span>
+                    <span className={`text-3xl font-bold ${
+                      calculateTotalScaleRating() < 2.5 ? 'text-red-600' 
+                      : calculateTotalScaleRating() < 4 ? 'text-yellow-600' 
+                      : 'text-green-600'
+                    }`}>
+                      {formatRatingScale(calculateTotalScaleRating())}/5
+                    </span>
+                  </div>
+                </div>
+
+                {/* Section Scores */}
+                <div className="space-y-3">
+                  <h5 className="font-semibold text-gray-700 mb-3">Notas por Secção</h5>
+                  {checklist.sections.map((section, idx) => {
+                    const secRating = calculateSectionRatingScale(section);
+                    return (
+                      <div key={idx} className="flex items-center justify-between py-2">
+                        <span className="text-sm text-gray-600">{section.name}</span>
+                        <span className={`text-sm font-bold ${
+                          secRating < 2.5 ? 'text-red-600' 
+                          : secRating < 4 ? 'text-yellow-600' 
+                          : 'text-green-600'
+                        }`}>
+                          {formatRatingScale(secRating)}/5
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Summary Text Fields */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+                <h4 className="font-bold text-lg mb-4 text-gray-800">Observações Finais</h4>
+                
+                {/* Pontos Fortes */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Pontos Fortes
+                  </label>
+                  <textarea
+                    placeholder="Destacar os pontos fortes identificados durante a auditoria..."
+                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-4 py-3 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                    rows={4}
+                    value={pontosFortes}
+                    onChange={(e) => setPontosFortes(e.target.value)}
+                    onBlur={handleSave}
+                    disabled={isReadOnly}
+                  />
+                </div>
+
+                {/* Pontos a Melhorar */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Pontos a Melhorar
+                  </label>
+                  <textarea
+                    placeholder="Identificar áreas que necessitam de melhoria..."
+                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-4 py-3 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                    rows={4}
+                    value={pontosMelhorar}
+                    onChange={(e) => setPontosMelhorar(e.target.value)}
+                    onBlur={handleSave}
+                    disabled={isReadOnly}
+                  />
+                </div>
+
+                {/* Ações Críticas */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Ações Críticas
+                  </label>
+                  <textarea
+                    placeholder="Listar ações críticas que requerem atenção imediata..."
+                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-4 py-3 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                    rows={4}
+                    value={acoesCriticas}
+                    onChange={(e) => setAcoesCriticas(e.target.value)}
+                    onBlur={handleSave}
+                    disabled={isReadOnly}
+                  />
+                </div>
+
+                {/* Alertas */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Alertas
+                  </label>
+                  <textarea
+                    placeholder="Registar alertas importantes ou situações que necessitam acompanhamento..."
+                    className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-4 py-3 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                    rows={4}
+                    value={alertas}
+                    onChange={(e) => setAlertas(e.target.value)}
+                    onBlur={handleSave}
+                    disabled={isReadOnly}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+          <>
           {/* Render all sections for Aderente visits, or single section for DOT audits */}
           {isAderenteVisit ? (
             // Show all sections in one page for Aderente
@@ -1445,9 +1695,9 @@ export const AuditExecution: React.FC = () => {
             </div>
           )}
           </>
-          )}
-
-
+        )}
+      </>
+    )}
 
       </main>
 
@@ -1537,11 +1787,11 @@ export const AuditExecution: React.FC = () => {
 
               <div className="flex items-center gap-3">
                 <div className="text-sm font-medium text-gray-500 whitespace-nowrap">
-                    {currentSectionIndex + 1} / {checklist.sections.length}
+                    {currentSectionIndex + 1} / {totalPages}
                 </div>
                 
-                {/* Save Button - only show if not readonly and not on last section */}
-                {!isReadOnly && currentSectionIndex < checklist.sections.length - 1 && (
+                {/* Save Button - only show if not readonly and not on last page */}
+                {!isReadOnly && currentSectionIndex < totalPages - 1 && (
                   <Button 
                     variant="outline"
                     onClick={handleSaveVisit}
@@ -1564,10 +1814,10 @@ export const AuditExecution: React.FC = () => {
                 </button>
               </div>
 
-              {currentSectionIndex < checklist.sections.length - 1 ? (
+              {currentSectionIndex < totalPages - 1 ? (
                    <Button 
                     onClick={() => {
-                      setCurrentSectionIndex(Math.min(checklist.sections.length - 1, currentSectionIndex + 1));
+                      setCurrentSectionIndex(Math.min(totalPages - 1, currentSectionIndex + 1));
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
                     className="flex-1 sm:flex-none"

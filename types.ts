@@ -113,6 +113,11 @@ export interface Audit {
   score?: number;
   final_score?: number; // Final calculated score
   createdBy?: number; // ID do user que criou (DOT Team Leader ou DOT) - para controlar permissões
+  // Summary fields (final page)
+  pontos_fortes?: string;
+  pontos_melhorar?: string;
+  acoes_criticas?: string;
+  alertas?: string;
 }
 
 export interface Visit {

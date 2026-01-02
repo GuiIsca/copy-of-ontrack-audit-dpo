@@ -117,6 +117,42 @@ export const DOTTeamLeaderAuditView: React.FC = () => {
     }
   };
 
+  // Format rating on 0-5 scale (remove .0 for integers)
+  const formatRatingScale = (rating: number): string => {
+    if (rating % 1 === 0) {
+      return Math.floor(rating).toString();
+    }
+    return rating.toFixed(1);
+  };
+
+  // Calculate section rating (0-5 scale) based on average evaluation rating
+  const calculateSectionRatingScale = (sectionId: number): number => {
+    const evaluationsForSection = sectionEvaluations.filter(e => 
+      String(e.section_id) === String(sectionId) || String(e.section_id).startsWith(String(sectionId) + '_')
+    );
+    if (evaluationsForSection.length === 0) return 0;
+    
+    const avgRating = evaluationsForSection.reduce((sum, e) => sum + (e.rating || 0), 0) / evaluationsForSection.length;
+    return avgRating; // Already in 0-5 scale
+  };
+
+  // Calculate total score on 0-5 scale (average of all section ratings)
+  const calculateTotalScaleRating = (): number => {
+    if (!checklist || checklist.sections.length === 0) return 0;
+    let totalRating = 0;
+    let count = 0;
+    
+    checklist.sections.forEach(section => {
+      const sectionRating = calculateSectionRatingScale(section.id);
+      if (sectionRating !== null && sectionRating !== undefined && sectionRating > 0) {
+        totalRating += sectionRating;
+        count++;
+      }
+    });
+    
+    return count === 0 ? 0 : totalRating / count;
+  };
+
   const getStatusBadge = (status: AuditStatus) => {
     switch(status) {
       case AuditStatus.SUBMITTED:
@@ -403,6 +439,98 @@ export const DOTTeamLeaderAuditView: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* Final Summary (if available) */}
+        {((audit as any).pontosFortes || (audit as any).pontosMelhorar || (audit as any).acoesCriticas || (audit as any).alertas || audit.pontos_fortes || audit.pontos_melhorar || audit.acoes_criticas || audit.alertas) && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+            <div className="p-4 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <FileText size={20} />
+                Resumo Final da Auditoria
+              </h2>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Global Score and Section Scores */}
+              <div>
+                <h4 className="font-bold text-base mb-4 text-gray-800">Notas</h4>
+                
+                {/* Global Score */}
+                <div className="mb-4 pb-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-700 font-semibold">Nota Final Global</span>
+                    <span className={`text-2xl font-bold ${
+                      calculateTotalScaleRating() < 2.5 ? 'text-red-600' 
+                      : calculateTotalScaleRating() < 4 ? 'text-yellow-600' 
+                      : 'text-green-600'
+                    }`}>
+                      {formatRatingScale(calculateTotalScaleRating())}/5
+                    </span>
+                  </div>
+                </div>
+
+                {/* Section Scores */}
+                {sectionEvaluations.length > 0 && checklist && (
+                  <div className="space-y-2">
+                    <h5 className="font-semibold text-gray-700 mb-3">Notas por Secção</h5>
+                    {checklist.sections.map((section, idx) => {
+                      const sectionRating = calculateSectionRatingScale(section.id);
+                      return (
+                        <div key={idx} className="flex items-center justify-between py-2">
+                          <span className="text-sm text-gray-600">{section.name}</span>
+                          <span className={`text-sm font-bold ${
+                            sectionRating < 2.5 ? 'text-red-600' 
+                            : sectionRating < 4 ? 'text-yellow-600' 
+                            : 'text-green-600'
+                          }`}>
+                            {formatRatingScale(sectionRating)}/5
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Text Fields */}
+              {((audit as any).pontosFortes || audit.pontos_fortes) && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">Pontos Fortes</h4>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{(audit as any).pontosFortes || audit.pontos_fortes}</p>
+                  </div>
+                </div>
+              )}
+
+              {((audit as any).pontosMelhorar || audit.pontos_melhorar) && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">Pontos a Melhorar</h4>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{(audit as any).pontosMelhorar || audit.pontos_melhorar}</p>
+                  </div>
+                </div>
+              )}
+
+              {((audit as any).acoesCriticas || audit.acoes_criticas) && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">Ações Críticas</h4>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{(audit as any).acoesCriticas || audit.acoes_criticas}</p>
+                  </div>
+                </div>
+              )}
+
+              {((audit as any).alertas || audit.alertas) && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">Alertas</h4>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{(audit as any).alertas || audit.alertas}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Comment Thread */}
         <CommentThread auditId={audit.id} />

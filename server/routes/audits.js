@@ -80,15 +80,26 @@ router.post('/', async (req, res) => {
 // Update audit
 router.put('/:id', async (req, res) => {
   try {
-    const { status, dtend, finalScore } = req.body;
-    console.log('PUT /api/audits/:id', { id: req.params.id, status, dtend, finalScore });
+    const { status, dtend, finalScore, pontos_fortes, pontos_melhorar, acoes_criticas, alertas } = req.body;
+    console.log('PUT /api/audits/:id', { id: req.params.id, status, dtend, finalScore, pontos_fortes, pontos_melhorar, acoes_criticas, alertas });
+    
+    // Convert undefined to null for proper DB handling
+    const pontos_fortes_val = pontos_fortes !== undefined ? pontos_fortes : null;
+    const pontos_melhorar_val = pontos_melhorar !== undefined ? pontos_melhorar : null;
+    const acoes_criticas_val = acoes_criticas !== undefined ? acoes_criticas : null;
+    const alertas_val = alertas !== undefined ? alertas : null;
+    
     const result = await query(
       `UPDATE audits 
        SET status = COALESCE($1, status), 
            dtend = COALESCE($2, dtend),
-           final_score = COALESCE($3, final_score)
-       WHERE id = $4 RETURNING *`,
-      [status, dtend, finalScore, req.params.id]
+           final_score = COALESCE($3, final_score),
+           pontos_fortes = COALESCE($4, pontos_fortes),
+           pontos_melhorar = COALESCE($5, pontos_melhorar),
+           acoes_criticas = COALESCE($6, acoes_criticas),
+           alertas = COALESCE($7, alertas)
+       WHERE id = $8 RETURNING *`,
+      [status, dtend, finalScore, pontos_fortes_val, pontos_melhorar_val, acoes_criticas_val, alertas_val, req.params.id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Audit not found' });
