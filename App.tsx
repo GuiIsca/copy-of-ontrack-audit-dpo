@@ -1,5 +1,3 @@
-
-
 import { getCurrentUser, hasRole } from './utils/auth';
 import { UserRole } from './types';
 console.log('DEBUG getCurrentUser:', getCurrentUser());
@@ -27,6 +25,7 @@ import { AderenteAuditView } from './pages/AderenteAuditView';
 import { AderenteDashboard } from './pages/AderenteDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminContactMessages } from './pages/AdminContactMessages';
+import { ContactAdmin } from './pages/ContactAdmin';
 import { AmontDashboard } from './pages/AmontDashboard';
 import { SpecialistManuals } from './pages/SpecialistManuals';
 import { AdminSpecialistManuals } from './pages/AdminSpecialistManuals';
@@ -42,21 +41,7 @@ import { BookNegocio } from './pages/BookNegocio';
 import { AnalisesImportantes } from './pages/AnalisesImportantes';
 import { Inventario } from './pages/Inventario';
 import { DadosConcorrencia } from './pages/DadosConcorrencia';
-import { Login } from './pages/Login';
-import { ForgotPassword } from './pages/ForgotPassword';
-import { ResetPassword } from './pages/ResetPassword';
-import { Dashboard } from './pages/Dashboard';
-import { NewAudit } from './pages/NewAudit';
-import { NewVisit } from './pages/NewVisit';
-import { SelectVisitType } from './pages/SelectVisitType';
-import { AuditExecution } from './pages/AuditExecution';
-import { AuditList } from './pages/AuditList';
-import { ActionsList } from './pages/ActionsList';
-import { ActionPlans } from './pages/ActionPlans';
-import { AderenteAuditView } from './pages/AderenteAuditView';
-import { AderenteDashboard } from './pages/AderenteDashboard';
 import { AderenteNewVisit } from './pages/AderenteNewVisit';
-import { AderenteContactAdmin } from './pages/AderenteContactAdmin';
 import { AderenteVisitas } from './pages/AderenteVisitas';
 import { DOTTeamLeaderDashboard } from './pages/DOTTeamLeaderDashboard';
 import { DOTTeamLeaderAuditView } from './pages/DOTTeamLeaderAuditView';
@@ -70,33 +55,6 @@ import { AderenteVisitPage } from './pages/AderenteVisitPage';
 import { VisitDetail } from './pages/VisitDetail';
 import { Reports } from './pages/Reports';
 import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard, canAccessAmontDashboard, canViewAnalytics } from './utils/permissions';
-import { AderenteNewVisit } from './pages/AderenteNewVisit';
-import { AderenteContactAdmin } from './pages/AderenteContactAdmin';
-import { DOTTeamLeaderDashboard } from './pages/DOTTeamLeaderDashboard';
-import { DOTTeamLeaderAuditView } from './pages/DOTTeamLeaderAuditView';
-import { DOTTeamLeaderImportTasksCSV } from './pages/DOTTeamLeaderImportTasksCSV';
-import { DOTTeamLeaderNewVisit } from './pages/DOTTeamLeaderNewVisit';
-import { DOTTeamLeaderNewVisitDOT } from './pages/DOTTeamLeaderNewVisitDOT';
-import { DOTTeamLeaderSelectNewVisit } from './pages/DOTTeamLeaderSelectNewVisit';
-import { DotOperacionalAuditPage } from './pages/DotOperacionalAuditPage';
-import { DotOperacionalAuditView } from './pages/DotOperacionalAuditView';
-import { AderenteVisitPage } from './pages/AderenteVisitPage';
-import { VisitDetail } from './pages/VisitDetail';
-import { Reports } from './pages/Reports';
-import { getDefaultDashboard, canAccessDOTDashboard, canAccessAderenteDashboard, canAccessDotTeamLeaderDashboard, canViewReports, canAccessAdminDashboard, canAccessAmontDashboard, canViewAnalytics } from './utils/permissions';
-
-import { AdminContactMessages } from './pages/AdminContactMessages';
-
-import { AmontDashboard } from './pages/AmontDashboard';
-
-import { SpecialistManuals } from './pages/SpecialistManuals';
-
-import { AdminSpecialistManuals } from './pages/AdminSpecialistManuals';
-
-import MenuDashboard from './pages/MenuDashboard';
-
-
-import { Analytics } from './pages/Analytics';
 
 // Role-based protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireRole?: () => boolean }> = ({ children, requireRole }) => {
@@ -225,7 +183,7 @@ const App: React.FC = () => {
         } />
         <Route path="/dot-operacional/contact-admin" element={
             <ProtectedRoute requireRole={canAccessDOTDashboard}>
-                <AderenteContactAdmin />
+                <ContactAdmin />
             </ProtectedRoute>
         } />
         <Route path="/dot-operacional/import-visitas" element={
@@ -336,7 +294,7 @@ const App: React.FC = () => {
         
         <Route path="/aderente/contact-admin" element={
             <ProtectedRoute requireRole={canAccessAderenteDashboard}>
-                <AderenteContactAdmin />
+                <ContactAdmin />
             </ProtectedRoute>
         } />
         <Route path="/aderente/reports" element={
@@ -392,7 +350,7 @@ const App: React.FC = () => {
         } />
         <Route path="/dot-team-leader/contact-admin" element={
             <ProtectedRoute requireRole={canAccessDotTeamLeaderDashboard}>
-                <AderenteContactAdmin />
+                <ContactAdmin />
             </ProtectedRoute>
         } />
         <Route path="/analytics" element={
@@ -680,7 +638,7 @@ const App: React.FC = () => {
         } />
         <Route path="/amont/contact-admin" element={
             <ProtectedRoute requireRole={canAccessAmontDashboard}>
-                <AderenteContactAdmin />
+                <ContactAdmin />
             </ProtectedRoute>
         } />
         

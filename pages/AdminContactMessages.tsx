@@ -35,7 +35,7 @@ export const AdminContactMessages: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [filterRead, setFilterRead] = useState<'all' | 'unread' | 'read'>('unread');
+  const [filterRead, setFilterRead] = useState<'all' | 'unread' | 'read'>('all');
   const [filterDepartment, setFilterDepartment] = useState<number | 'all'>('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<number | null>(null);
