@@ -39,7 +39,7 @@ export const exportAuditToPDF = async (
   // Construir seções com critérios
   const sectionsHTML = (checklistData?.sections || [])
     .map((section: any) => {
-      const sectionEval = scoresBySection?.find((s: any) => s.section_id === section.id);
+      const sectionEval = scoresBySection?.find((s: any) => String(s.section_id) === String(section.id));
 
       const criteriaBlocksHTML = (section.items || [])
         .map((item: any) => {
@@ -110,7 +110,7 @@ export const exportAuditToPDF = async (
         })
         .join('');
 
-      // Wrapper de toda a secção: título + avaliação + todos os itens
+      // Wrapper de toda a secção: título + avaliação + plano de ação + todos os itens
       return `
         <div style="margin: 24px 0; page-break-inside: avoid;">
           <h4 style="
@@ -146,6 +146,23 @@ export const exportAuditToPDF = async (
                   ">
                     ${sectionEval.rating}/5
                   </span>
+                </div>`
+              : ''
+          }
+
+          ${
+            sectionEval?.action_plan
+              ? `<div style="
+                  margin: 8px 0 16px 0;
+                  padding: 10px;
+                  background-color: #fef9c3;
+                  border-radius: 4px;
+                  font-size: 13px;
+                  color: #92400e;
+                  border-left: 4px solid #f59e42;
+                  page-break-inside: avoid;
+                ">
+                  <strong>Plano de Ação:</strong> ${sectionEval.action_plan}
                 </div>`
               : ''
           }
@@ -340,6 +357,15 @@ export const exportAuditToPDF = async (
         </div>
       </div>
 
+      ${audit.auditorcomments ? `
+        <div class="section">
+          <h2>Observações Gerais do Auditor</h2>
+          <div class="general-data" style="background-color: #f3f4f6; color: #374151;">
+            <p style="white-space: pre-line;">${audit.auditorcomments}</p>
+          </div>
+        </div>
+      ` : ''}
+
       <div class="section resultados-section">
         <h2>Resultados da Avaliação</h2>
         <div style="page-break-inside: avoid;">
@@ -351,9 +377,20 @@ export const exportAuditToPDF = async (
         actions && actions.length > 0
           ? `
         <div class="section">
-          <h2>Ações Criadas</h2>
+          <h2>Ações</h2>
           <ul>
-            ${actionsListHTML}
+            ${actions.map(action => `
+              <li>
+                <strong>${action.title || 'Sem título'}</strong><br/>
+                <div style="margin-top: 4px;">
+                  <span style="margin-right: 12px;"><strong>Responsável:</strong> ${action.responsible || '-'}</span>
+                  <span style="margin-right: 12px;"><strong>Prazo:</strong> ${action.dueDate ? formatDate(action.dueDate) : '-'}</span>
+                  <span style="margin-right: 12px;"><strong>Status:</strong> <span style="color: ${action.status === 'completed' ? '#059669' : '#dc2626'}; font-weight: bold;">${action.status || 'Pendente'}</span></span>
+                  ${action.completedDate ? `<span style="color: #059669;"><strong>Concluída:</strong> ${formatDate(action.completedDate)}</span>` : ''}
+                </div>
+                <p style="margin-top: 8px;">${action.description || ''}</p>
+              </li>
+            `).join('')}
           </ul>
         </div>
       `

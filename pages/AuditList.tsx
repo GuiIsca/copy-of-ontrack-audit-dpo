@@ -109,46 +109,11 @@ export const AuditList: React.FC = () => {
       audit.status
     );
 
-    if (audit.status >= AuditStatus.SUBMITTED) {
-      // Gera PDF
-      console.log('✅ Status SUBMITTED - Gerando PDF...');
-      try {
-        const fullAudit = await db.getAuditById(audit.id);
-        const store = audit.store;
-        const checklist = fullAudit.checklistId
-          ? await db.getChecklistById(fullAudit.checklistId)
-          : null;
-        const scores = await db.getScores(audit.id);
-        const sectionEvals = await db.getSectionEvaluations(audit.id);
-        const actions = await db.getActions(audit.id);
-        const comments = await db.getComments(audit.id);
-
-        const auditWithScores = { ...fullAudit, scores };
-
-        await exportAuditToPDF(
-          auditWithScores,
-          store,
-          checklist,
-          allUsers,
-          actions,
-          comments,
-          sectionEvals
-        );
-        console.log('✅ PDF gerado com sucesso!');
-      } catch (error) {
-        console.error('❌ Erro ao gerar PDF:', error);
-        alert('Erro ao gerar PDF. Por favor, tente novamente.');
-      }
-    } else {
-      // Abre para edição
-      console.log(
-        '📝 Status NÃO SUBMETIDA - Abrindo página de edição...'
-      );
-      const detailPath = currentUser?.roles.includes('ADERENTE' as any)
-        ? `/aderente/visit/${audit.id}`
-        : `/dot-operacional/audit/${audit.id}`;
-      navigate(detailPath);
-    }
+    // Sempre abre para edição/visualização, não exporta mais PDF automaticamente
+    const detailPath = currentUser?.roles.includes('ADERENTE' as any)
+      ? `/aderente/visit/${audit.id}`
+      : `/dot-operacional/audit/${audit.id}`;
+    navigate(detailPath);
   };
 
   // Filter audits based on view mode
@@ -675,15 +640,18 @@ export const AuditList: React.FC = () => {
                       <tr
                         key={audit.id}
                         className={`hover:bg-gray-50 cursor-pointer ${isReplaced ? 'opacity-60' : ''}`}
-                        onClick={() => handleAuditClick(audit)}
                         style={isReplaced ? { textDecoration: 'line-through' } : {}}
                       >
-                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${isReplaced ? 'line-through' : ''}`}>
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${isReplaced ? 'line-through' : ''}`}
+                            onClick={() => handleAuditClick(audit)}
+                        >
                           {new Date(
                             audit.dtstart
                           ).toLocaleDateString()}
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${isReplaced ? 'line-through' : ''}`}>
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${isReplaced ? 'line-through' : ''}`}
+                            onClick={() => handleAuditClick(audit)}
+                        >
                           {audit.store.nome}
                           {audit.store.city && (
                             <span className="text-gray-500 text-xs ml-1">
@@ -691,7 +659,7 @@ export const AuditList: React.FC = () => {
                             </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap" onClick={() => handleAuditClick(audit)}>
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                               audit.status
@@ -700,10 +668,48 @@ export const AuditList: React.FC = () => {
                             {isReplaced ? 'Sobreposto' : getStatusLabel(audit.status)}
                           </span>
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900 ${isReplaced ? 'line-through' : ''}`}>
+                        <td className={`px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900 ${isReplaced ? 'line-through' : ''}`}
+                            onClick={() => handleAuditClick(audit)}
+                        >
                           {audit.score
                             ? `${audit.score.toFixed(1)}%`
                             : '-'}
+                          {/* Botão Exportar PDF */}
+                          {audit.status >= AuditStatus.SUBMITTED && !isReplaced && (
+                            <button
+                              className="ml-2 px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold transition-all"
+                              title="Exportar PDF"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const fullAudit = await db.getAuditById(audit.id);
+                                  const store = audit.store;
+                                  const checklist = fullAudit.checklistId
+                                    ? await db.getChecklistById(fullAudit.checklistId)
+                                    : null;
+                                  const scores = await db.getScores(audit.id);
+                                  const sectionEvals = await db.getSectionEvaluations(audit.id);
+                                  const actions = await db.getActions(audit.id);
+                                  const comments = await db.getComments(audit.id);
+                                  const auditWithScores = { ...fullAudit, scores };
+                                  console.log('sectionEvals for PDF:', sectionEvals);
+                                  await exportAuditToPDF(
+                                    auditWithScores,
+                                    store,
+                                    checklist,
+                                    allUsers,
+                                    actions,
+                                    comments,
+                                    sectionEvals
+                                  );
+                                } catch (error) {
+                                  alert('Erro ao gerar PDF. Por favor, tente novamente.');
+                                }
+                              }}
+                            >
+                              Exportar PDF
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
