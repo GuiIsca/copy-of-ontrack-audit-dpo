@@ -50,6 +50,11 @@ export const AuditList: React.FC = () => {
       let rawAudits: Audit[];
       let rawVisits: Visit[];
 
+      const belongsToUser = (id?: number | string | null) => {
+        if (id === undefined || id === null) return false;
+        return Number(id) === Number(user.id);
+      };
+
       if (user.roles.includes('ADERENTE' as any)) {
         // Aderente vê apenas as suas próprias visitas/auditorias
         const allAudits = await db.getAudits();
@@ -63,12 +68,30 @@ export const AuditList: React.FC = () => {
         // DOT Operacional vê apenas as suas auditorias
         rawAudits = await db.getAudits(user.id);
         rawVisits = await db.getVisitsForDOT(user.id);
+      } else if (
+        user.roles.includes(UserRole.DOT_TEAM_LEADER as any) ||
+        user.roles.includes(UserRole.ADMIN as any)
+      ) {
+        // Admin e DOT Team Leader veem apenas visitas/auditorias criadas ou atribuídas a eles
+        const allAudits = await db.getAudits();
+        rawAudits = allAudits.filter(
+          a =>
+            belongsToUser(a.createdBy) ||
+            belongsToUser(a.user_id) ||
+            belongsToUser(a.dot_operacional_id) ||
+            belongsToUser((a as any).dotUserId)
+        );
+
+        const allVisits = await db.getVisits();
+        rawVisits = allVisits.filter(v => {
+          const creatorId = (v as any).created_by ?? v.createdBy;
+          return belongsToUser(creatorId) || belongsToUser(v.user_id);
+        });
       } else {
-        // TEAM LEADER / AMONT / ADMIN veem todas
+        // AMONT e restantes perfis veem todas
         rawAudits = await db.getAudits();
         rawVisits = await db.getVisits();
       }
-
       const enriched = rawAudits.map(a => ({
         ...a,
         store: stores.find(s => s.id === a.store_id) as Store
@@ -693,14 +716,27 @@ export const AuditList: React.FC = () => {
                                   const comments = await db.getComments(audit.id);
                                   const auditWithScores = { ...fullAudit, scores };
                                   console.log('sectionEvals for PDF:', sectionEvals);
+
+                                  const currentUser = getCurrentUser();
+                                  const isAderente = currentUser?.roles?.includes('ADERENTE' as any);
+
                                   await exportAuditToPDF(
                                     auditWithScores,
                                     store,
                                     checklist,
                                     allUsers,
+                                    scores,
                                     actions,
                                     comments,
-                                    sectionEvals
+                                    sectionEvals,
+                                    isAderente
+                                      ? {
+                                          hideSummary: true,
+                                          hideComments: true,
+                                          hideUnscoredBadges: true,
+                                          hideSectionEvaluations: true
+                                        }
+                                      : undefined
                                   );
                                 } catch (error) {
                                   alert('Erro ao gerar PDF. Por favor, tente novamente.');
