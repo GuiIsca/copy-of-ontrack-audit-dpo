@@ -52,6 +52,7 @@ export interface Store {
   conjugue_adh?: string;
   lugares_estacionamento?: number;
   pac?: boolean;
+  servicos_disponiveis?: string[];
   size: string;
   city: string;
   gpslat?: number;

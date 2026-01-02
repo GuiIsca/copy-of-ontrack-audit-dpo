@@ -60,6 +60,7 @@ CREATE TABLE stores (
     conjugue_adh VARCHAR(255),
     lugares_estacionamento INTEGER,
     pac BOOLEAN,
+    servicos_disponiveis TEXT[],
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -90,6 +90,7 @@ router.post('/', async (req, res) => {
 // Update store
 router.put('/:id', async (req, res) => {
   try {
+    console.log('Update store - body:', JSON.stringify(req.body, null, 2));
     const {
       numero,
       nome,
@@ -107,8 +108,10 @@ router.put('/:id', async (req, res) => {
       codigo_postal,
       conjugue_adh,
       lugares_estacionamento,
-      pac
+      pac,
+      servicos_disponiveis
     } = req.body;
+    console.log('servicos_disponiveis:', servicos_disponiveis);
 
     const updates = [];
     const values = [];
@@ -181,6 +184,11 @@ router.put('/:id', async (req, res) => {
     if (pac !== undefined) {
       updates.push(`pac = $${paramCount++}`);
       values.push(pac);
+    }
+    if (servicos_disponiveis !== undefined) {
+      updates.push(`servicos_disponiveis = $${paramCount++}`);
+      // PostgreSQL espera um array, o node-postgres vai serializar automaticamente
+      values.push(servicos_disponiveis && servicos_disponiveis.length > 0 ? servicos_disponiveis : null);
     }
 
     if (updates.length === 0) {

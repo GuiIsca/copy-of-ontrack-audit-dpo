@@ -19,6 +19,9 @@ const DadosDaLoja: React.FC = () => {
   const [estacionamentoValue, setEstacionamentoValue] = useState('');
   const [pacEdit, setPacEdit] = useState(false);
   const [pacValue, setPacValue] = useState<boolean | null>(null);
+  const [servicosEdit, setServicosEdit] = useState(false);
+  const [servicosValue, setServicosValue] = useState<string[]>([]);
+  const [servicosInput, setServicosInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -61,6 +64,7 @@ const DadosDaLoja: React.FC = () => {
           setPhoneValue(stores[0].telefone || '');
           setEstacionamentoValue(stores[0].lugares_estacionamento?.toString() || '');
           setPacValue(stores[0].pac ?? null);
+          setServicosValue(stores[0].servicos_disponiveis || []);
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -79,9 +83,12 @@ const DadosDaLoja: React.FC = () => {
       setPhoneValue(selectedStore.telefone || '');
       setEstacionamentoValue(selectedStore.lugares_estacionamento?.toString() || '');
       setPacValue(selectedStore.pac ?? null);
+      setServicosValue(selectedStore.servicos_disponiveis || []);
       setPhoneEdit(false);
       setEstacionamentoEdit(false);
       setPacEdit(false);
+      setServicosEdit(false);
+      setServicosInput('');
     }
   };
 
@@ -132,6 +139,55 @@ const DadosDaLoja: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSaveServicos = async () => {
+    if (!store) return;
+    
+    // Se houver texto no input, adiciona automaticamente antes de guardar
+    let finalServicos = [...servicosValue];
+    if (servicosInput.trim() && !finalServicos.includes(servicosInput.trim())) {
+      finalServicos = [...finalServicos, servicosInput.trim()];
+    }
+    
+    console.log('Saving servicos:', finalServicos);
+    console.log('Store before update:', store);
+    
+    setSaving(true);
+    try {
+      const updatedStore = { ...store, servicos_disponiveis: finalServicos };
+      console.log('Updated store to send:', updatedStore);
+      await db.updateStore(updatedStore);
+      setStore(updatedStore);
+      setServicosValue(finalServicos);
+      setServicosInput('');
+      setServicosEdit(false);
+    } catch (error) {
+      console.error('Erro ao atualizar serviços:', error);
+      alert('Erro ao atualizar serviços');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddServico = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    console.log('Key pressed:', e.key);
+    console.log('Input value:', servicosInput);
+    if (e.key === 'Enter' && servicosInput.trim()) {
+      e.preventDefault();
+      console.log('Adding servico:', servicosInput.trim());
+      console.log('Current servicosValue:', servicosValue);
+      if (!servicosValue.includes(servicosInput.trim())) {
+        const newServicos = [...servicosValue, servicosInput.trim()];
+        console.log('New servicosValue:', newServicos);
+        setServicosValue(newServicos);
+      }
+      setServicosInput('');
+    }
+  };
+
+  const handleRemoveServico = (index: number) => {
+    setServicosValue(servicosValue.filter((_, i) => i !== index));
   };
 
   const handleMapClick = () => {
@@ -463,6 +519,79 @@ const DadosDaLoja: React.FC = () => {
                       </p>
                       <button
                         onClick={() => setPacEdit(true)}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-sm font-medium text-gray-500 block">Serviços Disponíveis</label>
+                  {servicosEdit ? (
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg bg-gray-50 min-h-10">
+                        {servicosValue.map((servico, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                          >
+                            <span>{servico}</span>
+                            <button
+                              onClick={() => handleRemoveServico(index)}
+                              className="text-blue-600 hover:text-blue-800 font-bold"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        value={servicosInput}
+                        onChange={(e) => setServicosInput(e.target.value)}
+                        onKeyDown={handleAddServico}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Digite um serviço e pressione Enter"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSaveServicos}
+                          disabled={saving}
+                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {saving ? 'A guardar...' : 'Guardar'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setServicosEdit(false);
+                            setServicosValue(store.servicos_disponiveis || []);
+                            setServicosInput('');
+                          }}
+                          className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {servicosValue.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {servicosValue.map((servico, index) => (
+                            <div
+                              key={index}
+                              className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                            >
+                              {servico}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-base text-gray-900">-</p>
+                      )}
+                      <button
+                        onClick={() => setServicosEdit(true)}
                         className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                       >
                         Editar
