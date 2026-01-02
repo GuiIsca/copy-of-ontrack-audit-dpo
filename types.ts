@@ -50,6 +50,8 @@ export interface Store {
   morada?: string;
   codigo_postal?: string;
   conjugue_adh?: string;
+  lugares_estacionamento?: number;
+  pac?: boolean;
   size: string;
   city: string;
   gpslat?: number;

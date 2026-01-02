@@ -58,6 +58,8 @@ CREATE TABLE stores (
     morada VARCHAR(255),
     codigo_postal VARCHAR(10),
     conjugue_adh VARCHAR(255),
+    lugares_estacionamento INTEGER,
+    pac BOOLEAN,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

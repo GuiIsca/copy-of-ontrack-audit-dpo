@@ -105,7 +105,9 @@ router.put('/:id', async (req, res) => {
       amplitude_horaria,
       morada,
       codigo_postal,
-      conjugue_adh
+      conjugue_adh,
+      lugares_estacionamento,
+      pac
     } = req.body;
 
     const updates = [];
@@ -171,6 +173,14 @@ router.put('/:id', async (req, res) => {
     if (conjugue_adh !== undefined) {
       updates.push(`conjugue_adh = $${paramCount++}`);
       values.push(conjugue_adh);
+    }
+    if (lugares_estacionamento !== undefined) {
+      updates.push(`lugares_estacionamento = $${paramCount++}`);
+      values.push(lugares_estacionamento);
+    }
+    if (pac !== undefined) {
+      updates.push(`pac = $${paramCount++}`);
+      values.push(pac);
     }
 
     if (updates.length === 0) {

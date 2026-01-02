@@ -15,6 +15,10 @@ const DadosDaLoja: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [phoneEdit, setPhoneEdit] = useState(false);
   const [phoneValue, setPhoneValue] = useState('');
+  const [estacionamentoEdit, setEstacionamentoEdit] = useState(false);
+  const [estacionamentoValue, setEstacionamentoValue] = useState('');
+  const [pacEdit, setPacEdit] = useState(false);
+  const [pacValue, setPacValue] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -55,6 +59,8 @@ const DadosDaLoja: React.FC = () => {
         if (stores.length > 0) {
           setStore(stores[0]);
           setPhoneValue(stores[0].telefone || '');
+          setEstacionamentoValue(stores[0].lugares_estacionamento?.toString() || '');
+          setPacValue(stores[0].pac ?? null);
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -71,7 +77,11 @@ const DadosDaLoja: React.FC = () => {
     if (selectedStore) {
       setStore(selectedStore);
       setPhoneValue(selectedStore.telefone || '');
+      setEstacionamentoValue(selectedStore.lugares_estacionamento?.toString() || '');
+      setPacValue(selectedStore.pac ?? null);
       setPhoneEdit(false);
+      setEstacionamentoEdit(false);
+      setPacEdit(false);
     }
   };
 
@@ -86,6 +96,39 @@ const DadosDaLoja: React.FC = () => {
     } catch (error) {
       console.error('Erro ao atualizar telefone:', error);
       alert('Erro ao atualizar telefone');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveEstacionamento = async () => {
+    if (!store) return;
+    
+    setSaving(true);
+    try {
+      const lugaresValue = estacionamentoValue ? parseInt(estacionamentoValue) : null;
+      await db.updateStore({ ...store, lugares_estacionamento: lugaresValue });
+      setStore({ ...store, lugares_estacionamento: lugaresValue });
+      setEstacionamentoEdit(false);
+    } catch (error) {
+      console.error('Erro ao atualizar estacionamento:', error);
+      alert('Erro ao atualizar estacionamento');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSavePac = async () => {
+    if (!store) return;
+    
+    setSaving(true);
+    try {
+      await db.updateStore({ ...store, pac: pacValue });
+      setStore({ ...store, pac: pacValue });
+      setPacEdit(false);
+    } catch (error) {
+      console.error('Erro ao atualizar PAC:', error);
+      alert('Erro ao atualizar PAC');
     } finally {
       setSaving(false);
     }
@@ -275,6 +318,12 @@ const DadosDaLoja: React.FC = () => {
                     {store.data_abertura ? new Date(store.data_abertura).toLocaleDateString('pt-PT') : '-'}
                   </p>
                 </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Data da Retoma</label>
+                  <p className="text-base text-gray-900">
+                    {store.ultima_retoma ? new Date(store.ultima_retoma).toLocaleDateString('pt-PT') : '-'}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -327,6 +376,99 @@ const DadosDaLoja: React.FC = () => {
                   <p className="text-base text-gray-900">
                     {store.area ? `${store.area} m²` : '-'}
                   </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">Lugares de Estacionamento</label>
+                  {estacionamentoEdit ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        value={estacionamentoValue}
+                        onChange={(e) => setEstacionamentoValue(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Número de lugares"
+                        min="0"
+                      />
+                      <button
+                        onClick={handleSaveEstacionamento}
+                        disabled={saving}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {saving ? 'A guardar...' : 'Guardar'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEstacionamentoEdit(false);
+                          setEstacionamentoValue(store.lugares_estacionamento?.toString() || '');
+                        }}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="text-base text-gray-900">{store.lugares_estacionamento ?? '-'}</p>
+                      <button
+                        onClick={() => setEstacionamentoEdit(true)}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-500 block">PAC</label>
+                  {pacEdit ? (
+                    <div className="flex gap-2">
+                      <select
+                        value={pacValue === null ? '' : pacValue ? 'sim' : 'nao'}
+                        onChange={(e) => {
+                          if (e.target.value === '') {
+                            setPacValue(null);
+                          } else if (e.target.value === 'sim') {
+                            setPacValue(true);
+                          } else {
+                            setPacValue(false);
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">-</option>
+                        <option value="sim">Sim</option>
+                        <option value="nao">Não</option>
+                      </select>
+                      <button
+                        onClick={handleSavePac}
+                        disabled={saving}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {saving ? 'A guardar...' : 'Guardar'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPacEdit(false);
+                          setPacValue(store.pac ?? null);
+                        }}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="text-base text-gray-900">
+                        {pacValue === null ? '-' : pacValue ? 'Sim' : 'Não'}
+                      </p>
+                      <button
+                        onClick={() => setPacEdit(true)}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
