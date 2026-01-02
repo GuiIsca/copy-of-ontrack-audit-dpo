@@ -1242,80 +1242,88 @@ export const AuditExecution: React.FC = () => {
                                     
                                     if (evalType === 'OK_KO') {
                                       // OK/KO for DOTs
-                                      return (
-                                        <>
-                                          <div className="flex items-center space-x-3">
-                                            <button
-                                              disabled={isReadOnly || isSaving}
-                                              onClick={() => handleScoreChange(crit.id, 1)}
-                                              className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-                                                scoreVal === 1
-                                                ? 'bg-green-500 text-white shadow-md'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
-                                              }`}
-                                            >
-                                              ✓ OK
-                                            </button>
-                                            <button
-                                              disabled={isReadOnly || isSaving}
-                                              onClick={() => handleScoreChange(crit.id, 0)}
-                                              className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
-                                                scoreVal === 0
-                                                ? 'bg-red-500 text-white shadow-md'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
-                                              }`}
-                                            >
-                                              ✗ KO
-                                            </button>
-                                          </div>
-                                          
-                                          <textarea
-                                            disabled={isReadOnly || isSaving}
-                                            placeholder="Comentário (opcional)..."
-                                            className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
-                                            rows={2}
-                                            value={criteriaComments[crit.id] || ''}
-                                            onChange={(e) => handleCommentChange(crit.id, e.target.value)}
-                                            onBlur={() => saveComment(crit.id)}
-                                          />
-                                          
-                                          <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                              <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
-                                                <Camera size={16} />
-                                                <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
-                                                <input
-                                                  type="file"
-                                                  accept="image/*"
-                                                  className="hidden"
-                                                  disabled={isReadOnly || isSaving}
-                                                  onChange={(e) => handlePhotoUpload(crit.id, e)}
-                                                />
-                                              </label>
-                                              {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
-                                                <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
+                                        return (
+                                          <>
+                                            <div className="flex items-center space-x-3">
+                                              <button
+                                                disabled={isReadOnly || isSaving}
+                                                onClick={() => handleScoreChange(crit.id, 1)}
+                                                className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                  scoreVal === 1
+                                                  ? 'bg-green-500 text-white shadow-md'
+                                                  : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
+                                                }`}
+                                              >
+                                                ✓ OK
+                                              </button>
+                                              <button
+                                                disabled={isReadOnly || isSaving}
+                                                onClick={() => handleScoreChange(crit.id, 0)}
+                                                className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                                                  scoreVal === 0
+                                                  ? 'bg-red-500 text-white shadow-md'
+                                                  : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200'
+                                                }`}
+                                              >
+                                                ✗ KO
+                                              </button>
+                                              {/* Botão de reset, aparece só se houver seleção */}
+                                              {scoreVal !== undefined && scoreVal !== null && !isReadOnly && !isSaving && (
+                                                <button
+                                                  onClick={() => handleScoreChange(crit.id, null)}
+                                                  className="ml-2 px-2 py-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all"
+                                                  title="Limpar seleção"
+                                                >
+                                                  <X size={16} />
+                                                </button>
                                               )}
                                             </div>
-                                            {criteriaPhotos[crit.id]?.length > 0 && (
-                                              <div className="flex flex-wrap gap-2">
-                                                {criteriaPhotos[crit.id].map((photo, idx) => (
-                                                  <div key={idx} className="relative group">
-                                                    <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
-                                                    {!isReadOnly && (
-                                                      <button
-                                                        onClick={() => handleRemovePhoto(crit.id, idx)}
-                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                      >
-                                                        <X size={12} />
-                                                      </button>
-                                                    )}
-                                                  </div>
-                                                ))}
+                                            <textarea
+                                              disabled={isReadOnly || isSaving}
+                                              placeholder="Comentário (opcional)..."
+                                              className="w-full text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 focus:ring-2 focus:ring-mousquetaires focus:border-mousquetaires outline-none resize-none"
+                                              rows={2}
+                                              value={criteriaComments[crit.id] || ''}
+                                              onChange={(e) => handleCommentChange(crit.id, e.target.value)}
+                                              onBlur={() => saveComment(crit.id)}
+                                            />
+                                            <div className="space-y-2">
+                                              <div className="flex items-center gap-2">
+                                                <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 text-sm text-gray-700">
+                                                  <Camera size={16} />
+                                                  <span>{scoreVal === 0 ? 'Foto obrigatória' : 'Adicionar foto'}</span>
+                                                  <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    disabled={isReadOnly || isSaving}
+                                                    onChange={(e) => handlePhotoUpload(crit.id, e)}
+                                                  />
+                                                </label>
+                                                {scoreVal === 0 && (!criteriaPhotos[crit.id] || criteriaPhotos[crit.id].length === 0) && (
+                                                  <span className="text-xs text-red-600 font-medium">* Obrigatória para KO</span>
+                                                )}
                                               </div>
-                                            )}
-                                          </div>
-                                        </>
-                                      );
+                                              {criteriaPhotos[crit.id]?.length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                  {criteriaPhotos[crit.id].map((photo, idx) => (
+                                                    <div key={idx} className="relative group">
+                                                      <img src={photo} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
+                                                      {!isReadOnly && (
+                                                        <button
+                                                          onClick={() => handleRemovePhoto(crit.id, idx)}
+                                                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                          <X size={12} />
+                                                        </button>
+                                                      )}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              )}
+                                            </div>
+                                          </>
+                                        );
                                     } else {
                                       // SCALE_1_5 for Aderente
                                       return (
