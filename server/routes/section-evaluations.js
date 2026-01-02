@@ -21,6 +21,7 @@ router.post('/', async (req, res) => {
   try {
     const { auditId, sectionId, rating, actionPlan, responsible, dueDate, aderenteId, storeId, createdBy } = req.body;
     console.log('POST /api/section-evaluations received:', { auditId, sectionId, rating, actionPlan, responsible, dueDate, aderenteId, storeId });
+    console.log(`[LOG] dueDate recebido:`, dueDate, `| Tipo:`, typeof dueDate);
     
     const result = await query(
       `INSERT INTO section_evaluations (audit_id, section_id, rating, action_plan, responsible, due_date, aderente_id) 
@@ -32,6 +33,9 @@ router.post('/', async (req, res) => {
     );
     
     console.log('Section evaluation saved successfully:', result.rows[0]);
+    if (result.rows[0]) {
+      console.log(`[LOG] due_date persistido no banco:`, result.rows[0].due_date, `| Tipo:`, typeof result.rows[0].due_date);
+    }
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error saving section evaluation:', error);

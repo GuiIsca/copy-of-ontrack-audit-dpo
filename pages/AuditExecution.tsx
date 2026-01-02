@@ -129,7 +129,16 @@ export const AuditExecution: React.FC = () => {
           if (ev.rating) ratings[key] = ev.rating;
           if (ev.action_plan) actions[key] = ev.action_plan;
           if (ev.responsible) responsibles[key] = ev.responsible;
-          if (ev.due_date) dueDates[key] = ev.due_date;
+          // Corrigir formato do due_date para 'YYYY-MM-DD'
+          let dateStr = '';
+          if (ev.due_date) {
+            if (typeof ev.due_date === 'string' && ev.due_date.includes('T')) {
+              dateStr = ev.due_date.split('T')[0];
+            } else {
+              dateStr = ev.due_date;
+            }
+          }
+          dueDates[key] = dateStr;
         });
         
         setSectionRatings(ratings);
@@ -471,6 +480,12 @@ export const AuditExecution: React.FC = () => {
         store_id: store?.id, // Add store_id for action_plans
         created_by: currentUser?.userId // Add created_by for action_plans
       });
+      // LOG: Mostrar o due date do plano de ação guardado
+      console.log(`[LOG] Plano de ação guardado para secção`, evalKey, `| due_date:`, sectionDueDates[evalKey]);
+      // Após guardar, atualizar todos os campos do estado para garantir que não há reset
+      setSectionActionPlans(prev => ({ ...prev, [evalKey]: sectionActionPlans[evalKey] }));
+      setSectionDueDates(prev => ({ ...prev, [evalKey]: sectionDueDates[evalKey] }));
+      setSectionResponsible(prev => ({ ...prev, [evalKey]: sectionResponsible[evalKey] || aderenteName || `Aderente (ID: ${store?.aderente_id})` }));
       setToastType('success');
       setToastMsg('Plano de ação guardado');
       setTimeout(() => setToastMsg(null), 1500);
